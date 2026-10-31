@@ -19,7 +19,7 @@ export const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-export const validateArticle = (input: ArticleInput): string | null => {
+export const validateArticle = (input: ArticleInput): string | undefined => {
   if (!input.title.trim()) {
     return 'Rubrik måste anges.';
   }
@@ -29,5 +29,5 @@ export const validateArticle = (input: ArticleInput): string | null => {
   if (!SLUG_PATTERN.test(input.slug)) {
     return 'Slug får bara innehålla a–z, 0–9 och bindestreck.';
   }
-  return null;
+  return undefined;
 };
