@@ -20,8 +20,12 @@ export const slugify = (value: string) =>
     .replace(/^-+|-+$/g, '');
 
 export const validateArticle = (input: ArticleInput): string | null => {
-  if (!input.title.trim()) return 'Rubrik måste anges.';
-  if (!input.slug) return 'Slug måste anges.';
+  if (!input.title.trim()) {
+    return 'Rubrik måste anges.';
+  }
+  if (!input.slug) {
+    return 'Slug måste anges.';
+  }
   if (!SLUG_PATTERN.test(input.slug)) {
     return 'Slug får bara innehålla a–z, 0–9 och bindestreck.';
   }
