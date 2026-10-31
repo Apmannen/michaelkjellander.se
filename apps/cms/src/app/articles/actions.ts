@@ -1,0 +1,41 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+
+import { type Article, type ArticleInput, validateArticle } from '@/lib/articles';
+import { db } from '@/lib/db';
+
+export type SaveArticleResult =
+  | { ok: true; article: Article }
+  | { ok: false; error: string };
+
+// TODO: verify authentication here once the cms has login.
+export async function saveArticle(
+  id: string | null,
+  raw: ArticleInput,
+): Promise<SaveArticleResult> {
+  const input: ArticleInput = {
+    title: String(raw.title ?? '').trim(),
+    slug: String(raw.slug ?? '').trim(),
+    published: raw.published === true,
+  };
+
+  const validationError = validateArticle(input);
+  if (validationError) return { ok: false, error: validationError };
+
+  const { data, error } = id
+    ? await db.updateArticle(id, input)
+    : await db.createArticle(input);
+
+  if (error) {
+    // 23505 = unique_violation
+    if (error.code === '23505') {
+      return { ok: false, error: 'Det finns redan en artikel med den sluggen.' };
+    }
+    console.error('saveArticle failed', error);
+    return { ok: false, error: 'Kunde inte spara artikeln.' };
+  }
+
+  revalidatePath('/articles', 'layout');
+  return { ok: true, article: data };
+}
