@@ -85,6 +85,7 @@ export function ArticleEditor({ article }: { article: Article | null }) {
               onChange={(event) => update({ title: event.target.value })}
               className={inputClass}
               autoFocus={!article}
+              autoComplete='off'
             />
           </Field>
 
