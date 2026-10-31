@@ -1,7 +1,6 @@
 import { db } from '.';
-import { ArticlePayload } from './payloadTypes';
 
-const latest = async (): Promise<ArticlePayload[]> => {
+const latest = async () => {
   //TODO: move
   const res = await db.supabase
     .from('articles')
@@ -10,7 +9,7 @@ const latest = async (): Promise<ArticlePayload[]> => {
 
   console.log('***res', res.data);
 
-  return [];
+  //return [];
 };
 
 export const dbArticles = {
