@@ -19,7 +19,10 @@ const listArticles = async (): Promise<Article[]> => {
     .select(ARTICLE_COLUMNS)
     .order('updated_at', { ascending: false });
 
-  if (error) throw error;
+  if(error) {
+    throw error;
+  }
+
   return data;
 };
 
@@ -30,7 +33,10 @@ const getArticle = async (id: string): Promise<Article | null> => {
     .eq('id', id)
     .maybeSingle();
 
-  if (error) throw error;
+  if(error) {
+    throw error;
+  }
+
   return data;
 };
 
