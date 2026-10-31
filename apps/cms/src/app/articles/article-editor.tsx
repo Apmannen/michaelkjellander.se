@@ -54,14 +54,14 @@ export function ArticleEditor({ article }: { article: Article | null }) {
 
   return (
     <form
-      className="flex h-full flex-col"
+      className='flex h-full flex-col'
       onSubmit={(event) => {
         event.preventDefault();
         if (isDirty) save();
       }}
     >
-      <header className="flex items-center justify-between gap-4 border-b border-zinc-200 px-6 py-3 dark:border-zinc-800">
-        <h1 className="truncate text-sm font-medium">
+      <header className='flex items-center justify-between gap-4 border-b border-zinc-200 px-6 py-3 dark:border-zinc-800'>
+        <h1 className='truncate text-sm font-medium'>
           {draft.title.trim() || 'Ny artikel'}
         </h1>
         <span
@@ -75,12 +75,12 @@ export function ArticleEditor({ article }: { article: Article | null }) {
         </span>
       </header>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-2xl flex-col gap-8 px-6 py-8">
-          <Field label="Rubrik" htmlFor="title">
+      <div className='flex-1 overflow-y-auto'>
+        <div className='mx-auto flex max-w-2xl flex-col gap-8 px-6 py-8'>
+          <Field label='Rubrik' htmlFor='title'>
             <input
-              id="title"
-              type="text"
+              id='title'
+              type='text'
               value={draft.title}
               onChange={(event) => update({ title: event.target.value })}
               className={inputClass}
@@ -89,20 +89,20 @@ export function ArticleEditor({ article }: { article: Article | null }) {
           </Field>
 
           <Field
-            label="Slug"
-            htmlFor="slug"
-            description="Används i artikelns adress."
+            label='Slug'
+            htmlFor='slug'
+            description='Används i artikelns adress.'
           >
-            <div className="flex gap-2">
+            <div className='flex gap-2'>
               <input
-                id="slug"
-                type="text"
+                id='slug'
+                type='text'
                 value={draft.slug}
                 onChange={(event) => update({ slug: event.target.value })}
                 className={`${inputClass} font-mono`}
               />
               <button
-                type="button"
+                type='button'
                 onClick={() => update({ slug: slugify(draft.title) })}
                 disabled={!draft.title.trim()}
                 className={secondaryButtonClass}
@@ -112,18 +112,20 @@ export function ArticleEditor({ article }: { article: Article | null }) {
             </div>
           </Field>
 
-          <Field label="Publicerad" htmlFor="published">
-            <label className="inline-flex cursor-pointer items-center gap-3">
+          <Field label='Publicerad' htmlFor='published'>
+            <label className='inline-flex cursor-pointer items-center gap-3'>
               <input
-                id="published"
-                type="checkbox"
-                role="switch"
+                id='published'
+                type='checkbox'
+                role='switch'
                 checked={draft.published}
-                onChange={(event) => update({ published: event.target.checked })}
-                className="peer sr-only"
+                onChange={(event) =>
+                  update({ published: event.target.checked })
+                }
+                className='peer sr-only'
               />
-              <span className="relative h-6 w-11 rounded-full bg-zinc-300 transition-colors after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-emerald-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 dark:bg-zinc-700" />
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              <span className='relative h-6 w-11 rounded-full bg-zinc-300 transition-colors after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-emerald-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 dark:bg-zinc-700' />
+              <span className='text-sm text-zinc-600 dark:text-zinc-400'>
                 {draft.published ? 'Ja' : 'Nej'}
               </span>
             </label>
@@ -131,16 +133,17 @@ export function ArticleEditor({ article }: { article: Article | null }) {
         </div>
       </div>
 
-      <footer className="flex items-center justify-end gap-4 border-t border-zinc-200 px-6 py-3 dark:border-zinc-800">
+      <footer className='flex items-center justify-end gap-4 border-t border-zinc-200 px-6 py-3 dark:border-zinc-800'>
         <p
-          role="status"
+          role='status'
           className={`mr-auto text-sm ${error ? 'text-red-600 dark:text-red-400' : 'text-zinc-500'}`}
         >
-          {error ?? (isDirty ? 'Osparade ändringar' : article ? 'Allt sparat' : '')}
+          {error ??
+            (isDirty ? 'Osparade ändringar' : article ? 'Allt sparat' : '')}
         </p>
         {isDirty && article && (
           <button
-            type="button"
+            type='button'
             onClick={() => {
               setDraft(saved);
               setError(null);
@@ -152,9 +155,9 @@ export function ArticleEditor({ article }: { article: Article | null }) {
           </button>
         )}
         <button
-          type="submit"
+          type='submit'
           disabled={!isDirty || isSaving}
-          className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
         >
           {isSaving ? 'Sparar…' : 'Spara'}
         </button>
@@ -181,14 +184,12 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className='flex flex-col gap-2'>
       <div>
-        <label htmlFor={htmlFor} className="text-sm font-semibold">
+        <label htmlFor={htmlFor} className='text-sm font-semibold'>
           {label}
         </label>
-        {description && (
-          <p className="text-xs text-zinc-500">{description}</p>
-        )}
+        {description && <p className='text-xs text-zinc-500'>{description}</p>}
       </div>
       {children}
     </div>
