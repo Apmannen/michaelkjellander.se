@@ -6,7 +6,7 @@ const latest = async () => {
     .select('id, title')
     .order('created_at', { ascending: false });
 
-  return res.data || undefined;
+  return res.data || [];
 };
 
 export const dbArticles = {
