@@ -9,3 +9,5 @@
     throw error;
   }
   ```
+
+- Prefer `undefined` over `null`.
