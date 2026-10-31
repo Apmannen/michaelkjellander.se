@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { type Article, type ArticleInput, validateArticle } from '@/lib/articles';
 import { db } from '@/lib/db';
@@ -37,5 +38,10 @@ export async function saveArticle(
   }
 
   revalidatePath('/articles', 'layout');
+
+  if (!id) {
+    redirect(`/articles/${data.id}`);
+  }
+
   return { ok: true, article: data };
 }

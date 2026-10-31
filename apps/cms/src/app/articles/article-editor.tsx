@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 
 import { type Article, type ArticleInput, slugify } from '@/lib/articles';
@@ -18,7 +17,6 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.title === b.title && a.slug === b.slug && a.published === b.published;
 
 export function ArticleEditor({ article }: { article: Article | null }) {
-  const router = useRouter();
   const [saved, setSaved] = useState<ArticleInput>(() => toInput(article));
   const [draft, setDraft] = useState<ArticleInput>(saved);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +46,6 @@ export function ArticleEditor({ article }: { article: Article | null }) {
       const next = toInput(result.article);
       setSaved(next);
       setDraft(next);
-      if (!article) router.replace(`/articles/${result.article.id}`);
     });
   };
 
