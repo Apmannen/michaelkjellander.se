@@ -2,12 +2,13 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import Image from "next/image";
+import { dbArticles } from "@/lib/db/articles";
 
 //TODO: temporary?
 export const instant = false;
 
 export default async function Home() {
-  await db.testFetch();
+  await dbArticles.latest();
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
