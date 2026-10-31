@@ -1,5 +1,10 @@
+import "server-only";
+
 import { db } from "@/lib/db";
 import Image from "next/image";
+
+//TODO: temporary?
+export const instant = false;
 
 export default async function Home() {
   await db.testFetch();
