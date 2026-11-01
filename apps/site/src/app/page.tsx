@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <MainShell>
-      <h1>Artiklar</h1>
+      {/* <h1>Artiklar</h1> */}
       {articles.map((article, i) => (
         <Article key={i} article={article} isMain={false} />
       ))}
