@@ -1,4 +1,6 @@
-import { ArticlePayload } from '@/lib/db/payload.types';
+import { ArticleBodyPartPayload, ArticlePayload } from '@/lib/db/payload.types';
+
+const logPrefix = '[Article]';
 
 export const Article = ({
   article,
@@ -19,11 +21,24 @@ export const Article = ({
       ) : (
         <h2 className={ngClass.title}>{article.title}</h2>
       )}
-      {article.body.map((part, i) => (
-        <div>
-          {i}: {part.text}
-        </div>
-      ))}
+      {article.body.map((part, i) => {
+
+        switch (part.type) {
+          case 'paragraph':
+            return <Paragraph key={i} part={part} />;
+        }
+        console.warn(logPrefix, 'Unknown type:', part.type);
+        return null;
+      })}
     </article>
   );
+};
+
+const Paragraph = ({
+  part,
+}: {
+  part: Pick<ArticleBodyPartPayload, 'text'>;
+}) => {
+  const { text } = part;
+  return <p>{text}</p>;
 };
