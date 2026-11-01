@@ -9,6 +9,7 @@ export const Article = ({
   article: Pick<ArticlePayload, 'title' | 'body'>;
   isMain: boolean;
 }) => {
+  console.log('***ART', article.body);
   const ngClass = {
     title: 'font-bold',
   };
@@ -39,7 +40,17 @@ const Paragraph = ({
   part: Pick<ArticleBodyPartPayload, 'text'>;
 }) => {
   const { text } = part;
-  return <p>{text}</p>;
+  const textParts = text?.split('\n');
+  return (
+    <p className='pt-3'>
+      {textParts?.map((textPart, i) => (
+        <span key={i}>
+          {i > 0 ? <br /> : null}
+          {textPart}
+        </span>
+      ))}
+    </p>
+  );
 };
 
 const Quote = ({
@@ -49,7 +60,7 @@ const Quote = ({
 }) => {
   const { text, author } = part;
   return (
-    <div>
+    <div className='pt-3'>
       <p>{text}</p>
       <cite>{author}</cite>
     </div>
