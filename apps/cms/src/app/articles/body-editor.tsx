@@ -13,21 +13,25 @@ import { createPortal } from 'react-dom';
 import {
   type Body,
   type BodyBlock,
-  type Link,
+  type Mark,
+  type MarkType,
   type ParagraphBlock,
   type QuoteBlock,
-  adjustLinks,
+  addMark,
+  adjustMarks,
+  hasMark,
   isValidHref,
   newBlockId,
   normalizeHref,
   paragraph,
-  setLinkRange,
-  shiftLinks,
-  sliceLinks,
+  removeMarks,
+  shiftMarks,
+  sliceMarks,
   withParagraphSlots,
 } from '@/lib/body';
 
-type Caret = { id: string; offset: number };
+// end selects from offset up to there.
+type Caret = { id: string; offset: number; end?: number };
 
 type TextSelection = { id: string; start: number; end: number };
 
@@ -107,7 +111,7 @@ export function BodyEditor({
     const input = inputs.current.get(caret.id);
     if (input) {
       input.focus();
-      input.setSelectionRange(caret.offset, caret.offset);
+      input.setSelectionRange(caret.offset, caret.end ?? caret.offset);
     }
   }, [value]);
 
@@ -145,38 +149,92 @@ export function BodyEditor({
     caret: number,
   ) => {
     const { from, oldEnd, newEnd } = findEdit(block.text, text, caret);
-    const links = adjustLinks(block.links, from, oldEnd, newEnd);
-    onChange(splice(index, 1, paragraph(text, links, block.id)));
+    const marks = adjustMarks(block.marks, from, oldEnd, newEnd);
+    onChange(splice(index, 1, paragraph(text, marks, block.id)));
+  };
+
+  const findParagraphById = (blockId?: string) => {
+    const index = value.findIndex((block) => block.id === blockId);
+    const block = value[index];
+    return block?.type === 'paragraph' ? { index, block } : undefined;
+  };
+
+  // Double-clicking a word often selects the space after it too, so
+  // surrounding whitespace is left out. Undefined if nothing remains.
+  const trimSelection = (target?: TextSelection) => {
+    const block = findParagraphById(target?.id)?.block;
+    if (!target || !block) {
+      return undefined;
+    }
+    const selected = block.text.slice(target.start, target.end);
+    const start = target.start + selected.length - selected.trimStart().length;
+    const end = target.end - (selected.length - selected.trimEnd().length);
+    return start < end ? { id: block.id, start, end } : undefined;
   };
 
   // A selection within a link edits that link, any other non-empty selection
   // adds a new one.
   const findLinkTarget = (target?: TextSelection): LinkEdit | undefined => {
-    const block = value.find((block) => block.id === target?.id);
-    if (!target || block?.type !== 'paragraph') {
+    const block = findParagraphById(target?.id)?.block;
+    if (!target || !block) {
       return undefined;
     }
 
-    const link = block.links?.find(
-      (link) => link.start <= target.start && target.end <= link.end,
+    const link = block.marks?.find(
+      (mark) =>
+        mark.type === 'link' &&
+        mark.start <= target.start &&
+        target.end <= mark.end,
     );
-    if (link) {
-      const text = block.text.slice(link.start, link.end);
-      return { id: block.id, ...link, text };
+    if (link?.type === 'link') {
+      const { start, end, href } = link;
+      return {
+        id: block.id,
+        start,
+        end,
+        href,
+        text: block.text.slice(start, end),
+      };
     }
 
-    // Double-clicking a word often selects the space after it too.
-    const selected = block.text.slice(target.start, target.end);
-    const start = target.start + selected.length - selected.trimStart().length;
-    const end = target.end - (selected.length - selected.trimEnd().length);
-    if (start >= end) {
+    const trimmed = trimSelection(target);
+    if (!trimmed) {
       return undefined;
     }
-    const text = block.text.slice(start, end);
-    return { id: block.id, start, end, href: '', text };
+    const text = block.text.slice(trimmed.start, trimmed.end);
+    return { ...trimmed, href: '', text };
   };
 
   const linkTarget = findLinkTarget(selection);
+  const formatTarget = trimSelection(selection);
+
+  const isFormatted = (type: MarkType) => {
+    const block = findParagraphById(formatTarget?.id)?.block;
+    return (
+      !!formatTarget &&
+      hasMark(block?.marks, type, formatTarget.start, formatTarget.end)
+    );
+  };
+
+  // Removes the style if all of the selection has it, otherwise applies it to
+  // all of the selection.
+  const toggleMark = (type: 'bold' | 'underline', target?: TextSelection) => {
+    const trimmed = trimSelection(target);
+    const found = findParagraphById(trimmed?.id);
+    if (!trimmed || !found) {
+      return;
+    }
+    const { index, block } = found;
+    const { start, end } = trimmed;
+    const marks = hasMark(block.marks, type, start, end)
+      ? removeMarks(block.marks, type, start, end)
+      : addMark(block.marks, { type, start, end });
+    commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
+      id: block.id,
+      offset: start,
+      end,
+    });
+  };
 
   const onKeyDown = (
     event: KeyboardEvent<HTMLTextAreaElement>,
@@ -195,43 +253,48 @@ export function BodyEditor({
       event.preventDefault();
       const next = paragraph(
         block.text.slice(end),
-        sliceLinks(block.links, end),
+        sliceMarks(block.marks, end),
       );
       const current = paragraph(
         block.text.slice(0, start),
-        sliceLinks(block.links, 0, start),
+        sliceMarks(block.marks, 0, start),
         block.id,
       );
       commit(splice(index, 1, current, next), { id: next.id, offset: 0 });
       return;
     }
 
-    if (
-      event.key.toLowerCase() === 'k' &&
-      (event.ctrlKey || event.metaKey) &&
-      !event.altKey
-    ) {
-      event.preventDefault();
-      const target = findLinkTarget({ id: block.id, start, end });
-      if (target) {
-        setEditingLink(target);
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+      const key = event.key.toLowerCase();
+      const target = { id: block.id, start, end };
+      if (key === 'k') {
+        event.preventDefault();
+        const linkTarget = findLinkTarget(target);
+        if (linkTarget) {
+          setEditingLink(linkTarget);
+        }
+        return;
       }
-      return;
+      if (key === 'b' || key === 'u') {
+        event.preventDefault();
+        toggleMark(key === 'b' ? 'bold' : 'underline', target);
+        return;
+      }
     }
 
     if (event.key === 'Backspace' && isCollapsed && start === 0) {
       const previous = value[index - 1];
       if (previous?.type === 'paragraph') {
         event.preventDefault();
-        const links = [
-          ...(previous.links ?? []),
-          ...shiftLinks(block.links, previous.text.length),
+        const marks = [
+          ...(previous.marks ?? []),
+          ...shiftMarks(block.marks, previous.text.length),
         ];
         commit(
           splice(
             index - 1,
             2,
-            paragraph(previous.text + block.text, links, previous.id),
+            paragraph(previous.text + block.text, marks, previous.id),
           ),
           { id: previous.id, offset: previous.text.length },
         );
@@ -239,20 +302,16 @@ export function BodyEditor({
       return;
     }
 
-    if (
-      event.key === 'Delete' &&
-      isCollapsed &&
-      start === block.text.length
-    ) {
+    if (event.key === 'Delete' && isCollapsed && start === block.text.length) {
       const next = value[index + 1];
       if (next?.type === 'paragraph') {
         event.preventDefault();
-        const links = [
-          ...(block.links ?? []),
-          ...shiftLinks(next.links, block.text.length),
+        const marks = [
+          ...(block.marks ?? []),
+          ...shiftMarks(next.marks, block.text.length),
         ];
         commit(
-          splice(index, 2, paragraph(block.text + next.text, links, block.id)),
+          splice(index, 2, paragraph(block.text + next.text, marks, block.id)),
           { id: block.id, offset: block.text.length },
         );
       }
@@ -301,18 +360,18 @@ export function BodyEditor({
     const lastPart = parts.at(-1) ?? '';
     const last = paragraph(
       lastPart + after,
-      shiftLinks(sliceLinks(block.links, end), lastPart.length),
+      shiftMarks(sliceMarks(block.marks, end), lastPart.length),
     );
     const first = paragraph(
       before + parts[0],
-      sliceLinks(block.links, 0, start),
+      sliceMarks(block.marks, 0, start),
       block.id,
     );
 
-    commit(
-      splice(index, 1, first, ...middle, last),
-      { id: last.id, offset: last.text.length - after.length },
-    );
+    commit(splice(index, 1, first, ...middle, last), {
+      id: last.id,
+      offset: last.text.length - after.length,
+    });
   };
 
   // Inserts at the last known caret position, splitting that paragraph.
@@ -330,10 +389,10 @@ export function BodyEditor({
     const afterStart = block.text.length - after.length;
     const current = paragraph(
       before,
-      sliceLinks(block.links, 0, before.length),
+      sliceMarks(block.marks, 0, before.length),
       block.id,
     );
-    const next = paragraph(after, sliceLinks(block.links, afterStart));
+    const next = paragraph(after, sliceMarks(block.marks, afterStart));
 
     commit(splice(index, 1, current, widget, next), {
       id: next.id,
@@ -344,13 +403,15 @@ export function BodyEditor({
   // Without href the link is removed.
   const saveLink = ({ id: blockId, start, end }: LinkEdit, href?: string) => {
     setEditingLink(undefined);
-    const index = value.findIndex((block) => block.id === blockId);
-    const block = value[index];
-    if (block?.type !== 'paragraph') {
+    const found = findParagraphById(blockId);
+    if (!found) {
       return;
     }
-    const links = setLinkRange(block.links, start, end, href);
-    commit(splice(index, 1, paragraph(block.text, links, block.id)), {
+    const { index, block } = found;
+    const marks = href
+      ? addMark(block.marks, { type: 'link', href, start, end })
+      : removeMarks(block.marks, 'link', start, end);
+    commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
       id: blockId,
       offset: end,
     });
@@ -376,20 +437,33 @@ export function BodyEditor({
   return (
     <div className='rounded-md border border-zinc-300 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900'>
       <div className='flex items-center gap-1 border-b border-zinc-200 px-2 py-1.5 dark:border-zinc-800'>
-        <span className='px-1 text-xs text-zinc-500'>Infoga:</span>
+        {/* preventDefault on mousedown keeps the text selection visible. */}
         <button
           type='button'
-          onClick={() => setEditingQuote({ text: '', author: '' })}
-          className={toolbarButtonClass}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => toggleMark('bold', selection)}
+          disabled={!formatTarget}
+          aria-pressed={isFormatted('bold')}
+          aria-label='Fet'
+          title='Fet (Ctrl+B)'
+          className={`${toolbarButtonClass} w-8 font-bold`}
         >
-          ❝ Citat
+          F
         </button>
-
-        <span className='mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-800' />
-
         <button
           type='button'
-          // Keeps the text selection visible in the paragraph.
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => toggleMark('underline', selection)}
+          disabled={!formatTarget}
+          aria-pressed={isFormatted('underline')}
+          aria-label='Understruken'
+          title='Understruken (Ctrl+U)'
+          className={`${toolbarButtonClass} w-8 underline`}
+        >
+          U
+        </button>
+        <button
+          type='button'
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => setEditingLink(linkTarget)}
           disabled={!linkTarget}
@@ -403,6 +477,17 @@ export function BodyEditor({
             {linkTarget.href}
           </span>
         )}
+
+        <span className='mx-1 h-4 w-px shrink-0 bg-zinc-200 dark:bg-zinc-800' />
+
+        <span className='px-1 text-xs text-zinc-500'>Infoga:</span>
+        <button
+          type='button'
+          onClick={() => setEditingQuote({ text: '', author: '' })}
+          className={toolbarButtonClass}
+        >
+          ❝ Citat
+        </button>
       </div>
 
       <div className='flex flex-col gap-3 px-3 py-3'>
@@ -410,7 +495,7 @@ export function BodyEditor({
           if (block.type === 'paragraph') {
             return (
               <div key={block.id} className='relative'>
-                <LinkHighlights text={block.text} links={block.links} />
+                <MarkedText text={block.text} marks={block.marks} />
                 <textarea
                   id={index === 0 ? id : undefined}
                   ref={(input) => {
@@ -447,7 +532,7 @@ export function BodyEditor({
                       end: selectionEnd,
                     });
                   }}
-                  className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-zinc-400`}
+                  className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:text-foreground placeholder:text-zinc-400`}
                 />
               </div>
             );
@@ -485,39 +570,44 @@ export function BodyEditor({
 }
 
 const toolbarButtonClass =
-  'rounded px-2 py-1 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:hover:bg-zinc-800';
+  'rounded px-2 py-1 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent aria-pressed:bg-zinc-200 dark:hover:bg-zinc-800 dark:aria-pressed:bg-zinc-700';
 
-// Shared by the textarea and its highlights, so their text wraps identically.
+// Shared by the textarea and the styled text, so their text wraps identically.
 const paragraphTextClass =
   'text-sm leading-relaxed whitespace-pre-wrap break-words';
 
-// A textarea can't style parts of its text, so links are highlighted in a
-// copy of the text laid out right behind it.
-function LinkHighlights({ text, links = [] }: { text: string; links?: Link[] }) {
-  if (!links.length) {
-    return undefined;
-  }
+// font-bold would make the text wider than in the textarea and throw the
+// caret off, so bold is drawn with a stroke that keeps the glyph widths.
+const markClasses: Record<MarkType, string> = {
+  bold: '[-webkit-text-stroke:0.035em_currentColor]',
+  underline: 'underline underline-offset-2',
+  link: 'rounded-sm bg-blue-50 text-blue-700 underline decoration-blue-500 underline-offset-2 dark:bg-blue-950 dark:text-blue-300',
+};
 
-  const parts: React.ReactNode[] = [];
-  let position = 0;
-  for (const link of links) {
-    parts.push(text.slice(position, link.start));
-    parts.push(
-      <span
-        key={link.start}
-        className='rounded-sm bg-blue-100 underline decoration-blue-500 underline-offset-2 dark:bg-blue-950'
-      >
-        {text.slice(link.start, link.end)}
-      </span>,
+// A textarea can't style parts of its text, so its own text is transparent
+// and the visible, styled text is laid out identically right behind it.
+function MarkedText({ text, marks = [] }: { text: string; marks?: Mark[] }) {
+  const boundaries = [
+    ...new Set([0, text.length, ...marks.flatMap((m) => [m.start, m.end])]),
+  ].sort((a, b) => a - b);
+
+  const parts = boundaries.slice(1).map((end, i) => {
+    const start = boundaries[i];
+    const className = marks
+      .filter((mark) => mark.start <= start && end <= mark.end)
+      .map((mark) => markClasses[mark.type])
+      .join(' ');
+    return (
+      <span key={start} className={className || undefined}>
+        {text.slice(start, end)}
+      </span>
     );
-    position = link.end;
-  }
-  parts.push(text.slice(position));
+  });
 
   return (
     <div
       aria-hidden
-      className={`${paragraphTextClass} pointer-events-none absolute inset-0 text-transparent`}
+      className={`${paragraphTextClass} pointer-events-none absolute inset-0`}
     >
       {parts}
     </div>

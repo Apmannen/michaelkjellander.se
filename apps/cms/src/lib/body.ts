@@ -1,8 +1,12 @@
-// A linked range of a paragraph's text, end exclusive.
-export type Link = {
+export type MarkStyle =
+  { type: 'bold' } | { type: 'underline' } | { type: 'link'; href: string };
+
+export type MarkType = MarkStyle['type'];
+
+// A styled range of a paragraph's text, end exclusive.
+export type Mark = MarkStyle & {
   start: number;
   end: number;
-  href: string;
 };
 
 export type ParagraphBlock = {
@@ -10,8 +14,9 @@ export type ParagraphBlock = {
   type: 'paragraph';
   // Line breaks within the paragraph are stored as '\n'.
   text: string;
-  // Sorted and non-overlapping. Left out when the paragraph has no links.
-  links?: Link[];
+  // Sorted by start. Marks of the same type never overlap, but marks of
+  // different types may, e.g. a bold link. Left out when there are no marks.
+  marks?: Mark[];
 };
 
 export type QuoteBlock = {
@@ -29,65 +34,111 @@ export type Body = BodyBlock[];
 
 export const newBlockId = () => crypto.randomUUID();
 
+const isSameStyle = (a: Mark, b: Mark) =>
+  a.type === b.type &&
+  (a.type !== 'link' || (b.type === 'link' && a.href === b.href));
+
+// Sorts marks, drops empty ones and joins touching or overlapping marks with
+// the same style. A link overlapping a link to somewhere else is dropped.
+const normalizeMarks = (marks: Mark[]): Mark[] => {
+  const sorted = marks
+    .filter((mark) => mark.start < mark.end)
+    .sort((a, b) => a.start - b.start || a.type.localeCompare(b.type));
+
+  const result: Mark[] = [];
+  for (const mark of sorted) {
+    const previous = result.findLast((other) => other.type === mark.type);
+    if (previous && isSameStyle(previous, mark) && mark.start <= previous.end) {
+      previous.end = Math.max(previous.end, mark.end);
+    } else if (!previous || mark.start >= previous.end) {
+      result.push({ ...mark });
+    }
+  }
+  return result;
+};
+
 export const paragraph = (
   text = '',
-  links: Link[] = [],
+  marks: Mark[] = [],
   id = newBlockId(),
-): ParagraphBlock =>
-  links.length
-    ? { id, type: 'paragraph', text, links }
+): ParagraphBlock => {
+  const normalized = normalizeMarks(marks);
+  return normalized.length
+    ? { id, type: 'paragraph', text, marks: normalized }
     : { id, type: 'paragraph', text };
+};
 
-// Clips links to [from, to) and makes them relative to from.
-export const sliceLinks = (
-  links: Link[] = [],
+// Clips marks to [from, to) and makes them relative to from.
+export const sliceMarks = (
+  marks: Mark[] = [],
   from: number,
   to = Infinity,
-): Link[] =>
-  links.flatMap((link) => {
-    const start = Math.max(link.start, from) - from;
-    const end = Math.min(link.end, to) - from;
-    return start < end ? [{ ...link, start, end }] : [];
+): Mark[] =>
+  marks.flatMap((mark) => {
+    const start = Math.max(mark.start, from) - from;
+    const end = Math.min(mark.end, to) - from;
+    return start < end ? [{ ...mark, start, end }] : [];
   });
 
-export const shiftLinks = (links: Link[] = [], by: number): Link[] =>
-  links.map((link) => ({
-    ...link,
-    start: link.start + by,
-    end: link.end + by,
+export const shiftMarks = (marks: Mark[] = [], by: number): Mark[] =>
+  marks.map((mark) => ({
+    ...mark,
+    start: mark.start + by,
+    end: mark.end + by,
   }));
 
-// Links [start, end) to href, replacing whatever was linked there before.
-// Without href the range is unlinked.
-export const setLinkRange = (
-  links: Link[] = [],
+// Removes marks of the given type from [start, end), splitting marks that
+// span it.
+export const removeMarks = (
+  marks: Mark[] = [],
+  type: MarkType,
   start: number,
   end: number,
-  href?: string,
-): Link[] => [
-  ...sliceLinks(links, 0, start),
-  ...(href ? [{ start, end, href }] : []),
-  ...shiftLinks(sliceLinks(links, end), end),
-];
+): Mark[] => {
+  const same = marks.filter((mark) => mark.type === type);
+  return normalizeMarks([
+    ...marks.filter((mark) => mark.type !== type),
+    ...sliceMarks(same, 0, start),
+    ...shiftMarks(sliceMarks(same, end), end),
+  ]);
+};
 
-// Moves links along with an edit that replaced [from, oldEnd) with text
-// ending at newEnd. Typing right before or after a link doesn't extend it.
-export const adjustLinks = (
-  links: Link[] = [],
+// Replaces whatever marks of the same type were in the new mark's range.
+export const addMark = (marks: Mark[] = [], mark: Mark): Mark[] =>
+  normalizeMarks([
+    ...removeMarks(marks, mark.type, mark.start, mark.end),
+    mark,
+  ]);
+
+// Whether all of [start, end) has a mark of the given type.
+export const hasMark = (
+  marks: Mark[] = [],
+  type: MarkType,
+  start: number,
+  end: number,
+) =>
+  marks.some(
+    (mark) => mark.type === type && mark.start <= start && end <= mark.end,
+  );
+
+// Moves marks along with an edit that replaced [from, oldEnd) with text
+// ending at newEnd. Typing right before or after a mark doesn't extend it.
+export const adjustMarks = (
+  marks: Mark[] = [],
   from: number,
   oldEnd: number,
   newEnd: number,
-): Link[] =>
-  links.flatMap((link) => {
-    if (link.end <= from) {
-      return [link];
+): Mark[] =>
+  marks.flatMap((mark) => {
+    if (mark.end <= from) {
+      return [mark];
     }
-    if (link.start >= oldEnd) {
-      return shiftLinks([link], newEnd - oldEnd);
+    if (mark.start >= oldEnd) {
+      return shiftMarks([mark], newEnd - oldEnd);
     }
-    const start = link.start <= from ? link.start : newEnd;
-    const end = link.end >= oldEnd ? link.end + newEnd - oldEnd : from;
-    return start < end ? [{ ...link, start, end }] : [];
+    const start = mark.start <= from ? mark.start : newEnd;
+    const end = mark.end >= oldEnd ? mark.end + newEnd - oldEnd : from;
+    return start < end ? [{ ...mark, start, end }] : [];
   });
 
 export const isValidHref = (href: string) =>
@@ -125,42 +176,49 @@ const toText = (value: unknown) =>
 const toId = (value: unknown) =>
   typeof value === 'string' && value ? value : newBlockId();
 
+const toMarkStyle = (item: Record<string, unknown>): MarkStyle | undefined => {
+  if (item.type === 'bold' || item.type === 'underline') {
+    return { type: item.type };
+  }
+  if (
+    item.type === 'link' &&
+    typeof item.href === 'string' &&
+    isValidHref(item.href.trim())
+  ) {
+    return { type: 'link', href: item.href.trim() };
+  }
+  return undefined;
+};
+
 // offset and length describe the trimmed paragraph text within the raw text.
-const toLinks = (value: unknown, offset: number, length: number): Link[] => {
+const toMarks = (value: unknown, offset: number, length: number): Mark[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const links = value.flatMap((item): Link[] => {
+  const marks = value.flatMap((item): Mark[] => {
     if (typeof item !== 'object' || !item) {
       return [];
     }
-    const { start, end, href } = item as Record<string, unknown>;
+    const { start, end } = item as Record<string, unknown>;
+    const style = toMarkStyle(item as Record<string, unknown>);
     if (
+      !style ||
       typeof start !== 'number' ||
       typeof end !== 'number' ||
       !Number.isInteger(start) ||
-      !Number.isInteger(end) ||
-      typeof href !== 'string' ||
-      !isValidHref(href.trim())
+      !Number.isInteger(end)
     ) {
       return [];
     }
-    return [{ start, end, href: href.trim() }];
+    return [{ ...style, start, end }];
   });
 
-  const result: Link[] = [];
-  const sorted = links.sort((a, b) => a.start - b.start);
-  for (const link of sliceLinks(sorted, offset, offset + length)) {
-    if (link.start >= (result.at(-1)?.end ?? 0)) {
-      result.push(link);
-    }
-  }
-  return result;
+  return sliceMarks(marks, offset, offset + length);
 };
 
 // Sanitizes untrusted input: drops unknown block types, empty paragraphs,
-// quotes without text and invalid links.
+// quotes without text and invalid marks.
 export const parseBody = (raw: unknown): Body => {
   if (!Array.isArray(raw)) {
     return [];
@@ -181,7 +239,7 @@ export const parseBody = (raw: unknown): Body => {
     if (item.type === 'paragraph') {
       const raw = String(item.text);
       const offset = raw.length - raw.trimStart().length;
-      return [paragraph(text, toLinks(item.links, offset, text.length), id)];
+      return [paragraph(text, toMarks(item.marks, offset, text.length), id)];
     }
     if (item.type === 'quote') {
       return [{ id, type: 'quote', text, author: toText(item.author) }];

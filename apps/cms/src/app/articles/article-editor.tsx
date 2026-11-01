@@ -118,7 +118,7 @@ export function ArticleEditor({ article }: { article: Article | null }) {
           <Field
             label='Brödtext'
             htmlFor='body'
-            description='Enter ger nytt stycke, Shift+Enter ger radbrytning. Markera text och tryck Ctrl+K för att länka.'
+            description='Enter ger nytt stycke, Shift+Enter ger radbrytning. Markera text och tryck Ctrl+B för fet, Ctrl+U för understruken eller Ctrl+K för länk.'
           >
             <BodyEditor
               id='body'
