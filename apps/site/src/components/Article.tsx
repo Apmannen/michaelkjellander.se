@@ -37,10 +37,15 @@ export const Article = ({
 const Paragraph = ({
   part,
 }: {
-  part: Pick<ArticleBodyPartPayload, 'text'>;
+  part: Pick<ArticleBodyPartPayload, 'text' | 'marks'>;
 }) => {
-  const { text } = part;
-  const textParts = text?.split('\n');
+  const { text, marks } = part;
+  const textParts: string[] = []; //text?.split('\n');
+  const breaks = Array.from(
+    new Set(marks?.map((mark) => [mark.start, mark.end]).flat() ?? []),
+  ).sort((a, b) => a - b);
+  console.log('***BR', breaks);
+
   return (
     <p className='pt-3'>
       {textParts?.map((textPart, i) => (
