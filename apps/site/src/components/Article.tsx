@@ -4,12 +4,13 @@ export const Article = ({
   article,
   isMain,
 }: {
-  article: Pick<ArticlePayload, 'title'>;
+  article: Pick<ArticlePayload, 'title' | 'body'>;
   isMain: boolean;
 }) => {
   const ngClass = {
     title: 'font-bold',
   };
+  console.log('***BODY', article.body);
 
   return (
     <article className='px-12 py-12 bg-white mb-12 shadow-sm'>
@@ -18,6 +19,11 @@ export const Article = ({
       ) : (
         <h2 className={ngClass.title}>{article.title}</h2>
       )}
+      {article.body.map((part, i) => (
+        <div>
+          {i}: {part.text}
+        </div>
+      ))}
     </article>
   );
 };
