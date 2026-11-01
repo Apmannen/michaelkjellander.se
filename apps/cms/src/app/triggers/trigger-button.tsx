@@ -2,19 +2,17 @@
 
 import { useId, useState, useTransition } from 'react';
 
+import type { TriggerInput } from '@/lib/triggers';
+
+import { runTrigger } from './actions';
+
 type Status = { ok: boolean; message: string };
 
-export type TriggerInput = {
-  name: string;
-  label: string;
-  suggestions: readonly string[];
-};
-
 export function TriggerButton({
-  endpoint,
+  triggerId,
   input,
 }: {
-  endpoint: string;
+  triggerId: string;
   input?: TriggerInput;
 }) {
   const inputId = useId();
@@ -30,18 +28,12 @@ export function TriggerButton({
     setStatus(undefined);
     startRunning(async () => {
       try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          ...(input && {
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ [input.name]: trimmedValue }),
-          }),
-        });
-        if (!response.ok) {
-          setStatus({ ok: false, message: `Misslyckades (${response.status})` });
-          return;
-        }
-        setStatus({ ok: true, message: 'Klart' });
+        const result = await runTrigger(triggerId, input && trimmedValue);
+        setStatus(
+          result.ok
+            ? { ok: true, message: 'Klart' }
+            : { ok: false, message: result.error },
+        );
       } catch {
         setStatus({ ok: false, message: 'Misslyckades' });
       }
