@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.REVALIDATE_SECRET;
+  const secret = process.env.CMS_SITE_API_SECRET;
   const authorization = request.headers.get('authorization');
 
   if (!secret || authorization !== `Bearer ${secret}`) {
