@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## Scope
+
+- When asked to change something in `apps/cms`, do not make any changes in `apps/site` unless explicitly told to.
+
 ## Code style
 
 - If statements must always use curly braces and be split across multiple lines, e.g.:

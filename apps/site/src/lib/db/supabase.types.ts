@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          body: Json
           created_at: string
           id: string
           published: boolean
@@ -24,6 +25,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          body?: Json
           created_at?: string
           id?: string
           published?: boolean
@@ -32,6 +34,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          body?: Json
           created_at?: string
           id?: string
           published?: boolean

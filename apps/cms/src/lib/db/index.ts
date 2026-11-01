@@ -11,7 +11,8 @@ const supabase = createClient(
   {auth: {persistSession: false}},
 );
 
-const ARTICLE_COLUMNS = 'id, title, slug, published, created_at, updated_at';
+const ARTICLE_COLUMNS = 
+  'id, title, slug, published, body, created_at, updated_at';
 
 const listArticles = async (): Promise<Article[]> => {
   const {data, error} = await supabase

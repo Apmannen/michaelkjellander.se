@@ -1,13 +1,19 @@
+import type { Body } from '@/lib/body';
+
 export type Article = {
   id: string;
   title: string;
   slug: string;
   published: boolean;
+  body: Body;
   created_at: string;
   updated_at: string;
 };
 
-export type ArticleInput = Pick<Article, 'title' | 'slug' | 'published'>;
+export type ArticleInput = Pick<
+  Article,
+  'title' | 'slug' | 'published' | 'body'
+>;
 
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

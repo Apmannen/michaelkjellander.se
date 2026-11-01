@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { type Article, type ArticleInput, validateArticle } from '@/lib/articles';
+import { parseBody } from '@/lib/body';
 import { db } from '@/lib/db';
 
 export type SaveArticleResult =
@@ -19,6 +20,7 @@ export async function saveArticle(
     title: String(raw.title ?? '').trim(),
     slug: String(raw.slug ?? '').trim(),
     published: raw.published === true,
+    body: parseBody(raw.body),
   };
 
   const validationError = validateArticle(input);

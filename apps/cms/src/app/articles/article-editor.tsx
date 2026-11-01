@@ -3,18 +3,23 @@
 import { useEffect, useState, useTransition } from 'react';
 
 import { type Article, type ArticleInput, slugify } from '@/lib/articles';
+import { withParagraphSlots } from '@/lib/body';
 
 import { saveArticle } from './actions';
+import { BodyEditor } from './body-editor';
 
-const EMPTY: ArticleInput = { title: '', slug: '', published: false };
-
-const toInput = (article: Article | null): ArticleInput =>
-  article
-    ? { title: article.title, slug: article.slug, published: article.published }
-    : EMPTY;
+const toInput = (article: Article | null): ArticleInput => ({
+  title: article?.title ?? '',
+  slug: article?.slug ?? '',
+  published: article?.published ?? false,
+  body: withParagraphSlots(article?.body ?? []),
+});
 
 const isSame = (a: ArticleInput, b: ArticleInput) =>
-  a.title === b.title && a.slug === b.slug && a.published === b.published;
+  a.title === b.title &&
+  a.slug === b.slug &&
+  a.published === b.published &&
+  JSON.stringify(a.body) === JSON.stringify(b.body);
 
 export function ArticleEditor({ article }: { article: Article | null }) {
   const [saved, setSaved] = useState<ArticleInput>(() => toInput(article));
@@ -108,6 +113,18 @@ export function ArticleEditor({ article }: { article: Article | null }) {
                 Generera
               </button>
             </div>
+          </Field>
+
+          <Field
+            label='Brödtext'
+            htmlFor='body'
+            description='Enter ger nytt stycke, Shift+Enter ger radbrytning.'
+          >
+            <BodyEditor
+              id='body'
+              value={draft.body}
+              onChange={(body) => update({ body })}
+            />
           </Field>
 
           <Field label='Publicerad' htmlFor='published'>
