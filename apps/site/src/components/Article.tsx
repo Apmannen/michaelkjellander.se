@@ -7,9 +7,17 @@ export const Article = ({
   article: Pick<ArticlePayload, 'title'>;
   isMain: boolean;
 }) => {
+  const ngClass = {
+    title: 'font-bold',
+  };
+
   return (
     <article className='px-12 py-12 bg-white mb-12 shadow-sm'>
-      {isMain ? <h1>{article.title}</h1> : <h2>{article.title}</h2>}
+      {isMain ? (
+        <h1 className={ngClass.title}>{article.title}</h1>
+      ) : (
+        <h2 className={ngClass.title}>{article.title}</h2>
+      )}
     </article>
   );
 };
