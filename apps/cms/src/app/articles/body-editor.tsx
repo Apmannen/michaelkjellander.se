@@ -532,7 +532,10 @@ export function BodyEditor({
                       end: selectionEnd,
                     });
                   }}
-                  className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:text-foreground placeholder:text-zinc-400`}
+                  // The text is transparent, so selected text needs its own
+                  // color. Firefox then drops the default selection
+                  // background, so both are set to the system colors.
+                  className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
                 />
               </div>
             );
@@ -581,7 +584,7 @@ const paragraphTextClass =
 const markClasses: Record<MarkType, string> = {
   bold: '[-webkit-text-stroke:0.035em_currentColor]',
   underline: 'underline underline-offset-2',
-  link: 'rounded-sm bg-blue-50 text-blue-700 underline decoration-blue-500 underline-offset-2 dark:bg-blue-950 dark:text-blue-300',
+  link: 'text-blue-700 underline underline-offset-2 dark:text-blue-400',
 };
 
 // A textarea can't style parts of its text, so its own text is transparent
