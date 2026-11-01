@@ -2,16 +2,17 @@ import { Database } from './supabase.types';
 
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
+export type BodyMarkPayload = {
+  start: number;
+  end: number;
+  href?: string;
+  type: 'link' | 'bold' | 'underline';
+};
 export type ArticleBodyPartPayload = {
   type: 'paragraph' | 'quote';
   text?: string;
   author?: string;
-  marks?: {
-    start: number;
-    end: number;
-    href?: string;
-    type: 'link' | 'bold' | 'underline';
-  }[];
+  marks?: BodyMarkPayload[];
 };
 
 export type ArticlePayload = Prettify<
