@@ -60,7 +60,7 @@ const Paragraph = ({
 
     const activeMarks: BodyMarkPayload[] = [];
     marks.forEach((aMark) => {
-      if (breakIndex >= aMark.start && breakIndex <= aMark.end) {
+      if (breakIndex >= aMark.start && breakIndex < aMark.end) {
         activeMarks.push(aMark);
       }
     });
