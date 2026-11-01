@@ -12,8 +12,6 @@ export const Article = ({
   const ngClass = {
     title: 'font-bold',
   };
-  console.log('***BODY', article.body);
-
   return (
     <article className='px-12 py-12 bg-white mb-12 shadow-sm'>
       {isMain ? (
@@ -22,10 +20,11 @@ export const Article = ({
         <h2 className={ngClass.title}>{article.title}</h2>
       )}
       {article.body.map((part, i) => {
-
         switch (part.type) {
           case 'paragraph':
             return <Paragraph key={i} part={part} />;
+          case 'quote':
+            return <Quote key={i} part={part} />;
         }
         console.warn(logPrefix, 'Unknown type:', part.type);
         return null;
@@ -41,4 +40,18 @@ const Paragraph = ({
 }) => {
   const { text } = part;
   return <p>{text}</p>;
+};
+
+const Quote = ({
+  part,
+}: {
+  part: Pick<ArticleBodyPartPayload, 'text' | 'author'>;
+}) => {
+  const { text, author } = part;
+  return (
+    <div>
+      <p>{text}</p>
+      <cite>{author}</cite>
+    </div>
+  );
 };
