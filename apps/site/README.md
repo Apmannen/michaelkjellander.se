@@ -13,3 +13,4 @@ Kommer att ersätta denna text när det är färdigt.
 - caching
 - enskilt inlägg: puffar för andra inlägg inom samma kategori.
 - stöd för mörkt läge, även kunna växla i menyn. även kunna välja automatiskt
+- favicon, ludde?
