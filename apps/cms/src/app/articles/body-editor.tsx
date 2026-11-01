@@ -13,14 +13,26 @@ import { createPortal } from 'react-dom';
 import {
   type Body,
   type BodyBlock,
+  type Link,
   type ParagraphBlock,
   type QuoteBlock,
+  adjustLinks,
+  isValidHref,
   newBlockId,
+  normalizeHref,
   paragraph,
+  setLinkRange,
+  shiftLinks,
+  sliceLinks,
   withParagraphSlots,
 } from '@/lib/body';
 
 type Caret = { id: string; offset: number };
+
+type TextSelection = { id: string; start: number; end: number };
+
+// href is empty while adding a new link.
+type LinkEdit = TextSelection & { href: string; text: string };
 
 type QuoteFields = Pick<QuoteBlock, 'text' | 'author'>;
 
@@ -30,6 +42,36 @@ type QuoteEdit = QuoteFields & { id?: string };
 const autosize = (input: HTMLTextAreaElement) => {
   input.style.height = 'auto';
   input.style.height = `${input.scrollHeight}px`;
+};
+
+// Locates the edit that turned before into after. caret is where the edit
+// ended, which tells repeated characters apart.
+const findEdit = (before: string, after: string, caret: number) => {
+  let suffix = after.length - caret;
+  if (
+    suffix > before.length ||
+    before.slice(before.length - suffix) !== after.slice(caret)
+  ) {
+    suffix = 0;
+    while (
+      suffix < before.length &&
+      suffix < after.length &&
+      before.at(-1 - suffix) === after.at(-1 - suffix)
+    ) {
+      suffix++;
+    }
+  }
+
+  const max = Math.min(before.length, after.length) - suffix;
+  let from = 0;
+  while (from < max && before[from] === after[from]) {
+    from++;
+  }
+  return {
+    from,
+    oldEnd: before.length - suffix,
+    newEnd: after.length - suffix,
+  };
 };
 
 export function BodyEditor({
@@ -43,8 +85,14 @@ export function BodyEditor({
 }) {
   const inputs = useRef(new Map<string, HTMLTextAreaElement>());
   const pendingCaret = useRef<Caret | undefined>(undefined);
-  const lastCaret = useRef<Caret | undefined>(undefined);
+  // Kept after blur, so the toolbar knows where to insert or link.
+  const [selection, setSelection] = useState<TextSelection | undefined>(
+    undefined,
+  );
   const [editingQuote, setEditingQuote] = useState<QuoteEdit | undefined>(
+    undefined,
+  );
+  const [editingLink, setEditingLink] = useState<LinkEdit | undefined>(
     undefined,
   );
 
@@ -90,9 +138,45 @@ export function BodyEditor({
     return undefined;
   };
 
-  const setText = (index: number, text: string) => {
-    onChange(splice(index, 1, { ...value[index], text } as ParagraphBlock));
+  const setText = (
+    index: number,
+    block: ParagraphBlock,
+    text: string,
+    caret: number,
+  ) => {
+    const { from, oldEnd, newEnd } = findEdit(block.text, text, caret);
+    const links = adjustLinks(block.links, from, oldEnd, newEnd);
+    onChange(splice(index, 1, paragraph(text, links, block.id)));
   };
+
+  // A selection within a link edits that link, any other non-empty selection
+  // adds a new one.
+  const findLinkTarget = (target?: TextSelection): LinkEdit | undefined => {
+    const block = value.find((block) => block.id === target?.id);
+    if (!target || block?.type !== 'paragraph') {
+      return undefined;
+    }
+
+    const link = block.links?.find(
+      (link) => link.start <= target.start && target.end <= link.end,
+    );
+    if (link) {
+      const text = block.text.slice(link.start, link.end);
+      return { id: block.id, ...link, text };
+    }
+
+    // Double-clicking a word often selects the space after it too.
+    const selected = block.text.slice(target.start, target.end);
+    const start = target.start + selected.length - selected.trimStart().length;
+    const end = target.end - (selected.length - selected.trimEnd().length);
+    if (start >= end) {
+      return undefined;
+    }
+    const text = block.text.slice(start, end);
+    return { id: block.id, start, end, href: '', text };
+  };
+
+  const linkTarget = findLinkTarget(selection);
 
   const onKeyDown = (
     event: KeyboardEvent<HTMLTextAreaElement>,
@@ -109,11 +193,29 @@ export function BodyEditor({
       !event.nativeEvent.isComposing
     ) {
       event.preventDefault();
-      const next = paragraph(block.text.slice(end));
-      commit(
-        splice(index, 1, { ...block, text: block.text.slice(0, start) }, next),
-        { id: next.id, offset: 0 },
+      const next = paragraph(
+        block.text.slice(end),
+        sliceLinks(block.links, end),
       );
+      const current = paragraph(
+        block.text.slice(0, start),
+        sliceLinks(block.links, 0, start),
+        block.id,
+      );
+      commit(splice(index, 1, current, next), { id: next.id, offset: 0 });
+      return;
+    }
+
+    if (
+      event.key.toLowerCase() === 'k' &&
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+      const target = findLinkTarget({ id: block.id, start, end });
+      if (target) {
+        setEditingLink(target);
+      }
       return;
     }
 
@@ -121,11 +223,16 @@ export function BodyEditor({
       const previous = value[index - 1];
       if (previous?.type === 'paragraph') {
         event.preventDefault();
+        const links = [
+          ...(previous.links ?? []),
+          ...shiftLinks(block.links, previous.text.length),
+        ];
         commit(
-          splice(index - 1, 2, {
-            ...previous,
-            text: previous.text + block.text,
-          }),
+          splice(
+            index - 1,
+            2,
+            paragraph(previous.text + block.text, links, previous.id),
+          ),
           { id: previous.id, offset: previous.text.length },
         );
       }
@@ -140,10 +247,14 @@ export function BodyEditor({
       const next = value[index + 1];
       if (next?.type === 'paragraph') {
         event.preventDefault();
-        commit(splice(index, 2, { ...block, text: block.text + next.text }), {
-          id: block.id,
-          offset: block.text.length,
-        });
+        const links = [
+          ...(block.links ?? []),
+          ...shiftLinks(next.links, block.text.length),
+        ];
+        commit(
+          splice(index, 2, paragraph(block.text + next.text, links, block.id)),
+          { id: block.id, offset: block.text.length },
+        );
       }
       return;
     }
@@ -187,24 +298,27 @@ export function BodyEditor({
     const before = block.text.slice(0, start);
     const after = block.text.slice(end);
     const middle = parts.slice(1, -1).map((part) => paragraph(part));
-    const last = paragraph(parts.at(-1) + after);
+    const lastPart = parts.at(-1) ?? '';
+    const last = paragraph(
+      lastPart + after,
+      shiftLinks(sliceLinks(block.links, end), lastPart.length),
+    );
+    const first = paragraph(
+      before + parts[0],
+      sliceLinks(block.links, 0, start),
+      block.id,
+    );
 
     commit(
-      splice(
-        index,
-        1,
-        { ...block, text: before + parts[0] },
-        ...middle,
-        last,
-      ),
+      splice(index, 1, first, ...middle, last),
       { id: last.id, offset: last.text.length - after.length },
     );
   };
 
   // Inserts at the last known caret position, splitting that paragraph.
   const insertWidget = (widget: BodyBlock) => {
-    let index = value.findIndex((block) => block.id === lastCaret.current?.id);
-    let offset = lastCaret.current?.offset ?? 0;
+    let index = value.findIndex((block) => block.id === selection?.id);
+    let offset = selection?.start ?? 0;
     if (index === -1) {
       index = value.length - 1;
       offset = Infinity;
@@ -213,11 +327,32 @@ export function BodyEditor({
     const block = value[index] as ParagraphBlock;
     const before = block.text.slice(0, offset).trimEnd();
     const after = block.text.slice(offset).trimStart();
-    const next = paragraph(after);
+    const afterStart = block.text.length - after.length;
+    const current = paragraph(
+      before,
+      sliceLinks(block.links, 0, before.length),
+      block.id,
+    );
+    const next = paragraph(after, sliceLinks(block.links, afterStart));
 
-    commit(splice(index, 1, { ...block, text: before }, widget, next), {
+    commit(splice(index, 1, current, widget, next), {
       id: next.id,
       offset: 0,
+    });
+  };
+
+  // Without href the link is removed.
+  const saveLink = ({ id: blockId, start, end }: LinkEdit, href?: string) => {
+    setEditingLink(undefined);
+    const index = value.findIndex((block) => block.id === blockId);
+    const block = value[index];
+    if (block?.type !== 'paragraph') {
+      return;
+    }
+    const links = setLinkRange(block.links, start, end, href);
+    commit(splice(index, 1, paragraph(block.text, links, block.id)), {
+      id: blockId,
+      offset: end,
     });
   };
 
@@ -249,39 +384,72 @@ export function BodyEditor({
         >
           ❝ Citat
         </button>
+
+        <span className='mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-800' />
+
+        <button
+          type='button'
+          // Keeps the text selection visible in the paragraph.
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => setEditingLink(linkTarget)}
+          disabled={!linkTarget}
+          title='Markera text för att lägga till en länk (Ctrl+K)'
+          className={toolbarButtonClass}
+        >
+          🔗 {linkTarget?.href ? 'Redigera länk' : 'Länk'}
+        </button>
+        {linkTarget?.href && (
+          <span className='truncate px-1 text-xs text-zinc-500'>
+            {linkTarget.href}
+          </span>
+        )}
       </div>
 
       <div className='flex flex-col gap-3 px-3 py-3'>
         {value.map((block, index) => {
           if (block.type === 'paragraph') {
             return (
-              <textarea
-                key={block.id}
-                id={index === 0 ? id : undefined}
-                ref={(input) => {
-                  if (!input) {
-                    return;
+              <div key={block.id} className='relative'>
+                <LinkHighlights text={block.text} links={block.links} />
+                <textarea
+                  id={index === 0 ? id : undefined}
+                  ref={(input) => {
+                    if (!input) {
+                      return;
+                    }
+                    inputs.current.set(block.id, input);
+                    autosize(input);
+                    return () => {
+                      inputs.current.delete(block.id);
+                    };
+                  }}
+                  rows={1}
+                  value={block.text}
+                  placeholder={
+                    value.length === 1 ? 'Skriv brödtext…' : undefined
                   }
-                  inputs.current.set(block.id, input);
-                  autosize(input);
-                  return () => {
-                    inputs.current.delete(block.id);
-                  };
-                }}
-                rows={1}
-                value={block.text}
-                placeholder={value.length === 1 ? 'Skriv brödtext…' : undefined}
-                onChange={(event) => setText(index, event.target.value)}
-                onKeyDown={(event) => onKeyDown(event, index, block)}
-                onPaste={(event) => onPaste(event, index, block)}
-                onBlur={(event) => {
-                  lastCaret.current = {
-                    id: block.id,
-                    offset: event.currentTarget.selectionStart,
-                  };
-                }}
-                className='block w-full resize-none overflow-hidden bg-transparent text-sm leading-relaxed outline-none placeholder:text-zinc-400'
-              />
+                  onChange={(event) =>
+                    setText(
+                      index,
+                      block,
+                      event.target.value,
+                      event.target.selectionEnd,
+                    )
+                  }
+                  onKeyDown={(event) => onKeyDown(event, index, block)}
+                  onPaste={(event) => onPaste(event, index, block)}
+                  onSelect={(event) => {
+                    const { selectionStart, selectionEnd } =
+                      event.currentTarget;
+                    setSelection({
+                      id: block.id,
+                      start: selectionStart,
+                      end: selectionEnd,
+                    });
+                  }}
+                  className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-zinc-400`}
+                />
+              </div>
             );
           }
 
@@ -296,6 +464,15 @@ export function BodyEditor({
         })}
       </div>
 
+      {editingLink && (
+        <LinkDialog
+          initial={editingLink}
+          onSave={(href) => saveLink(editingLink, href)}
+          onRemove={editingLink.href ? () => saveLink(editingLink) : undefined}
+          onClose={() => setEditingLink(undefined)}
+        />
+      )}
+
       {editingQuote && (
         <QuoteDialog
           initial={editingQuote}
@@ -308,7 +485,44 @@ export function BodyEditor({
 }
 
 const toolbarButtonClass =
-  'rounded px-2 py-1 text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800';
+  'rounded px-2 py-1 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:hover:bg-zinc-800';
+
+// Shared by the textarea and its highlights, so their text wraps identically.
+const paragraphTextClass =
+  'text-sm leading-relaxed whitespace-pre-wrap break-words';
+
+// A textarea can't style parts of its text, so links are highlighted in a
+// copy of the text laid out right behind it.
+function LinkHighlights({ text, links = [] }: { text: string; links?: Link[] }) {
+  if (!links.length) {
+    return undefined;
+  }
+
+  const parts: React.ReactNode[] = [];
+  let position = 0;
+  for (const link of links) {
+    parts.push(text.slice(position, link.start));
+    parts.push(
+      <span
+        key={link.start}
+        className='rounded-sm bg-blue-100 underline decoration-blue-500 underline-offset-2 dark:bg-blue-950'
+      >
+        {text.slice(link.start, link.end)}
+      </span>,
+    );
+    position = link.end;
+  }
+  parts.push(text.slice(position));
+
+  return (
+    <div
+      aria-hidden
+      className={`${paragraphTextClass} pointer-events-none absolute inset-0 text-transparent`}
+    >
+      {parts}
+    </div>
+  );
+}
 
 function QuoteWidget({
   block,
@@ -421,6 +635,100 @@ function QuoteDialog({
             className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
           >
             {initial.text ? 'Uppdatera' : 'Infoga'}
+          </button>
+        </div>
+      </form>
+    </dialog>,
+    document.body,
+  );
+}
+
+function LinkDialog({
+  initial,
+  onSave,
+  onRemove,
+  onClose,
+}: {
+  initial: Pick<LinkEdit, 'href' | 'text'>;
+  onSave: (href: string) => void;
+  onRemove?: () => void;
+  onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [href, setHref] = useState(initial.href);
+  const normalized = normalizeHref(href);
+  const isValid = isValidHref(normalized);
+
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+
+  // Portaled out of the article <form>, since forms can't be nested.
+  return createPortal(
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      className='m-auto w-full max-w-lg rounded-lg bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/40 dark:bg-zinc-900 dark:text-zinc-100'
+    >
+      <form
+        className='flex flex-col gap-5 p-6'
+        onSubmit={(event) => {
+          // React events bubble through portals, so keep this submit from
+          // reaching the article form.
+          event.preventDefault();
+          event.stopPropagation();
+          onSave(normalized);
+        }}
+      >
+        <h2 className='text-base font-semibold'>Länk</h2>
+
+        <p className='line-clamp-3 text-sm text-zinc-600 dark:text-zinc-400'>
+          {initial.text}
+        </p>
+
+        <label className='flex flex-col gap-2'>
+          <span className='text-sm font-semibold'>Adress</span>
+          <input
+            type='text'
+            inputMode='url'
+            value={href}
+            onChange={(event) => setHref(event.target.value)}
+            placeholder='https://'
+            autoComplete='off'
+            autoFocus
+            required
+            className={dialogInputClass}
+          />
+          {href.trim() && !isValid && (
+            <span className='text-xs text-red-600 dark:text-red-400'>
+              Ogiltig adress.
+            </span>
+          )}
+        </label>
+
+        <div className='flex justify-end gap-3'>
+          {onRemove && (
+            <button
+              type='button'
+              onClick={onRemove}
+              className='mr-auto rounded-md px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950'
+            >
+              Ta bort länk
+            </button>
+          )}
+          <button
+            type='button'
+            onClick={() => dialog.current?.close()}
+            className='rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800'
+          >
+            Avbryt
+          </button>
+          <button
+            type='submit'
+            disabled={!isValid}
+            className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
+          >
+            {initial.href ? 'Uppdatera' : 'Infoga'}
           </button>
         </div>
       </form>
