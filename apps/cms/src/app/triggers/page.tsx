@@ -1,13 +1,22 @@
-import { TriggerButton } from './trigger-button';
+import { TriggerButton, type TriggerInput } from './trigger-button';
 
-const triggers = [
+const CACHE_KEYS = ['articles'] as const;
+
+const triggers: {
+  id: string;
+  label: string;
+  description: string;
+  endpoint: string;
+  input?: TriggerInput;
+}[] = [
   {
     id: 'clear-site-cache',
     label: 'Rensa sajtcache',
-    description: 'Tömmer sajtens cache så att ändringar syns direkt.',
+    description: 'Tömmer sajtens cache för en nyckel så att ändringar syns direkt.',
     endpoint: '/api/example',
+    input: { name: 'tag', label: 'Cache-nyckel', suggestions: CACHE_KEYS },
   },
-] as const;
+];
 
 export default function TriggersPage() {
   return (
@@ -26,7 +35,7 @@ export default function TriggersPage() {
                 <p className="text-sm font-semibold">{trigger.label}</p>
                 <p className="text-xs text-zinc-500">{trigger.description}</p>
               </div>
-              <TriggerButton endpoint={trigger.endpoint} />
+              <TriggerButton endpoint={trigger.endpoint} input={trigger.input} />
             </li>
           ))}
         </ul>
