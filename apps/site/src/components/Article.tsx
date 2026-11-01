@@ -61,8 +61,8 @@ const Quote = ({
   const { text, author } = part;
   return (
     <div className='pt-3'>
-      <p>{text}</p>
-      <cite>{author}</cite>
+      <p className='italic'>{text}</p>
+      <cite className='not-italic'>{author}</cite>
     </div>
   );
 };
