@@ -39,18 +39,25 @@ const Paragraph = ({
 }: {
   part: Pick<ArticleBodyPartPayload, 'text' | 'marks'>;
 }) => {
-  const { text, marks } = part;
-  const textParts: string[] = []; //text?.split('\n');
+  const { text = '', marks = [] } = part;
+  
   const breaks = Array.from(
-    new Set(marks?.map((mark) => [mark.start, mark.end]).flat() ?? []),
+    new Set([0, ...(marks.map((mark) => [mark.start, mark.end]).flat() ?? [])]),
   ).sort((a, b) => a - b);
-  console.log('***BR', breaks);
+
+  const textParts: string[] = []; //text?.split('\n');
+  for (let i = 0; i < breaks.length; i++) {
+    const breakIndex = breaks[i];
+    const nextBreakIndex = breaks.at(i + 1);
+    const sliced = text.slice(breakIndex, nextBreakIndex !== undefined ? nextBreakIndex : -1);
+    textParts.push(sliced);
+  }
 
   return (
     <p className='pt-3'>
       {textParts?.map((textPart, i) => (
         <span key={i}>
-          {i > 0 ? <br /> : null}
+          {/* {i > 0 ? <br /> : null} */}
           {textPart}
         </span>
       ))}
