@@ -25,12 +25,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="h-full flex flex-col">
         <nav className="flex shrink-0 items-center gap-6 border-b border-zinc-200 px-4 py-2 text-sm dark:border-zinc-800">
-          <span className="font-semibold">michaelkjellander.se</span>
+          <Link href="/" className="font-semibold">
+            michaelkjellander.se
+          </Link>
           <Link
             href="/articles"
             className="text-zinc-600 hover:text-foreground dark:text-zinc-400"
           >
             Artiklar
+          </Link>
+          <Link
+            href="/triggers"
+            className="text-zinc-600 hover:text-foreground dark:text-zinc-400"
+          >
+            Triggers
           </Link>
         </nav>
         {children}
