@@ -67,29 +67,32 @@ const Paragraph = ({
   }
 
   //console.log('***MARKS', marks);
-  //console.log('***PARTS', JSON.stringify(textParts, null, 2));
+  console.log('***PARTS', JSON.stringify(textParts, null, 2));
 
   //TODO: br
   //TODO: only external links in blank
 
   return (
     <p className='pt-3'>
-      {textParts?.map((textPart, i) => {
+      {textParts?.map((textPart) => {
         const markTypes = textPart.activeMarks.map((m) => m.type);
-        return (
+        const lines = textPart.text.split('\n');
+       //console.log('***LINE', lines);
+        return lines.map((line, i2) => (
           <MkLink
             enabled={markTypes.includes('link')}
             className={{
               all: `${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`,
               link: 'underline hover:text-gray-600 hover:no-underline',
             }}
-            key={i}
+            key={i2}
             href={textPart.activeMarks.find((m) => m.type === 'link')?.href}
             target='_blank'
           >
-            {textPart.text}
+            {i2 > 0 ? <br /> : null}
+            {line}
           </MkLink>
-        );
+        ));
       })}
     </p>
   );
