@@ -17,13 +17,10 @@ export const Article = ({
   const ngClass = {
     title: 'font-bold',
   };
+  const Heading = isMain ? 'h1' : 'h2';
   return (
     <article className='px-12 py-12 bg-white mb-12 shadow-sm'>
-      {isMain ? (
-        <h1 className={ngClass.title}>{article.title}</h1>
-      ) : (
-        <h2 className={ngClass.title}>{article.title}</h2>
-      )}
+      <Heading className={ngClass.title}>{article.title}</Heading>
       {article.body.map((part, i) => {
         switch (part.type) {
           case 'paragraph':
@@ -70,6 +67,8 @@ const Paragraph = ({
 
   console.log('***MARKS', marks);
   console.log('***PARTS', JSON.stringify(textParts, null, 2));
+  //TODO: links
+  //TODO: br
 
   return (
     <p className='pt-3'>
