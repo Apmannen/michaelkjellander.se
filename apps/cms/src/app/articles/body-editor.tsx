@@ -205,6 +205,9 @@ export function BodyEditor({
     return { ...trimmed, href: '', text };
   };
 
+  const isEmpty =
+    value.length === 1 && value[0].type === 'paragraph' && !value[0].text;
+
   const linkTarget = findLinkTarget(selection);
   const formatTarget = trimSelection(selection);
 
@@ -487,6 +490,20 @@ export function BodyEditor({
           className={toolbarButtonClass}
         >
           ❝ Citat
+        </button>
+
+        <button
+          type='button'
+          onClick={() => {
+            const empty = paragraph();
+            setSelection(undefined);
+            commit([empty], { id: empty.id, offset: 0 });
+          }}
+          disabled={isEmpty}
+          title='Ta bort all brödtext'
+          className={`${toolbarButtonClass} ml-auto text-red-600 dark:text-red-400`}
+        >
+          Rensa
         </button>
       </div>
 

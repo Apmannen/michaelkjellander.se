@@ -47,3 +47,18 @@ export async function saveArticle(
 
   return { ok: true, article: data };
 }
+
+// TODO: verify authentication here once the cms has login.
+export async function deleteArticle(
+  id: string,
+): Promise<{ ok: false; error: string }> {
+  const { error } = await db.deleteArticle(id);
+
+  if (error) {
+    console.error('deleteArticle failed', error);
+    return { ok: false, error: 'Kunde inte ta bort artikeln.' };
+  }
+
+  revalidatePath('/articles', 'layout');
+  redirect('/articles');
+}

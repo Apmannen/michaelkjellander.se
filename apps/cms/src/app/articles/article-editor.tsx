@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 
 import { type Article, type ArticleInput, slugify } from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
 
-import { saveArticle } from './actions';
+import { deleteArticle, saveArticle } from './actions';
 import { BodyEditor } from './body-editor';
 
 const toInput = (article: Article | null): ArticleInput => ({
@@ -26,6 +27,8 @@ export function ArticleEditor({ article }: { article: Article | null }) {
   const [draft, setDraft] = useState<ArticleInput>(saved);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
+  const [isDeleting, startDeleting] = useTransition();
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const isDirty = !isSame(draft, saved);
 
@@ -51,6 +54,14 @@ export function ArticleEditor({ article }: { article: Article | null }) {
       const next = toInput(result.article);
       setSaved(next);
       setDraft(next);
+    });
+  };
+
+  const remove = (id: string) => {
+    setIsConfirmingDelete(false);
+    startDeleting(async () => {
+      const result = await deleteArticle(id);
+      setError(result.error);
     });
   };
 
@@ -163,21 +174,89 @@ export function ArticleEditor({ article }: { article: Article | null }) {
               setDraft(saved);
               setError(null);
             }}
-            disabled={isSaving}
+            disabled={isSaving || isDeleting}
             className={secondaryButtonClass}
           >
             Ångra ändringar
           </button>
         )}
+        {article && (
+          <button
+            type='button'
+            onClick={() => setIsConfirmingDelete(true)}
+            disabled={isSaving || isDeleting}
+            className='rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40'
+          >
+            {isDeleting ? 'Tar bort…' : 'Ta bort'}
+          </button>
+        )}
         <button
           type='submit'
-          disabled={!isDirty || isSaving}
+          disabled={!isDirty || isSaving || isDeleting}
           className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
         >
           {isSaving ? 'Sparar…' : 'Spara'}
         </button>
       </footer>
+
+      {article && isConfirmingDelete && (
+        <ConfirmDeleteDialog
+          title={saved.title}
+          onConfirm={() => remove(article.id)}
+          onClose={() => setIsConfirmingDelete(false)}
+        />
+      )}
     </form>
+  );
+}
+
+function ConfirmDeleteDialog({
+  title,
+  onConfirm,
+  onClose,
+}: {
+  title: string;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+
+  // Portaled out of the article <form>, so its buttons can't submit it.
+  return createPortal(
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      className='m-auto w-full max-w-md rounded-lg bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/40 dark:bg-zinc-900 dark:text-zinc-100'
+    >
+      <div className='flex flex-col gap-5 p-6'>
+        <h2 className='text-base font-semibold'>Ta bort artikel?</h2>
+        <p className='text-sm text-zinc-600 dark:text-zinc-400'>
+          ”{title}” tas bort och försvinner från sajten.
+        </p>
+        <div className='flex justify-end gap-3'>
+          <button
+            type='button'
+            onClick={() => dialog.current?.close()}
+            autoFocus
+            className={secondaryButtonClass}
+          >
+            Avbryt
+          </button>
+          <button
+            type='button'
+            onClick={onConfirm}
+            className='rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700'
+          >
+            Ta bort
+          </button>
+        </div>
+      </div>
+    </dialog>,
+    document.body,
   );
 }
 

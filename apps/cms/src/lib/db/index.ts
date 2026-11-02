@@ -18,6 +18,7 @@ const listArticles = async (): Promise<Article[]> => {
   const {data, error} = await supabase
     .from('articles')
     .select(ARTICLE_COLUMNS)
+    .is('deleted_at', null)
     .order('updated_at', {ascending: false});
 
   if (error) {
@@ -32,6 +33,7 @@ const getArticle = async (id: string): Promise<Article | null> => {
     .from('articles')
     .select(ARTICLE_COLUMNS)
     .eq('id', id)
+    .is('deleted_at', null)
     .maybeSingle();
 
   if (error) {
@@ -54,8 +56,17 @@ const updateArticle = async (id: string, input: ArticleInput) => {
     .from('articles')
     .update({...input, updated_at: new Date().toISOString()})
     .eq('id', id)
+    .is('deleted_at', null)
     .select(ARTICLE_COLUMNS)
     .single<Article>();
+};
+
+const deleteArticle = async (id: string) => {
+  return supabase
+    .from('articles')
+    .update({deleted_at: new Date().toISOString()})
+    .eq('id', id)
+    .is('deleted_at', null);
 };
 
 export const db = {
@@ -63,4 +74,5 @@ export const db = {
   getArticle,
   createArticle,
   updateArticle,
+  deleteArticle,
 };
