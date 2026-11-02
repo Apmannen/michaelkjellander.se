@@ -3,7 +3,7 @@ import {
   ArticlePayload,
   BodyMarkPayload,
 } from '@/lib/db/payload.types';
-import Link, { LinkProps } from 'next/link';
+import { MkLink } from './MkLink';
 
 const logPrefix = '[Article]';
 
@@ -33,33 +33,6 @@ export const Article = ({
         return null;
       })}
     </article>
-  );
-};
-
-//TODO: move
-const MkLink = ({
-  children,
-  className,
-  href,
-  target,
-  enabled,
-}: Pick<
-  React.AnchorHTMLAttributes<HTMLAnchorElement>,
-  'href' | 'target' | 'children'
-> & {
-  className?: { link?: string; span?: string; all?: string };
-  enabled?: boolean;
-}) => {
-  return enabled ? (
-    <Link
-      className={`${className?.all} ${className?.link}`}
-      href={href ?? '#'}
-      target={target}
-    >
-      {children}
-    </Link>
-  ) : (
-    <span className={`${className?.all} ${className?.span}`}>{children}</span>
   );
 };
 
@@ -93,8 +66,8 @@ const Paragraph = ({
     textParts.push({ text: sliced, activeMarks });
   }
 
-  console.log('***MARKS', marks);
-  console.log('***PARTS', JSON.stringify(textParts, null, 2));
+  //console.log('***MARKS', marks);
+  //console.log('***PARTS', JSON.stringify(textParts, null, 2));
 
   //TODO: br
   //TODO: only external links in blank
