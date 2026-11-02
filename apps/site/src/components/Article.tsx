@@ -3,6 +3,7 @@ import {
   ArticlePayload,
   BodyMarkPayload,
 } from '@/lib/db/payload.types';
+import Link, { LinkProps } from 'next/link';
 
 const logPrefix = '[Article]';
 
@@ -32,6 +33,33 @@ export const Article = ({
         return null;
       })}
     </article>
+  );
+};
+
+//TODO: move
+const MkLink = ({
+  children,
+  className,
+  href,
+  target,
+  enabled,
+}: Pick<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  'href' | 'target' | 'children'
+> & {
+  className?: { link?: string; span?: string; all?: string };
+  enabled?: boolean;
+}) => {
+  return enabled ? (
+    <Link
+      className={`${className?.all} ${className?.link}`}
+      href={href ?? '#'}
+      target={target}
+    >
+      {children}
+    </Link>
+  ) : (
+    <span className={`${className?.all} ${className?.span}`}>{children}</span>
   );
 };
 
@@ -67,21 +95,27 @@ const Paragraph = ({
 
   console.log('***MARKS', marks);
   console.log('***PARTS', JSON.stringify(textParts, null, 2));
-  //TODO: links
+
   //TODO: br
+  //TODO: only external links in blank
 
   return (
     <p className='pt-3'>
       {textParts?.map((textPart, i) => {
         const markTypes = textPart.activeMarks.map((m) => m.type);
         return (
-          <span
-            className={`${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`}
+          <MkLink
+            enabled={markTypes.includes('link')}
+            className={{
+              all: `${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`,
+              link: 'underline',
+            }}
             key={i}
+            href={textPart.activeMarks.find((m) => m.type === 'link')?.href}
+            target='_blank'
           >
-            {/* {i > 0 ? <br /> : null} */}
             {textPart.text}
-          </span>
+          </MkLink>
         );
       })}
     </p>
