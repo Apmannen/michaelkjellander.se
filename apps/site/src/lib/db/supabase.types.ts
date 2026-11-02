@@ -18,8 +18,10 @@ export type Database = {
         Row: {
           body: Json
           created_at: string
+          deleted_at: string | null
           id: string
           published: boolean
+          published_at: string
           slug: string
           title: string
           updated_at: string
@@ -27,8 +29,10 @@ export type Database = {
         Insert: {
           body?: Json
           created_at?: string
+          deleted_at?: string | null
           id?: string
           published?: boolean
+          published_at?: string
           slug: string
           title: string
           updated_at?: string
@@ -36,8 +40,10 @@ export type Database = {
         Update: {
           body?: Json
           created_at?: string
+          deleted_at?: string | null
           id?: string
           published?: boolean
+          published_at?: string
           slug?: string
           title?: string
           updated_at?: string
