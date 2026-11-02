@@ -81,7 +81,7 @@ const Paragraph = ({
             enabled={markTypes.includes('link')}
             className={{
               all: `${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`,
-              link: 'underline',
+              link: 'underline hover:text-gray-600 hover:no-underline',
             }}
             key={i}
             href={textPart.activeMarks.find((m) => m.type === 'link')?.href}
