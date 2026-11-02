@@ -5,7 +5,7 @@ export const MkLink = ({
   className,
   href,
   target,
-  enabled,
+  enabled = true,
 }: Pick<
   React.AnchorHTMLAttributes<HTMLAnchorElement>,
   'href' | 'target' | 'children'
@@ -15,13 +15,13 @@ export const MkLink = ({
 }) => {
   return enabled ? (
     <Link
-      className={`${className?.all} ${className?.link}`}
+      className={`${className?.all ?? ''} ${className?.link ?? ''}`}
       href={href ?? '#'}
       target={target}
     >
       {children}
     </Link>
   ) : (
-    <span className={`${className?.all} ${className?.span}`}>{children}</span>
+    <span className={`${className?.all ?? ''} ${className?.span ?? ''}`}>{children}</span>
   );
 };

@@ -38,7 +38,7 @@ type TextSelection = { id: string; start: number; end: number };
 // href is empty while adding a new link.
 type LinkEdit = TextSelection & { href: string; text: string };
 
-type QuoteFields = Pick<QuoteBlock, 'text' | 'author'>;
+type QuoteFields = Pick<QuoteBlock, 'text' | 'author' | 'href'>;
 
 // id is undefined while inserting a new quote.
 type QuoteEdit = QuoteFields & { id?: string };
@@ -425,7 +425,9 @@ export function BodyEditor({
     if (quoteId) {
       onChange(
         value.map((block) =>
-          block.id === quoteId ? { ...block, ...fields } : block,
+          block.id === quoteId
+            ? { id: block.id, type: 'quote', ...fields }
+            : block,
         ),
       );
       return;
@@ -656,6 +658,11 @@ function QuoteWidget({
           — {block.author}
         </figcaption>
       )}
+      {block.href && (
+        <p className='mt-1 truncate text-xs text-blue-700 dark:text-blue-400'>
+          🔗 {block.href}
+        </p>
+      )}
       <div className='absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100'>
         <button type='button' onClick={onEdit} className={toolbarButtonClass}>
           Redigera
@@ -684,6 +691,9 @@ function QuoteDialog({
   const dialog = useRef<HTMLDialogElement>(null);
   const [text, setText] = useState(initial.text);
   const [author, setAuthor] = useState(initial.author);
+  const [href, setHref] = useState(initial.href ?? '');
+  const normalizedHref = normalizeHref(href);
+  const isValidLink = !normalizedHref || isValidHref(normalizedHref);
 
   useEffect(() => {
     dialog.current?.showModal();
@@ -703,7 +713,11 @@ function QuoteDialog({
           // reaching the article form.
           event.preventDefault();
           event.stopPropagation();
-          onSave({ text: text.trim(), author: author.trim() });
+          onSave({
+            text: text.trim(),
+            author: author.trim(),
+            ...(normalizedHref && { href: normalizedHref }),
+          });
         }}
       >
         <h2 className='text-base font-semibold'>Citat</h2>
@@ -731,6 +745,24 @@ function QuoteDialog({
           />
         </label>
 
+        <label className='flex flex-col gap-2'>
+          <span className='text-sm font-semibold'>Länk (valfri)</span>
+          <input
+            type='text'
+            inputMode='url'
+            value={href}
+            onChange={(event) => setHref(event.target.value)}
+            placeholder='https://'
+            autoComplete='off'
+            className={dialogInputClass}
+          />
+          {!isValidLink && (
+            <span className='text-xs text-red-600 dark:text-red-400'>
+              Ogiltig adress.
+            </span>
+          )}
+        </label>
+
         <div className='flex justify-end gap-3'>
           <button
             type='button'
@@ -741,7 +773,7 @@ function QuoteDialog({
           </button>
           <button
             type='submit'
-            disabled={!text.trim()}
+            disabled={!text.trim() || !isValidLink}
             className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
           >
             {initial.text ? 'Uppdatera' : 'Infoga'}

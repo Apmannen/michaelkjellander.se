@@ -77,7 +77,7 @@ const Paragraph = ({
       {textParts?.map((textPart) => {
         const markTypes = textPart.activeMarks.map((m) => m.type);
         const lines = textPart.text.split('\n');
-       //console.log('***LINE', lines);
+        //console.log('***LINE', lines);
         return lines.map((line, i2) => (
           <MkLink
             enabled={markTypes.includes('link')}
@@ -101,14 +101,25 @@ const Paragraph = ({
 const Quote = ({
   part,
 }: {
-  part: Pick<ArticleBodyPartPayload, 'text' | 'author'>;
+  part: Pick<ArticleBodyPartPayload, 'text' | 'author' | 'href'>;
 }) => {
-  const { text, author } = part;
+  const { text, author, href } = part;
   return (
     <div className='pt-3'>
       <div className='border-l-4 border-gray-600 pl-4'>
         <p className='italic text-gray-600'>{text}</p>
-        <cite className='not-italic pt-3 pb-1 block'>{author}</cite>
+        <cite className='not-italic pt-3 pb-1 block'>
+          <MkLink
+            enabled={!!href}
+            href={href}
+            className={{
+              link: 'underline hover:text-gray-600 hover:no-underline',
+            }}
+            target='_blank'
+          >
+            {author}
+          </MkLink>
+        </cite>
       </div>
     </div>
   );

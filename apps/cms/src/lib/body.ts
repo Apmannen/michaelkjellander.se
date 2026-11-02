@@ -24,6 +24,8 @@ export type QuoteBlock = {
   type: 'quote';
   text: string;
   author: string;
+  // Where the quote comes from. Left out when there is no link.
+  href?: string;
 };
 
 export type WidgetBlock = QuoteBlock;
@@ -242,7 +244,13 @@ export const parseBody = (raw: unknown): Body => {
       return [paragraph(text, toMarks(item.marks, offset, text.length), id)];
     }
     if (item.type === 'quote') {
-      return [{ id, type: 'quote', text, author: toText(item.author) }];
+      const author = toText(item.author);
+      const href = typeof item.href === 'string' ? item.href.trim() : '';
+      return [
+        isValidHref(href)
+          ? { id, type: 'quote', text, author, href }
+          : { id, type: 'quote', text, author },
+      ];
     }
     return [];
   });
