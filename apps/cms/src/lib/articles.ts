@@ -5,6 +5,7 @@ export type Article = {
   title: string;
   slug: string;
   published: boolean;
+  published_at: string;
   body: Body;
   created_at: string;
   updated_at: string;
@@ -12,7 +13,7 @@ export type Article = {
 
 export type ArticleInput = Pick<
   Article,
-  'title' | 'slug' | 'published' | 'body'
+  'title' | 'slug' | 'published' | 'published_at' | 'body'
 >;
 
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -34,6 +35,9 @@ export const validateArticle = (input: ArticleInput): string | undefined => {
   }
   if (!SLUG_PATTERN.test(input.slug)) {
     return 'Slug får bara innehålla a–z, 0–9 och bindestreck.';
+  }
+  if (Number.isNaN(Date.parse(input.published_at))) {
+    return 'Publiceringstid måste anges.';
   }
   return undefined;
 };

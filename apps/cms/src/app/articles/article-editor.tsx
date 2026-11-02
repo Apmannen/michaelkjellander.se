@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from 'react';
 import { createPortal } from 'react-dom';
 
 import { type Article, type ArticleInput, slugify } from '@/lib/articles';
@@ -9,17 +15,55 @@ import { withParagraphSlots } from '@/lib/body';
 import { deleteArticle, saveArticle } from './actions';
 import { BodyEditor } from './body-editor';
 
+// New articles default to the current minute.
+const now = () => {
+  const date = new Date();
+  date.setSeconds(0, 0);
+  return date.toISOString();
+};
+
 const toInput = (article: Article | null): ArticleInput => ({
   title: article?.title ?? '',
   slug: article?.slug ?? '',
   published: article?.published ?? false,
+  published_at: article ? new Date(article.published_at).toISOString() : now(),
   body: withParagraphSlots(article?.body ?? []),
 });
+
+// ISO string -> value for <input type="datetime-local">, in the browser's
+// time zone.
+const toLocalDateTime = (iso: string) => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+// <input type="datetime-local"> value -> ISO string ('' if cleared).
+const fromLocalDateTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return date.toISOString();
+};
+
+// The publication time is shown in the browser's time zone, which the server
+// doesn't know, so that field is only rendered on the client.
+const useIsClient = () =>
+  useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
 const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.title === b.title &&
   a.slug === b.slug &&
   a.published === b.published &&
+  a.published_at === b.published_at &&
   JSON.stringify(a.body) === JSON.stringify(b.body);
 
 export function ArticleEditor({ article }: { article: Article | null }) {
@@ -29,6 +73,7 @@ export function ArticleEditor({ article }: { article: Article | null }) {
   const [isSaving, startSaving] = useTransition();
   const [isDeleting, startDeleting] = useTransition();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const isClient = useIsClient();
 
   const isDirty = !isSame(draft, saved);
 
@@ -135,6 +180,18 @@ export function ArticleEditor({ article }: { article: Article | null }) {
               id='body'
               value={draft.body}
               onChange={(body) => update({ body })}
+            />
+          </Field>
+
+          <Field label='Publiceringstid' htmlFor='published_at'>
+            <input
+              id='published_at'
+              type='datetime-local'
+              value={isClient ? toLocalDateTime(draft.published_at) : ''}
+              onChange={(event) =>
+                update({ published_at: fromLocalDateTime(event.target.value) })
+              }
+              className={inputClass}
             />
           </Field>
 

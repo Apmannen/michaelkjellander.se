@@ -12,7 +12,7 @@ const supabase = createClient(
 );
 
 const ARTICLE_COLUMNS = 
-  'id, title, slug, published, body, created_at, updated_at';
+  'id, title, slug, published, published_at, body, created_at, updated_at';
 
 const listArticles = async (): Promise<Article[]> => {
   const {data, error} = await supabase

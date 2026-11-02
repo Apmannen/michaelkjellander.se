@@ -20,11 +20,14 @@ export async function saveArticle(
     title: String(raw.title ?? '').trim(),
     slug: String(raw.slug ?? '').trim(),
     published: raw.published === true,
+    published_at: String(raw.published_at ?? ''),
     body: parseBody(raw.body),
   };
 
   const validationError = validateArticle(input);
   if (validationError) return { ok: false, error: validationError };
+
+  input.published_at = new Date(input.published_at).toISOString();
 
   const { data, error } = id
     ? await db.updateArticle(id, input)
