@@ -22,28 +22,30 @@ export const Article = ({
   };
   const Heading = isMain ? 'h1' : 'h2';
   return (
-    <article className='px-12 py-12 bg-white mb-12 shadow-sm'>
+    <article className='bg-white mb-12 shadow-sm  max-w-[825px]'>
       {article.cover_image ? (
         <Image
           src={storage.getPublicUrl(article.cover_image?.path)}
           alt=''
-          width={825}
-          height={510}
+          width={825 * 1.0}
+          height={510 * 1.0}
           className='w-full h-auto'
           loading='eager'
         />
       ) : null}
-      <Heading className={ngClass.title}>{article.title}</Heading>
-      {article.body.map((part, i) => {
-        switch (part.type) {
-          case 'paragraph':
-            return <Paragraph key={i} part={part} />;
-          case 'quote':
-            return <Quote key={i} part={part} />;
-        }
-        console.warn(logPrefix, 'Unknown type:', part.type);
-        return null;
-      })}
+      <div className='px-12 py-12'>
+        <Heading className={ngClass.title}>{article.title}</Heading>
+        {article.body.map((part, i) => {
+          switch (part.type) {
+            case 'paragraph':
+              return <Paragraph key={i} part={part} />;
+            case 'quote':
+              return <Quote key={i} part={part} />;
+          }
+          console.warn(logPrefix, 'Unknown type:', part.type);
+          return null;
+        })}
+      </div>
     </article>
   );
 };
