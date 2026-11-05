@@ -4,6 +4,8 @@ import {
   BodyMarkPayload,
 } from '@/lib/db/payload.types';
 import { MkLink } from './MkLink';
+import { storage } from '@/lib/storage';
+import Image from 'next/image';
 
 const logPrefix = '[Article]';
 
@@ -11,16 +13,24 @@ export const Article = ({
   article,
   isMain,
 }: {
-  article: Pick<ArticlePayload, 'title' | 'body'>;
+  article: Pick<ArticlePayload, 'title' | 'body' | 'cover_image'>;
   isMain: boolean;
 }) => {
-  console.log('***ART', article.body);
+  //console.log('***ART', article.body);
   const ngClass = {
     title: 'font-bold',
   };
   const Heading = isMain ? 'h1' : 'h2';
   return (
     <article className='px-12 py-12 bg-white mb-12 shadow-sm'>
+      {article.cover_image ? (
+        <Image
+          src={storage.getPublicUrl(article.cover_image?.path)}
+          alt=''
+          width={825}
+          height={510}
+        />
+      ) : null}
       <Heading className={ngClass.title}>{article.title}</Heading>
       {article.body.map((part, i) => {
         switch (part.type) {
@@ -67,7 +77,7 @@ const Paragraph = ({
   }
 
   //console.log('***MARKS', marks);
-  console.log('***PARTS', JSON.stringify(textParts, null, 2));
+  //console.log('***PARTS', JSON.stringify(textParts, null, 2));
 
   //TODO: br
   //TODO: only external links in blank

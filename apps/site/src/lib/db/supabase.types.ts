@@ -17,6 +17,7 @@ export type Database = {
       articles: {
         Row: {
           body: Json
+          cover_image: Json | null
           created_at: string
           deleted_at: string | null
           id: string
@@ -28,6 +29,7 @@ export type Database = {
         }
         Insert: {
           body?: Json
+          cover_image?: Json | null
           created_at?: string
           deleted_at?: string | null
           id?: string
@@ -39,6 +41,7 @@ export type Database = {
         }
         Update: {
           body?: Json
+          cover_image?: Json | null
           created_at?: string
           deleted_at?: string | null
           id?: string

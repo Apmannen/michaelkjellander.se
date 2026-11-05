@@ -3,7 +3,7 @@ import { db } from '.';
 import { ArticlePayload } from './payload.types';
 
 const latest = async (): Promise<
-  Pick<ArticlePayload, 'id' | 'title' | 'body'>[]
+  Pick<ArticlePayload, 'id' | 'title' | 'body' | 'cover_image'>[]
 > => {
   'use cache';
   cacheTag('articles');
@@ -11,7 +11,7 @@ const latest = async (): Promise<
 
   const res = await db.supabase
     .from('articles')
-    .select('id, title, body')
+    .select('id, title, body, cover_image')
     .order('published_at', { ascending: false });
 
   return (res.data as ArticlePayload[]) || [];

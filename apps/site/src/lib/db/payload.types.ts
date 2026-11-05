@@ -17,7 +17,11 @@ export type ArticleBodyPartPayload = {
 };
 
 export type ArticlePayload = Prettify<
-  Omit<Database['public']['Tables']['articles']['Row'], 'body'> & {
+  Omit<
+    Database['public']['Tables']['articles']['Row'],
+    'body' | 'cover_image'
+  > & {
     body: ArticleBodyPartPayload[];
+    cover_image: { path: string } | null;
   }
 >;
