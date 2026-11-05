@@ -29,6 +29,8 @@ export const Article = ({
           alt=''
           width={825}
           height={510}
+          className='w-full h-auto'
+          loading='eager'
         />
       ) : null}
       <Heading className={ngClass.title}>{article.title}</Heading>
