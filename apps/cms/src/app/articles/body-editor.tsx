@@ -32,6 +32,7 @@ import {
 } from '@/lib/body';
 import type { UploadedImage } from '@/lib/images';
 
+import { Icon, IconPicker } from '../icons/icon-picker';
 import { ImagePicker, ImagePreview } from '../images/image-picker';
 
 // end selects from offset up to there.
@@ -40,7 +41,7 @@ type Caret = { id: string; offset: number; end?: number };
 type TextSelection = { id: string; start: number; end: number };
 
 // href is empty while adding a new link.
-type LinkEdit = TextSelection & { href: string; text: string };
+type LinkEdit = TextSelection & { href: string; icon?: string; text: string };
 
 type QuoteFields = Pick<QuoteBlock, 'text' | 'author' | 'href'>;
 
@@ -199,12 +200,13 @@ export function BodyEditor({
         target.end <= mark.end,
     );
     if (link?.type === 'link') {
-      const { start, end, href } = link;
+      const { start, end, href, icon } = link;
       return {
         id: block.id,
         start,
         end,
         href,
+        icon,
         text: block.text.slice(start, end),
       };
     }
@@ -416,7 +418,11 @@ export function BodyEditor({
   };
 
   // Without href the link is removed.
-  const saveLink = ({ id: blockId, start, end }: LinkEdit, href?: string) => {
+  const saveLink = (
+    { id: blockId, start, end }: LinkEdit,
+    href?: string,
+    icon?: string,
+  ) => {
     setEditingLink(undefined);
     const found = findParagraphById(blockId);
     if (!found) {
@@ -424,7 +430,13 @@ export function BodyEditor({
     }
     const { index, block } = found;
     const marks = href
-      ? addMark(block.marks, { type: 'link', href, start, end })
+      ? addMark(block.marks, {
+          type: 'link',
+          href,
+          ...(icon && { icon }),
+          start,
+          end,
+        })
       : removeMarks(block.marks, 'link', start, end);
     commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
       id: blockId,
@@ -505,8 +517,11 @@ export function BodyEditor({
           🔗 {linkTarget?.href ? 'Redigera länk' : 'Länk'}
         </button>
         {linkTarget?.href && (
-          <span className='truncate px-1 text-xs text-zinc-500'>
-            {linkTarget.href}
+          <span className='flex min-w-0 items-center gap-1 px-1 text-xs text-zinc-500'>
+            {linkTarget.icon && (
+              <Icon name={linkTarget.icon} className='size-3.5 shrink-0' />
+            )}
+            <span className='truncate'>{linkTarget.href}</span>
           </span>
         )}
 
@@ -619,7 +634,7 @@ export function BodyEditor({
       {editingLink && (
         <LinkDialog
           initial={editingLink}
-          onSave={(href) => saveLink(editingLink, href)}
+          onSave={(href, icon) => saveLink(editingLink, href, icon)}
           onRemove={editingLink.href ? () => saveLink(editingLink) : undefined}
           onClose={() => setEditingLink(undefined)}
         />
@@ -983,13 +998,14 @@ function LinkDialog({
   onRemove,
   onClose,
 }: {
-  initial: Pick<LinkEdit, 'href' | 'text'>;
-  onSave: (href: string) => void;
+  initial: Pick<LinkEdit, 'href' | 'icon' | 'text'>;
+  onSave: (href: string, icon?: string) => void;
   onRemove?: () => void;
   onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [href, setHref] = useState(initial.href);
+  const [icon, setIcon] = useState(initial.icon);
   const normalized = normalizeHref(href);
   const isValid = isValidHref(normalized);
 
@@ -1011,7 +1027,7 @@ function LinkDialog({
           // reaching the article form.
           event.preventDefault();
           event.stopPropagation();
-          onSave(normalized);
+          onSave(normalized, icon);
         }}
       >
         <h2 className='text-base font-semibold'>Länk</h2>
@@ -1039,6 +1055,11 @@ function LinkDialog({
             </span>
           )}
         </label>
+
+        <div className='flex flex-col gap-2'>
+          <span className='text-sm font-semibold'>Ikon (valfri)</span>
+          <IconPicker value={icon} onChange={setIcon} />
+        </div>
 
         <div className='flex justify-end gap-3'>
           {onRemove && (

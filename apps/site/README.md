@@ -1,6 +1,8 @@
 ## Planering
 
-Kommer att ersätta denna text när det är färdigt.
+Interna anteckningar. Kommer att ersätta denna text när det är färdigt.
+
+- allmänt stöd för ikoner? borde kunna lägga direkt i brödtext och markera!
 
 - Stöd för mörkt läge
 - Stöd för flera taggar per inlägg och relationer. Spel -> Spelrecensioner, Spel -> Mina spel.

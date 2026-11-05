@@ -1,7 +1,11 @@
 import { type Image, parseImage } from '@/lib/images';
 
 export type MarkStyle =
-  { type: 'bold' } | { type: 'underline' } | { type: 'link'; href: string };
+  | { type: 'bold' }
+  | { type: 'underline' }
+  // icon is the name of a react-icons icon, e.g. FaGithub. Left out when the
+  // link has no icon.
+  | { type: 'link'; href: string; icon?: string };
 
 export type MarkType = MarkStyle['type'];
 
@@ -47,7 +51,8 @@ export const newBlockId = () => crypto.randomUUID();
 
 const isSameStyle = (a: Mark, b: Mark) =>
   a.type === b.type &&
-  (a.type !== 'link' || (b.type === 'link' && a.href === b.href));
+  (a.type !== 'link' ||
+    (b.type === 'link' && a.href === b.href && a.icon === b.icon));
 
 // Sorts marks, drops empty ones and joins touching or overlapping marks with
 // the same style. A link overlapping a link to somewhere else is dropped.
@@ -155,6 +160,9 @@ export const adjustMarks = (
 export const isValidHref = (href: string) =>
   /^(https?:\/\/\S|mailto:\S|tel:\S|\/|#)/i.test(href);
 
+// Only Font Awesome and Phosphor icons are supported so far.
+export const isValidIconName = (name: string) => /^(Fa|Pi)[A-Z]\w*$/.test(name);
+
 // Bare domains like example.com get https:// so they don't become relative
 // links.
 export const normalizeHref = (value: string) => {
@@ -196,7 +204,10 @@ const toMarkStyle = (item: Record<string, unknown>): MarkStyle | undefined => {
     typeof item.href === 'string' &&
     isValidHref(item.href.trim())
   ) {
-    return { type: 'link', href: item.href.trim() };
+    const href = item.href.trim();
+    return typeof item.icon === 'string' && isValidIconName(item.icon)
+      ? { type: 'link', href, icon: item.icon }
+      : { type: 'link', href };
   }
   return undefined;
 };
