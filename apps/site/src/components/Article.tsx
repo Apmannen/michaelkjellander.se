@@ -31,17 +31,16 @@ export const Article = ({
       ) : null}
       <div className='px-12 py-12 text-[18px]'>
         <Heading className='font-bold text-4xl'>{article.title}</Heading>
-        <div className='pt-3'>
-          {article.body.map((part, i) => {
-            switch (part.type) {
-              case 'paragraph':
-                return <Paragraph key={i} part={part} />;
-              case 'quote':
-                return <Quote key={i} part={part} />;
-            }
-            console.warn(logPrefix, 'Unknown type:', part.type);
-            return null;
-          })}
+        <div className=''>
+          {article.body.map((part, i) => (
+            <div key={i} className='py-2'>
+              {part.type === 'paragraph' ? (
+                <Paragraph part={part} />
+              ) : part.type === 'quote' ? (
+                <Quote part={part} />
+              ) : null}
+            </div>
+          ))}
         </div>
       </div>
     </article>
@@ -81,7 +80,7 @@ const Paragraph = ({
   //TODO: only external links in blank
 
   return (
-    <p className='pb-4'>
+    <p className=''>
       {textParts?.map((textPart) => {
         const markTypes = textPart.activeMarks.map((m) => m.type);
         const lines = textPart.text.split('\n');
@@ -112,7 +111,7 @@ const Quote = ({
 }) => {
   const { text, author, href } = part;
   return (
-    <div className='pb-6 pt-2'>
+    <div className='py-1'>
       <div className='border-l-4 border-gray-600 pl-4'>
         <p className='italic text-neutral-600 text-[20px] leading-9'>{text}</p>
         <cite className='not-italic pt-3 pb-1 block'>
