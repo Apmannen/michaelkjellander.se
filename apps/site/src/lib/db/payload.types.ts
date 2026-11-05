@@ -13,6 +13,7 @@ export type ArticleBodyPartPayload = {
   text?: string;
   author?: string;
   marks?: BodyMarkPayload[];
+  href?: string;
 };
 
 export type ArticlePayload = Prettify<
