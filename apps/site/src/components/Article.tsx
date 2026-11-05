@@ -16,10 +16,6 @@ export const Article = ({
   article: Pick<ArticlePayload, 'title' | 'body' | 'cover_image'>;
   isMain: boolean;
 }) => {
-  //console.log('***ART', article.body);
-  const ngClass = {
-    title: 'font-bold',
-  };
   const Heading = isMain ? 'h1' : 'h2';
   return (
     <article className='bg-white mb-12 shadow-sm  max-w-[825px]'>
@@ -34,7 +30,7 @@ export const Article = ({
         />
       ) : null}
       <div className='px-12 py-12'>
-        <Heading className={ngClass.title}>{article.title}</Heading>
+        <Heading className='font-bold text-4xl'>{article.title}</Heading>
         {article.body.map((part, i) => {
           switch (part.type) {
             case 'paragraph':
