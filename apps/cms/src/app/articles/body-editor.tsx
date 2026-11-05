@@ -13,6 +13,7 @@ import { createPortal } from 'react-dom';
 import {
   type Body,
   type BodyBlock,
+  type ImageBlock,
   type Mark,
   type MarkType,
   type ParagraphBlock,
@@ -29,6 +30,9 @@ import {
   sliceMarks,
   withParagraphSlots,
 } from '@/lib/body';
+import type { UploadedImage } from '@/lib/images';
+
+import { ImagePicker, ImagePreview } from '../images/image-picker';
 
 // end selects from offset up to there.
 type Caret = { id: string; offset: number; end?: number };
@@ -42,6 +46,11 @@ type QuoteFields = Pick<QuoteBlock, 'text' | 'author' | 'href'>;
 
 // id is undefined while inserting a new quote.
 type QuoteEdit = QuoteFields & { id?: string };
+
+type ImageFields = Omit<ImageBlock, 'id' | 'type'>;
+
+// Empty while inserting a new image.
+type ImageEdit = Partial<ImageFields> & { id?: string };
 
 const autosize = (input: HTMLTextAreaElement) => {
   input.style.height = 'auto';
@@ -97,6 +106,9 @@ export function BodyEditor({
     undefined,
   );
   const [editingLink, setEditingLink] = useState<LinkEdit | undefined>(
+    undefined,
+  );
+  const [editingImage, setEditingImage] = useState<ImageEdit | undefined>(
     undefined,
   );
 
@@ -435,6 +447,21 @@ export function BodyEditor({
     insertWidget({ id: newBlockId(), type: 'quote', ...fields });
   };
 
+  const saveImage = (imageId: string | undefined, fields: ImageFields) => {
+    setEditingImage(undefined);
+    if (imageId) {
+      onChange(
+        value.map((block) =>
+          block.id === imageId
+            ? { id: block.id, type: 'image', ...fields }
+            : block,
+        ),
+      );
+      return;
+    }
+    insertWidget({ id: newBlockId(), type: 'image', ...fields });
+  };
+
   const removeBlock = (index: number) => {
     commit(splice(index, 1));
   };
@@ -492,6 +519,13 @@ export function BodyEditor({
           className={toolbarButtonClass}
         >
           ❝ Citat
+        </button>
+        <button
+          type='button'
+          onClick={() => setEditingImage({})}
+          className={toolbarButtonClass}
+        >
+          🖼 Bild
         </button>
 
         <button
@@ -560,6 +594,17 @@ export function BodyEditor({
             );
           }
 
+          if (block.type === 'image') {
+            return (
+              <ImageWidget
+                key={block.id}
+                block={block}
+                onEdit={() => setEditingImage(block)}
+                onRemove={() => removeBlock(index)}
+              />
+            );
+          }
+
           return (
             <QuoteWidget
               key={block.id}
@@ -585,6 +630,14 @@ export function BodyEditor({
           initial={editingQuote}
           onSave={(fields) => saveQuote({ ...editingQuote, ...fields })}
           onClose={() => setEditingQuote(undefined)}
+        />
+      )}
+
+      {editingImage && (
+        <ImageDialog
+          initial={editingImage}
+          onSave={(fields) => saveImage(editingImage.id, fields)}
+          onClose={() => setEditingImage(undefined)}
         />
       )}
     </div>
@@ -777,6 +830,145 @@ function QuoteDialog({
             className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
           >
             {initial.text ? 'Uppdatera' : 'Infoga'}
+          </button>
+        </div>
+      </form>
+    </dialog>,
+    document.body,
+  );
+}
+
+function ImageWidget({
+  block,
+  onEdit,
+  onRemove,
+}: {
+  block: ImageBlock;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <figure
+      onDoubleClick={onEdit}
+      className='group relative flex flex-col gap-2 rounded-md bg-zinc-50 p-3 dark:bg-zinc-950'
+    >
+      <ImagePreview
+        image={block}
+        alt={block.alt}
+        className='h-auto max-h-80 w-auto max-w-full self-center rounded'
+      />
+      {block.caption && (
+        <figcaption className='text-xs whitespace-pre-wrap text-zinc-600 dark:text-zinc-400'>
+          {block.caption}
+        </figcaption>
+      )}
+      {!block.alt && (
+        <p className='text-xs text-amber-700 dark:text-amber-400'>
+          Alternativtext saknas.
+        </p>
+      )}
+      <div className='absolute top-2 right-2 flex gap-1 rounded bg-white/90 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 dark:bg-zinc-900/90'>
+        <button type='button' onClick={onEdit} className={toolbarButtonClass}>
+          Redigera
+        </button>
+        <button
+          type='button'
+          onClick={onRemove}
+          className={`${toolbarButtonClass} text-red-600 dark:text-red-400`}
+        >
+          Ta bort
+        </button>
+      </div>
+    </figure>
+  );
+}
+
+function ImageDialog({
+  initial,
+  onSave,
+  onClose,
+}: {
+  initial: Partial<ImageFields>;
+  onSave: (fields: ImageFields) => void;
+  onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [image, setImage] = useState<UploadedImage | undefined>(
+    initial.path && initial.width && initial.height
+      ? { path: initial.path, width: initial.width, height: initial.height }
+      : undefined,
+  );
+  const [alt, setAlt] = useState(initial.alt ?? '');
+  const [caption, setCaption] = useState(initial.caption ?? '');
+
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+
+  // Portaled out of the article <form>, since forms can't be nested.
+  return createPortal(
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      className='m-auto w-full max-w-lg rounded-lg bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/40 dark:bg-zinc-900 dark:text-zinc-100'
+    >
+      <form
+        className='flex flex-col gap-5 p-6'
+        onSubmit={(event) => {
+          // React events bubble through portals, so keep this submit from
+          // reaching the article form.
+          event.preventDefault();
+          event.stopPropagation();
+          if (!image) {
+            return;
+          }
+          onSave({
+            ...image,
+            alt: alt.trim(),
+            ...(caption.trim() && { caption: caption.trim() }),
+          });
+        }}
+      >
+        <h2 className='text-base font-semibold'>Bild</h2>
+
+        <ImagePicker value={image} onChange={setImage} />
+
+        <label className='flex flex-col gap-2'>
+          <span className='text-sm font-semibold'>Alternativtext</span>
+          <input
+            type='text'
+            value={alt}
+            onChange={(event) => setAlt(event.target.value)}
+            placeholder='Beskriv bilden för den som inte ser den'
+            autoComplete='off'
+            className={dialogInputClass}
+          />
+        </label>
+
+        <label className='flex flex-col gap-2'>
+          <span className='text-sm font-semibold'>Bildtext (valfri)</span>
+          <textarea
+            value={caption}
+            onChange={(event) => setCaption(event.target.value)}
+            rows={2}
+            className={dialogInputClass}
+          />
+        </label>
+
+        <div className='flex justify-end gap-3'>
+          <button
+            type='button'
+            onClick={() => dialog.current?.close()}
+            className='rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800'
+          >
+            Avbryt
+          </button>
+          <button
+            type='submit'
+            disabled={!image}
+            className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
+          >
+            {initial.path ? 'Uppdatera' : 'Infoga'}
           </button>
         </div>
       </form>

@@ -1,3 +1,5 @@
+import { type Image, parseImage } from '@/lib/images';
+
 export type MarkStyle =
   { type: 'bold' } | { type: 'underline' } | { type: 'link'; href: string };
 
@@ -28,7 +30,14 @@ export type QuoteBlock = {
   href?: string;
 };
 
-export type WidgetBlock = QuoteBlock;
+export type ImageBlock = Image & {
+  id: string;
+  type: 'image';
+  // Left out when there is no caption.
+  caption?: string;
+};
+
+export type WidgetBlock = QuoteBlock | ImageBlock;
 
 export type BodyBlock = ParagraphBlock | WidgetBlock;
 
@@ -220,7 +229,7 @@ const toMarks = (value: unknown, offset: number, length: number): Mark[] => {
 };
 
 // Sanitizes untrusted input: drops unknown block types, empty paragraphs,
-// quotes without text and invalid marks.
+// quotes without text, images that aren't uploads and invalid marks.
 export const parseBody = (raw: unknown): Body => {
   if (!Array.isArray(raw)) {
     return [];
@@ -233,6 +242,20 @@ export const parseBody = (raw: unknown): Body => {
 
     const item = value as Record<string, unknown>;
     const id = toId(item.id);
+
+    if (item.type === 'image') {
+      const image = parseImage(item);
+      if (!image) {
+        return [];
+      }
+      const caption = toText(item.caption);
+      return [
+        caption
+          ? { id, type: 'image', ...image, caption }
+          : { id, type: 'image', ...image },
+      ];
+    }
+
     const text = toText(item.text);
     if (!text) {
       return [];

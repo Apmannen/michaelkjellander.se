@@ -11,7 +11,9 @@ import { createPortal } from 'react-dom';
 
 import { type Article, type ArticleInput, slugify } from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
+import type { UploadedImage } from '@/lib/images';
 
+import { ImagePicker } from '../images/image-picker';
 import { deleteArticle, saveArticle } from './actions';
 import { BodyEditor } from './body-editor';
 
@@ -27,6 +29,7 @@ const toInput = (article: Article | null): ArticleInput => ({
   slug: article?.slug ?? '',
   published: article?.published ?? false,
   published_at: article ? new Date(article.published_at).toISOString() : now(),
+  cover_image: article?.cover_image,
   body: withParagraphSlots(article?.body ?? []),
 });
 
@@ -64,6 +67,7 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.slug === b.slug &&
   a.published === b.published &&
   a.published_at === b.published_at &&
+  JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
   JSON.stringify(a.body) === JSON.stringify(b.body);
 
 export function ArticleEditor({ article }: { article: Article | null }) {
@@ -86,6 +90,25 @@ export function ArticleEditor({ article }: { article: Article | null }) {
 
   const update = (patch: Partial<ArticleInput>) => {
     setDraft((current) => ({ ...current, ...patch }));
+    setError(null);
+  };
+
+  // Uploads finish later, so the alt text is read from the current draft
+  // rather than from when the upload started.
+  const setCoverImage = (image: UploadedImage) => {
+    setDraft((current) => ({
+      ...current,
+      cover_image: { ...image, alt: current.cover_image?.alt ?? '' },
+    }));
+    setError(null);
+  };
+
+  const setCoverAlt = (alt: string) => {
+    setDraft((current) =>
+      current.cover_image
+        ? { ...current, cover_image: { ...current.cover_image, alt } }
+        : current,
+    );
     setError(null);
   };
 
@@ -169,6 +192,30 @@ export function ArticleEditor({ article }: { article: Article | null }) {
                 Generera
               </button>
             </div>
+          </Field>
+
+          <Field
+            label='Huvudbild'
+            htmlFor='cover_image'
+            description='Visas ovanför brödtexten.'
+          >
+            <ImagePicker
+              id='cover_image'
+              value={draft.cover_image}
+              onChange={setCoverImage}
+              onRemove={() => update({ cover_image: undefined })}
+            />
+            {draft.cover_image && (
+              <input
+                type='text'
+                value={draft.cover_image.alt}
+                onChange={(event) => setCoverAlt(event.target.value)}
+                placeholder='Alternativtext – beskriv bilden för den som inte ser den'
+                aria-label='Alternativtext för huvudbilden'
+                autoComplete='off'
+                className={inputClass}
+              />
+            )}
           </Field>
 
           <Field

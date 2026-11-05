@@ -1,8 +1,9 @@
 import 'server-only';
 
-import {createClient} from '@supabase/supabase-js';
+import {createClient, type PostgrestSingleResponse} from '@supabase/supabase-js';
 
 import type {Article, ArticleInput} from '@/lib/articles';
+import {IMAGE_BUCKET, type Image} from '@/lib/images';
 
 // Service role key bypasses RLS, so this client must never reach the browser.
 const supabase = createClient(
@@ -11,54 +12,85 @@ const supabase = createClient(
   {auth: {persistSession: false}},
 );
 
-const ARTICLE_COLUMNS = 
-  'id, title, slug, published, published_at, body, created_at, updated_at';
+const ARTICLE_COLUMNS =
+  'id, title, slug, published, published_at, cover_image, body, created_at, updated_at';
+
+// The database uses null where the app uses undefined.
+type ArticleRow = Omit<Article, 'cover_image'> & {cover_image: Image | null};
+
+const toArticle = ({cover_image, ...row}: ArticleRow): Article =>
+  cover_image ? {...row, cover_image} : row;
+
+const toRow = (input: ArticleInput) => ({
+  ...input,
+  cover_image: input.cover_image ?? null,
+});
+
+const toArticleResult = ({data, error}: PostgrestSingleResponse<ArticleRow>) =>
+  error
+    ? {data: undefined, error}
+    : {data: toArticle(data), error: undefined};
 
 const listArticles = async (): Promise<Article[]> => {
   const {data, error} = await supabase
     .from('articles')
     .select(ARTICLE_COLUMNS)
     .is('deleted_at', null)
-    .order('updated_at', {ascending: false});
+    .order('updated_at', {ascending: false})
+    .overrideTypes<ArticleRow[], {merge: false}>();
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return data.map(toArticle);
 };
 
-const getArticle = async (id: string): Promise<Article | null> => {
+const getArticle = async (id: string): Promise<Article | undefined> => {
   const {data, error} = await supabase
     .from('articles')
     .select(ARTICLE_COLUMNS)
     .eq('id', id)
     .is('deleted_at', null)
-    .maybeSingle();
+    .maybeSingle<ArticleRow>();
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return data ? toArticle(data) : undefined;
 };
 
 const createArticle = async (input: ArticleInput) => {
-  return supabase
-    .from('articles')
-    .insert(input)
-    .select(ARTICLE_COLUMNS)
-    .single<Article>();
+  return toArticleResult(
+    await supabase
+      .from('articles')
+      .insert(toRow(input))
+      .select(ARTICLE_COLUMNS)
+      .single<ArticleRow>(),
+  );
 };
 
 const updateArticle = async (id: string, input: ArticleInput) => {
-  return supabase
-    .from('articles')
-    .update({...input, updated_at: new Date().toISOString()})
-    .eq('id', id)
-    .is('deleted_at', null)
-    .select(ARTICLE_COLUMNS)
-    .single<Article>();
+  return toArticleResult(
+    await supabase
+      .from('articles')
+      .update({...toRow(input), updated_at: new Date().toISOString()})
+      .eq('id', id)
+      .is('deleted_at', null)
+      .select(ARTICLE_COLUMNS)
+      .single<ArticleRow>(),
+  );
+};
+
+const uploadImage = async (
+  path: string,
+  data: Uint8Array,
+  contentType: string,
+) => {
+  return supabase.storage
+    .from(IMAGE_BUCKET)
+    .upload(path, data, {contentType, cacheControl: '31536000'});
 };
 
 const deleteArticle = async (id: string) => {
@@ -75,4 +107,5 @@ export const db = {
   createArticle,
   updateArticle,
   deleteArticle,
+  uploadImage,
 };

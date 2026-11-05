@@ -1,4 +1,5 @@
 import type { Body } from '@/lib/body';
+import type { Image } from '@/lib/images';
 
 export type Article = {
   id: string;
@@ -6,6 +7,7 @@ export type Article = {
   slug: string;
   published: boolean;
   published_at: string;
+  cover_image?: Image;
   body: Body;
   created_at: string;
   updated_at: string;
@@ -13,7 +15,7 @@ export type Article = {
 
 export type ArticleInput = Pick<
   Article,
-  'title' | 'slug' | 'published' | 'published_at' | 'body'
+  'title' | 'slug' | 'published' | 'published_at' | 'cover_image' | 'body'
 >;
 
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

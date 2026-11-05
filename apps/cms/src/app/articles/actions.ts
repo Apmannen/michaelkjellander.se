@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { type Article, type ArticleInput, validateArticle } from '@/lib/articles';
 import { parseBody } from '@/lib/body';
 import { db } from '@/lib/db';
+import { parseImage } from '@/lib/images';
 
 export type SaveArticleResult =
   | { ok: true; article: Article }
@@ -21,6 +22,7 @@ export async function saveArticle(
     slug: String(raw.slug ?? '').trim(),
     published: raw.published === true,
     published_at: String(raw.published_at ?? ''),
+    cover_image: parseImage(raw.cover_image),
     body: parseBody(raw.body),
   };
 
