@@ -122,19 +122,19 @@ const Quote = ({
 }) => {
   const { text, author, href } = part;
   return (
-    <div className='bg-accent-100 rounded-md px-4 py-4'>
+    <div className='bg-accent-100 rounded-md px-4 py-4 '>
       <div className=' flex gap-8'>
-        <FaQuoteRight className='text-neutral-900 text-[40px] w-8' />
+        <FaQuoteRight className=' text-[40px] w-8 text-accent-800' />
         <p className='italic text-neutral-700 text-[20px] leading-9 flex-1'>
           {text}
         </p>
       </div>
-      <cite className='not-italic pt-3 pb-1 block'>
+      <cite className='not-italic pt-3 pb-1 flex justify-center'>
         <MkLink
           enabled={!!href}
           href={href}
           className={{
-            link: 'underline hover:text-gray-600 hover:no-underline text-center block',
+            link: 'hover:text-gray-600 text-center  text-accent-800 font-semibold',
           }}
           target='_blank'
         >

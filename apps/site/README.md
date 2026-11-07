@@ -17,3 +17,5 @@ Interna anteckningar. Kommer att ersätta denna text när det är färdigt.
 - stöd för mörkt läge, även kunna växla i menyn. även kunna välja automatiskt
 - favicon, ludde?
 - kunna länka upphovsmannen av citat
+
+- det borde gå att bläddra mellan inlägg likt en tidning! sedan kan man klicka för att fokusera på en!
