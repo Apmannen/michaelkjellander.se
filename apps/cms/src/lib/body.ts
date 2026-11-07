@@ -3,9 +3,10 @@ import { type Image, parseImage } from '@/lib/images';
 export type MarkStyle =
   | { type: 'bold' }
   | { type: 'underline' }
-  // icon is the name of a react-icons icon, e.g. FaGithub. Left out when the
-  // link has no icon.
-  | { type: 'link'; href: string; icon?: string };
+  | { type: 'link'; href: string }
+  // Covers a single ICON_PLACEHOLDER. name is the name of a react-icons icon,
+  // e.g. FaGithub.
+  | { type: 'icon'; name: string };
 
 export type MarkType = MarkStyle['type'];
 
@@ -47,12 +48,17 @@ export type BodyBlock = ParagraphBlock | WidgetBlock;
 
 export type Body = BodyBlock[];
 
+// Stands in for an icon in a paragraph's text, so the icon takes up a
+// position that marks such as links can cover.
+export const ICON_PLACEHOLDER = '\uFFFC';
+
 export const newBlockId = () => crypto.randomUUID();
 
+// Icons are never joined, since each covers its own placeholder.
 const isSameStyle = (a: Mark, b: Mark) =>
   a.type === b.type &&
-  (a.type !== 'link' ||
-    (b.type === 'link' && a.href === b.href && a.icon === b.icon));
+  a.type !== 'icon' &&
+  (a.type !== 'link' || (b.type === 'link' && a.href === b.href));
 
 // Sorts marks, drops empty ones and joins touching or overlapping marks with
 // the same style. A link overlapping a link to somewhere else is dropped.
@@ -73,12 +79,19 @@ const normalizeMarks = (marks: Mark[]): Mark[] => {
   return result;
 };
 
+// Icon marks that don't cover exactly one placeholder are dropped.
 export const paragraph = (
   text = '',
   marks: Mark[] = [],
   id = newBlockId(),
 ): ParagraphBlock => {
-  const normalized = normalizeMarks(marks);
+  const normalized = normalizeMarks(
+    marks.filter(
+      (mark) =>
+        mark.type !== 'icon' ||
+        (mark.end === mark.start + 1 && text[mark.start] === ICON_PLACEHOLDER),
+    ),
+  );
   return normalized.length
     ? { id, type: 'paragraph', text, marks: normalized }
     : { id, type: 'paragraph', text };
@@ -204,21 +217,24 @@ const toMarkStyle = (item: Record<string, unknown>): MarkStyle | undefined => {
     typeof item.href === 'string' &&
     isValidHref(item.href.trim())
   ) {
-    const href = item.href.trim();
-    return typeof item.icon === 'string' && isValidIconName(item.icon)
-      ? { type: 'link', href, icon: item.icon }
-      : { type: 'link', href };
+    return { type: 'link', href: item.href.trim() };
+  }
+  if (
+    item.type === 'icon' &&
+    typeof item.name === 'string' &&
+    isValidIconName(item.name)
+  ) {
+    return { type: 'icon', name: item.name };
   }
   return undefined;
 };
 
-// offset and length describe the trimmed paragraph text within the raw text.
-const toMarks = (value: unknown, offset: number, length: number): Mark[] => {
+const toMarks = (value: unknown): Mark[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const marks = value.flatMap((item): Mark[] => {
+  return value.flatMap((item): Mark[] => {
     if (typeof item !== 'object' || !item) {
       return [];
     }
@@ -235,12 +251,46 @@ const toMarks = (value: unknown, offset: number, length: number): Mark[] => {
     }
     return [{ ...style, start, end }];
   });
+};
 
-  return sliceMarks(marks, offset, offset + length);
+// Placeholders without an icon, e.g. from pasted text, are removed.
+const removeOrphanPlaceholders = ({ text, marks = [] }: ParagraphBlock) => {
+  let result = { text, marks };
+  for (let i = text.length - 1; i >= 0; i--) {
+    if (
+      text[i] === ICON_PLACEHOLDER &&
+      !marks.some((mark) => mark.type === 'icon' && mark.start === i)
+    ) {
+      result = {
+        text: result.text.slice(0, i) + result.text.slice(i + 1),
+        marks: adjustMarks(result.marks, i, i + 1, i),
+      };
+    }
+  }
+  return result;
+};
+
+const parseParagraph = (item: Record<string, unknown>, id: string) => {
+  const raw = typeof item.text === 'string' ? item.text : '';
+  const cleaned = removeOrphanPlaceholders(
+    paragraph(raw.replace(/\r\n?/g, '\n'), toMarks(item.marks), id),
+  );
+  const text = cleaned.text.trim();
+  const offset = cleaned.text.length - cleaned.text.trimStart().length;
+  return text
+    ? [
+        paragraph(
+          text,
+          sliceMarks(cleaned.marks, offset, offset + text.length),
+          id,
+        ),
+      ]
+    : [];
 };
 
 // Sanitizes untrusted input: drops unknown block types, empty paragraphs,
-// quotes without text, images that aren't uploads and invalid marks.
+// quotes without text, images that aren't uploads, invalid marks and icon
+// placeholders without an icon.
 export const parseBody = (raw: unknown): Body => {
   if (!Array.isArray(raw)) {
     return [];
@@ -267,15 +317,13 @@ export const parseBody = (raw: unknown): Body => {
       ];
     }
 
+    if (item.type === 'paragraph') {
+      return parseParagraph(item, id);
+    }
+
     const text = toText(item.text);
     if (!text) {
       return [];
-    }
-
-    if (item.type === 'paragraph') {
-      const raw = String(item.text);
-      const offset = raw.length - raw.trimStart().length;
-      return [paragraph(text, toMarks(item.marks, offset, text.length), id)];
     }
     if (item.type === 'quote') {
       const author = toText(item.author);

@@ -18,6 +18,7 @@ import {
   type MarkType,
   type ParagraphBlock,
   type QuoteBlock,
+  ICON_PLACEHOLDER,
   addMark,
   adjustMarks,
   hasMark,
@@ -41,7 +42,7 @@ type Caret = { id: string; offset: number; end?: number };
 type TextSelection = { id: string; start: number; end: number };
 
 // href is empty while adding a new link.
-type LinkEdit = TextSelection & { href: string; icon?: string; text: string };
+type LinkEdit = TextSelection & { href: string; text: string };
 
 type QuoteFields = Pick<QuoteBlock, 'text' | 'author' | 'href'>;
 
@@ -112,6 +113,7 @@ export function BodyEditor({
   const [editingImage, setEditingImage] = useState<ImageEdit | undefined>(
     undefined,
   );
+  const [isPickingIcon, setIsPickingIcon] = useState(false);
 
   useLayoutEffect(() => {
     inputs.current.forEach(autosize);
@@ -200,13 +202,12 @@ export function BodyEditor({
         target.end <= mark.end,
     );
     if (link?.type === 'link') {
-      const { start, end, href, icon } = link;
+      const { start, end, href } = link;
       return {
         id: block.id,
         start,
         end,
         href,
-        icon,
         text: block.text.slice(start, end),
       };
     }
@@ -224,6 +225,14 @@ export function BodyEditor({
 
   const linkTarget = findLinkTarget(selection);
   const formatTarget = trimSelection(selection);
+
+  // The icon the selection covers exactly, which picking another replaces.
+  const selectedIcon = findParagraphById(selection?.id)?.block.marks?.find(
+    (mark) =>
+      mark.type === 'icon' &&
+      mark.start === selection?.start &&
+      mark.end === selection?.end,
+  );
 
   const isFormatted = (type: MarkType) => {
     const block = findParagraphById(formatTarget?.id)?.block;
@@ -417,12 +426,34 @@ export function BodyEditor({
     });
   };
 
+  // Replaces the selection, like typing would. Without a selection, the icon
+  // goes at the end of the last paragraph.
+  const insertIcon = (name: string) => {
+    setIsPickingIcon(false);
+    const found = findParagraphById(selection?.id) ?? {
+      index: value.length - 1,
+      block: value.at(-1) as ParagraphBlock,
+    };
+    const { index, block } = found;
+    const start =
+      selection?.id === block.id ? selection.start : block.text.length;
+    const end = selection?.id === block.id ? selection.end : start;
+    const text =
+      block.text.slice(0, start) + ICON_PLACEHOLDER + block.text.slice(end);
+    const marks = addMark(adjustMarks(block.marks, start, end, start + 1), {
+      type: 'icon',
+      name,
+      start,
+      end: start + 1,
+    });
+    commit(splice(index, 1, paragraph(text, marks, block.id)), {
+      id: block.id,
+      offset: start + 1,
+    });
+  };
+
   // Without href the link is removed.
-  const saveLink = (
-    { id: blockId, start, end }: LinkEdit,
-    href?: string,
-    icon?: string,
-  ) => {
+  const saveLink = ({ id: blockId, start, end }: LinkEdit, href?: string) => {
     setEditingLink(undefined);
     const found = findParagraphById(blockId);
     if (!found) {
@@ -430,13 +461,7 @@ export function BodyEditor({
     }
     const { index, block } = found;
     const marks = href
-      ? addMark(block.marks, {
-          type: 'link',
-          href,
-          ...(icon && { icon }),
-          start,
-          end,
-        })
+      ? addMark(block.marks, { type: 'link', href, start, end })
       : removeMarks(block.marks, 'link', start, end);
     commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
       id: blockId,
@@ -517,11 +542,8 @@ export function BodyEditor({
           🔗 {linkTarget?.href ? 'Redigera länk' : 'Länk'}
         </button>
         {linkTarget?.href && (
-          <span className='flex min-w-0 items-center gap-1 px-1 text-xs text-zinc-500'>
-            {linkTarget.icon && (
-              <Icon name={linkTarget.icon} className='size-3.5 shrink-0' />
-            )}
-            <span className='truncate'>{linkTarget.href}</span>
+          <span className='truncate px-1 text-xs text-zinc-500'>
+            {linkTarget.href}
           </span>
         )}
 
@@ -541,6 +563,18 @@ export function BodyEditor({
           className={toolbarButtonClass}
         >
           🖼 Bild
+        </button>
+        <button
+          type='button'
+          onClick={() => setIsPickingIcon(true)}
+          title={
+            selectedIcon
+              ? 'Byt den markerade ikonen'
+              : 'Infoga en ikon där markören står'
+          }
+          className={toolbarButtonClass}
+        >
+          ★ {selectedIcon ? 'Byt ikon' : 'Ikon'}
         </button>
 
         <button
@@ -634,7 +668,7 @@ export function BodyEditor({
       {editingLink && (
         <LinkDialog
           initial={editingLink}
-          onSave={(href, icon) => saveLink(editingLink, href, icon)}
+          onSave={(href) => saveLink(editingLink, href)}
           onRemove={editingLink.href ? () => saveLink(editingLink) : undefined}
           onClose={() => setEditingLink(undefined)}
         />
@@ -645,6 +679,14 @@ export function BodyEditor({
           initial={editingQuote}
           onSave={(fields) => saveQuote({ ...editingQuote, ...fields })}
           onClose={() => setEditingQuote(undefined)}
+        />
+      )}
+
+      {isPickingIcon && (
+        <IconDialog
+          value={selectedIcon?.type === 'icon' ? selectedIcon.name : undefined}
+          onSelect={insertIcon}
+          onClose={() => setIsPickingIcon(false)}
         />
       )}
 
@@ -672,6 +714,7 @@ const markClasses: Record<MarkType, string> = {
   bold: '[-webkit-text-stroke:0.035em_currentColor]',
   underline: 'underline underline-offset-2',
   link: 'text-blue-700 underline underline-offset-2 dark:text-blue-400',
+  icon: 'relative',
 };
 
 // A textarea can't style parts of its text, so its own text is transparent
@@ -683,13 +726,26 @@ function MarkedText({ text, marks = [] }: { text: string; marks?: Mark[] }) {
 
   const parts = boundaries.slice(1).map((end, i) => {
     const start = boundaries[i];
-    const className = marks
-      .filter((mark) => mark.start <= start && end <= mark.end)
-      .map((mark) => markClasses[mark.type])
-      .join(' ');
+    const active = marks.filter(
+      (mark) => mark.start <= start && end <= mark.end,
+    );
+    const className = active.map((mark) => markClasses[mark.type]).join(' ');
+    const icon = active.find((mark) => mark.type === 'icon');
     return (
       <span key={start} className={className || undefined}>
-        {text.slice(start, end)}
+        {icon?.type === 'icon' ? (
+          // The placeholder keeps the width it has in the textarea, and the
+          // icon is drawn on top of it, scaled down if the glyph is narrower.
+          <>
+            <span className='text-transparent'>{ICON_PLACEHOLDER}</span>
+            <Icon
+              name={icon.name}
+              className='absolute inset-x-0 top-1/2 h-[1em] w-full -translate-y-1/2'
+            />
+          </>
+        ) : (
+          text.slice(start, end)
+        )}
       </span>
     );
   });
@@ -992,20 +1048,63 @@ function ImageDialog({
   );
 }
 
+function IconDialog({
+  value,
+  onSelect,
+  onClose,
+}: {
+  value?: string;
+  onSelect: (name: string) => void;
+  onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+
+  // Portaled out of the article <form>, since forms can't be nested.
+  return createPortal(
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      className='m-auto w-full max-w-lg rounded-lg bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/40 dark:bg-zinc-900 dark:text-zinc-100'
+    >
+      <div className='flex flex-col gap-5 p-6'>
+        <h2 className='text-base font-semibold'>
+          {value ? 'Byt ikon' : 'Ikon'}
+        </h2>
+
+        <IconPicker value={value} onSelect={onSelect} />
+
+        <div className='flex justify-end gap-3'>
+          <button
+            type='button'
+            onClick={() => dialog.current?.close()}
+            className='rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800'
+          >
+            Avbryt
+          </button>
+        </div>
+      </div>
+    </dialog>,
+    document.body,
+  );
+}
+
 function LinkDialog({
   initial,
   onSave,
   onRemove,
   onClose,
 }: {
-  initial: Pick<LinkEdit, 'href' | 'icon' | 'text'>;
-  onSave: (href: string, icon?: string) => void;
+  initial: Pick<LinkEdit, 'href' | 'text'>;
+  onSave: (href: string) => void;
   onRemove?: () => void;
   onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [href, setHref] = useState(initial.href);
-  const [icon, setIcon] = useState(initial.icon);
   const normalized = normalizeHref(href);
   const isValid = isValidHref(normalized);
 
@@ -1027,7 +1126,7 @@ function LinkDialog({
           // reaching the article form.
           event.preventDefault();
           event.stopPropagation();
-          onSave(normalized, icon);
+          onSave(normalized);
         }}
       >
         <h2 className='text-base font-semibold'>Länk</h2>
@@ -1055,11 +1154,6 @@ function LinkDialog({
             </span>
           )}
         </label>
-
-        <div className='flex flex-col gap-2'>
-          <span className='text-sm font-semibold'>Ikon (valfri)</span>
-          <IconPicker value={icon} onChange={setIcon} />
-        </div>
 
         <div className='flex justify-end gap-3'>
           {onRemove && (

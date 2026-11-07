@@ -80,40 +80,30 @@ export function Icon({
   );
 }
 
+// value is highlighted among the results.
 export function IconPicker({
   value,
-  onChange,
+  onSelect,
 }: {
   value?: string;
-  onChange: (name?: string) => void;
+  onSelect: (name: string) => void;
 }) {
   const icons = useIcons();
   const [query, setQuery] = useState('');
   const results = icons ? searchIcons(icons, query) : [];
 
-  // Enter would otherwise submit the dialog the picker is in.
+  // Enter picks the first result instead of submitting a surrounding form.
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault();
+      if (results[0]) {
+        onSelect(results[0]);
+      }
     }
   };
 
   return (
     <div className='flex flex-col gap-2'>
-      {value && (
-        <div className='flex items-center gap-2 rounded-md bg-zinc-50 px-3 py-2 dark:bg-zinc-950'>
-          <Icon name={value} className='size-5 shrink-0' />
-          <span className='truncate text-sm'>{value}</span>
-          <button
-            type='button'
-            onClick={() => onChange(undefined)}
-            className='ml-auto rounded px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950'
-          >
-            Ta bort ikon
-          </button>
-        </div>
-      )}
-
       <input
         type='search'
         value={query}
@@ -124,10 +114,10 @@ export function IconPicker({
             ? `Sök bland ${icons.size} ikoner, t.ex. github`
             : 'Laddar ikoner…'
         }
-        disabled={!icons}
+        autoFocus
         autoComplete='off'
         aria-label='Sök ikon'
-        className='w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950'
+        className='w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950'
       />
 
       {query.trim() && icons && (
@@ -138,7 +128,7 @@ export function IconPicker({
                 <button
                   key={name}
                   type='button'
-                  onClick={() => onChange(name)}
+                  onClick={() => onSelect(name)}
                   aria-pressed={name === value}
                   aria-label={name}
                   title={name}
