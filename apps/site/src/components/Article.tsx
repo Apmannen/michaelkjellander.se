@@ -122,7 +122,7 @@ const Quote = ({
 }) => {
   const { text, author, href } = part;
   return (
-    <div className='bg-accent-100 rounded-md px-4 py-4 '>
+    <div className='bg-accent-100 rounded-md px-4 py-4 border border-accent-200'>
       <div className=' flex gap-8'>
         <FaQuoteRight className=' text-[40px] w-8 text-accent-800' />
         <p className='italic text-neutral-700 text-[20px] leading-9 flex-1'>
