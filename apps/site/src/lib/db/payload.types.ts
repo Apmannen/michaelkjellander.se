@@ -9,7 +9,7 @@ export type BodyMarkPayload = {
   type: 'link' | 'bold' | 'underline';
 };
 export type ArticleBodyPartPayload = {
-  type: 'paragraph' | 'quote';
+  type: 'paragraph' | 'quote' | 'divider';
   text?: string;
   author?: string;
   marks?: BodyMarkPayload[];

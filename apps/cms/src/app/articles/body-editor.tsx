@@ -576,6 +576,14 @@ export function BodyEditor({
         >
           ★ {selectedIcon ? 'Byt ikon' : 'Ikon'}
         </button>
+        <button
+          type='button'
+          onClick={() => insertWidget({ id: newBlockId(), type: 'divider' })}
+          title='Infoga en avskiljare där markören står'
+          className={toolbarButtonClass}
+        >
+          ― Avskiljare
+        </button>
 
         <button
           type='button'
@@ -649,6 +657,15 @@ export function BodyEditor({
                 key={block.id}
                 block={block}
                 onEdit={() => setEditingImage(block)}
+                onRemove={() => removeBlock(index)}
+              />
+            );
+          }
+
+          if (block.type === 'divider') {
+            return (
+              <DividerWidget
+                key={block.id}
                 onRemove={() => removeBlock(index)}
               />
             );
@@ -800,6 +817,23 @@ function QuoteWidget({
         </button>
       </div>
     </figure>
+  );
+}
+
+function DividerWidget({ onRemove }: { onRemove: () => void }) {
+  return (
+    <div className='group relative flex h-8 items-center'>
+      <hr className='w-full border-zinc-300 dark:border-zinc-700' />
+      <div className='absolute right-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100'>
+        <button
+          type='button'
+          onClick={onRemove}
+          className={`${toolbarButtonClass} bg-white text-red-600 dark:bg-zinc-900 dark:text-red-400`}
+        >
+          Ta bort
+        </button>
+      </div>
+    </div>
   );
 }
 

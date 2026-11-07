@@ -42,7 +42,13 @@ export type ImageBlock = Image & {
   caption?: string;
 };
 
-export type WidgetBlock = QuoteBlock | ImageBlock;
+// A line that separates the parts of the body.
+export type DividerBlock = {
+  id: string;
+  type: 'divider';
+};
+
+export type WidgetBlock = QuoteBlock | ImageBlock | DividerBlock;
 
 export type BodyBlock = ParagraphBlock | WidgetBlock;
 
@@ -315,6 +321,10 @@ export const parseBody = (raw: unknown): Body => {
           ? { id, type: 'image', ...image, caption }
           : { id, type: 'image', ...image },
       ];
+    }
+
+    if (item.type === 'divider') {
+      return [{ id, type: 'divider' }];
     }
 
     if (item.type === 'paragraph') {

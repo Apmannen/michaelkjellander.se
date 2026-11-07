@@ -48,6 +48,8 @@ export const Article = ({
                 <Paragraph part={part} />
               ) : part.type === 'quote' ? (
                 <Quote part={part} />
+              ) : part.type === 'divider' ? (
+                <Divider />
               ) : null}
             </div>
           ))}
