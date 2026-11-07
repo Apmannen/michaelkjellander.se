@@ -18,17 +18,19 @@ export const Article = ({
 }) => {
   const Heading = isMain ? 'h1' : 'h2';
   return (
-    <article className='bg-default-box mb-12 shadow-sm max-w-[825px]'>
-      {article.cover_image ? (
-        <Image
-          src={storage.getPublicUrl(article.cover_image?.path)}
-          alt=''
-          width={825 * 1.0}
-          height={510 * 1.0}
-          className='w-full h-auto'
-          loading='eager'
-        />
-      ) : null}
+    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] py-12'>
+      <div className='px-12 h-[400px]'>
+        {article.cover_image ? (
+          <Image
+            src={storage.getPublicUrl(article.cover_image?.path)}
+            alt=''
+            width={729}
+            height={400}
+            className='w-full rounded-lg object-cover h-full'
+            loading='eager'
+          />
+        ) : null}
+      </div>
       <div className='px-12 text-[18px]'>
         <Heading
           className='font-bold tracking-[-3.5px] font-georgia leading-[1.02] py-2'
