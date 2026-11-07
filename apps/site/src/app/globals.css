@@ -12,7 +12,11 @@
   --font-georgia: Georgia, 'Times New Roman', serif;
 
   /* --color-default-main: #F3EEE8; */
-  --color-default-box: #FCF6F0;
+
+  --color-default-box: #fcf6f0;
+
+  --color-accent-100: rgb(248, 236, 227);
+  --color-accent-800: rgb(158, 68, 41);
 }
 
 @media (prefers-color-scheme: dark) {

@@ -31,9 +31,9 @@ export const Article = ({
           />
         ) : null}
       </div>
-      <div className='px-12 text-[18px]'>
+      <div className='px-12 text-[20px]'>
         <Heading
-          className='font-bold tracking-[-3.5px] font-georgia leading-[1.02] py-2'
+          className='font-bold tracking-[-3.5px] leading-[1.02] py-2'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
         >
           {article.title}
@@ -111,6 +111,7 @@ const Paragraph = ({
   );
 };
 
+//TODO: standardize colours
 const Quote = ({
   part,
 }: {
@@ -118,9 +119,9 @@ const Quote = ({
 }) => {
   const { text, author, href } = part;
   return (
-    <div className='py-1'>
-      <div className='border-l-4 border-gray-600 pl-4'>
-        <p className='italic text-neutral-600 text-[20px] leading-9'>{text}</p>
+    <div className='py-1 bg-accent-100'>
+      <div className='border-l-4 border-accent-800 pl-4'>
+        <p className='italic text-neutral-700 text-[20px] leading-9'>{text}</p>
         <cite className='not-italic pt-3 pb-1 block'>
           <MkLink
             enabled={!!href}
