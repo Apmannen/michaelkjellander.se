@@ -18,7 +18,7 @@ export const Article = ({
 }) => {
   const Heading = isMain ? 'h1' : 'h2';
   return (
-    <article className='bg-white mb-12 shadow-sm  max-w-[825px]'>
+    <article className='bg-white mb-12 shadow-sm max-w-[825px]'>
       {article.cover_image ? (
         <Image
           src={storage.getPublicUrl(article.cover_image?.path)}
@@ -30,7 +30,12 @@ export const Article = ({
         />
       ) : null}
       <div className='px-12 py-12 text-[18px]'>
-        <Heading className='font-bold text-4xl'>{article.title}</Heading>
+        <Heading
+          className='font-bold tracking-[-3.5px] font-georgia'
+          style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
+        >
+          {article.title}
+        </Heading>
         <div className=''>
           {article.body.map((part, i) => (
             <div key={i} className='py-2'>

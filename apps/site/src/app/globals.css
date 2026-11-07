@@ -9,6 +9,7 @@
   /*   --color-background: var(--background);
   --color-foreground: var(--foreground); */
   --font-noto-serif: 'Noto Serif', serif;
+  --font-georgia: Georgia, 'Times New Roman', serif;
 }
 
 @media (prefers-color-scheme: dark) {
