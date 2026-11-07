@@ -7,6 +7,7 @@ import { MkLink } from './MkLink';
 import { storage } from '@/lib/storage';
 import Image from 'next/image';
 import { Divider } from './Divider';
+import { FaQuoteRight } from 'react-icons/fa';
 
 const logPrefix = '[Article]';
 
@@ -121,22 +122,25 @@ const Quote = ({
 }) => {
   const { text, author, href } = part;
   return (
-    <div className='py-1 bg-accent-100'>
-      <div className='border-l-4 border-accent-800 pl-4'>
-        <p className='italic text-neutral-700 text-[20px] leading-9'>{text}</p>
-        <cite className='not-italic pt-3 pb-1 block'>
-          <MkLink
-            enabled={!!href}
-            href={href}
-            className={{
-              link: 'underline hover:text-gray-600 hover:no-underline',
-            }}
-            target='_blank'
-          >
-            {author}
-          </MkLink>
-        </cite>
+    <div className='bg-accent-100 rounded-md px-4 py-4'>
+      <div className=' flex gap-8'>
+        <FaQuoteRight className='text-neutral-900 text-[40px] w-8' />
+        <p className='italic text-neutral-700 text-[20px] leading-9 flex-1'>
+          {text}
+        </p>
       </div>
+      <cite className='not-italic pt-3 pb-1 block'>
+        <MkLink
+          enabled={!!href}
+          href={href}
+          className={{
+            link: 'underline hover:text-gray-600 hover:no-underline text-center block',
+          }}
+          target='_blank'
+        >
+          {author}
+        </MkLink>
+      </cite>
     </div>
   );
 };
