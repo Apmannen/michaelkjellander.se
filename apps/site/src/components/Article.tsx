@@ -6,6 +6,8 @@ import {
 import { MkLink } from './MkLink';
 import { storage } from '@/lib/storage';
 import Image from 'next/image';
+import { Divider } from './Divider';
+import { FaQuoteRight } from 'react-icons/fa';
 
 const logPrefix = '[Article]';
 
@@ -18,22 +20,30 @@ export const Article = ({
 }) => {
   const Heading = isMain ? 'h1' : 'h2';
   return (
-    <article className='bg-white mb-12 shadow-sm  max-w-[825px]'>
-      {article.cover_image ? (
-        <Image
-          src={storage.getPublicUrl(article.cover_image?.path)}
-          alt=''
-          width={825 * 1.0}
-          height={510 * 1.0}
-          className='w-full h-auto'
-          loading='eager'
-        />
-      ) : null}
-      <div className='px-12 py-12 text-[18px]'>
-        <Heading className='font-bold text-4xl'>{article.title}</Heading>
-        <div className=''>
+    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] py-12'>
+      <div className='px-12 h-[400px]'>
+        {article.cover_image ? (
+          <Image
+            src={storage.getPublicUrl(article.cover_image?.path)}
+            alt=''
+            width={729}
+            height={400}
+            className='w-full rounded-lg object-cover h-full'
+            loading='eager'
+          />
+        ) : null}
+      </div>
+      <div className='px-12 text-[20px]'>
+        <Heading
+          className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
+          style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
+        >
+          {article.title}
+        </Heading>
+        <Divider />
+        <div className='space-y-4'>
           {article.body.map((part, i) => (
-            <div key={i} className='py-2'>
+            <div key={i} className=''>
               {part.type === 'paragraph' ? (
                 <Paragraph part={part} />
               ) : part.type === 'quote' ? (
@@ -104,6 +114,7 @@ const Paragraph = ({
   );
 };
 
+//TODO: standardize colours
 const Quote = ({
   part,
 }: {
@@ -111,22 +122,25 @@ const Quote = ({
 }) => {
   const { text, author, href } = part;
   return (
-    <div className='py-1'>
-      <div className='border-l-4 border-gray-600 pl-4'>
-        <p className='italic text-neutral-600 text-[20px] leading-9'>{text}</p>
-        <cite className='not-italic pt-3 pb-1 block'>
-          <MkLink
-            enabled={!!href}
-            href={href}
-            className={{
-              link: 'underline hover:text-gray-600 hover:no-underline',
-            }}
-            target='_blank'
-          >
-            {author}
-          </MkLink>
-        </cite>
+    <div className='bg-accent-100 rounded-md px-4 py-4 border border-accent-200'>
+      <div className=' flex gap-8'>
+        <FaQuoteRight className=' text-[40px] w-8 text-accent-800' />
+        <p className='italic text-neutral-700 text-[20px] leading-9 flex-1'>
+          {text}
+        </p>
       </div>
+      <cite className='not-italic pt-3 pb-1 flex justify-center'>
+        <MkLink
+          enabled={!!href}
+          href={href}
+          className={{
+            link: 'hover:text-gray-600 text-center  text-accent-800 font-semibold',
+          }}
+          target='_blank'
+        >
+          {author}
+        </MkLink>
+      </cite>
     </div>
   );
 };
