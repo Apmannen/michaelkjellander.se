@@ -29,16 +29,16 @@ export const Article = ({
           loading='eager'
         />
       ) : null}
-      <div className='px-12 py-12 text-[18px]'>
+      <div className='px-12 text-[18px]'>
         <Heading
-          className='font-bold tracking-[-3.5px] font-georgia'
+          className='font-bold tracking-[-3.5px] font-georgia leading-[1.02] py-2'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
         >
           {article.title}
         </Heading>
-        <div className=''>
+        <div className='space-y-4'>
           {article.body.map((part, i) => (
-            <div key={i} className='py-2'>
+            <div key={i} className=''>
               {part.type === 'paragraph' ? (
                 <Paragraph part={part} />
               ) : part.type === 'quote' ? (
