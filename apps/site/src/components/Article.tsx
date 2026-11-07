@@ -6,6 +6,7 @@ import {
 import { MkLink } from './MkLink';
 import { storage } from '@/lib/storage';
 import Image from 'next/image';
+import { Divider } from './Divider';
 
 const logPrefix = '[Article]';
 
@@ -33,11 +34,12 @@ export const Article = ({
       </div>
       <div className='px-12 text-[20px]'>
         <Heading
-          className='font-bold tracking-[-3.5px] leading-[1.02] py-2'
+          className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
         >
           {article.title}
         </Heading>
+        <Divider />
         <div className='space-y-4'>
           {article.body.map((part, i) => (
             <div key={i} className=''>

@@ -15,8 +15,10 @@
 
   --color-default-box: #fcf6f0;
 
-  --color-accent-100: rgb(248, 236, 227);
-  --color-accent-800: rgb(158, 68, 41);
+  --color-accent-100: #f8ece3;
+  --color-accent-800: #9e4429;
+
+  --color-line: #d7cbc0;
 }
 
 @media (prefers-color-scheme: dark) {
