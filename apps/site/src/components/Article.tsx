@@ -76,7 +76,7 @@ const Paragraph = ({
     const nextBreakIndex = breaks.at(i + 1);
     const sliced = text.slice(
       breakIndex,
-      nextBreakIndex !== undefined ? nextBreakIndex : -1,
+      nextBreakIndex !== undefined ? nextBreakIndex : Number.MAX_SAFE_INTEGER,
     );
 
     const activeMarks: BodyMarkPayload[] = [];
