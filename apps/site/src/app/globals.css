@@ -10,6 +10,9 @@
   --color-foreground: var(--foreground); */
   --font-noto-serif: 'Noto Serif', serif;
   --font-georgia: Georgia, 'Times New Roman', serif;
+
+  /* --color-default-main: #F3EEE8; */
+  --color-default-box: #FCF6F0;
 }
 
 @media (prefers-color-scheme: dark) {

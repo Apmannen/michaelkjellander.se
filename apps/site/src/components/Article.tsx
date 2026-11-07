@@ -18,7 +18,7 @@ export const Article = ({
 }) => {
   const Heading = isMain ? 'h1' : 'h2';
   return (
-    <article className='bg-white mb-12 shadow-sm max-w-[825px]'>
+    <article className='bg-default-box mb-12 shadow-sm max-w-[825px]'>
       {article.cover_image ? (
         <Image
           src={storage.getPublicUrl(article.cover_image?.path)}
