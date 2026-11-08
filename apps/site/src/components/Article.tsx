@@ -7,7 +7,8 @@ import { MkLink } from './MkLink';
 import { storage } from '@/lib/storage';
 import Image from 'next/image';
 import { Divider } from './Divider';
-import { FaQuoteRight } from 'react-icons/fa';
+import { Quote } from './bodyParts/Quote';
+import { Paragraph } from './bodyParts/Paragraph';
 
 const logPrefix = '[Article]';
 
@@ -60,93 +61,5 @@ export const Article = ({
         </div>
       </div>
     </article>
-  );
-};
-
-const Paragraph = ({
-  part,
-}: {
-  part: Pick<ArticleBodyPartPayload, 'text' | 'marks'>;
-}) => {
-  const { text = '', marks = [] } = part;
-
-  const breaks = Array.from(
-    new Set([0, ...(marks.map((mark) => [mark.start, mark.end]).flat() ?? [])]),
-  ).sort((a, b) => a - b);
-
-  const textParts: { text: string; activeMarks: BodyMarkPayload[] }[] = []; //text?.split('\n');
-  for (let i = 0; i < breaks.length; i++) {
-    const breakIndex = breaks[i];
-    const nextBreakIndex = breaks.at(i + 1);
-    const sliced = text.slice(
-      breakIndex,
-      nextBreakIndex !== undefined ? nextBreakIndex : Number.MAX_SAFE_INTEGER,
-    );
-
-    const activeMarks: BodyMarkPayload[] = [];
-    marks.forEach((aMark) => {
-      if (breakIndex >= aMark.start && breakIndex < aMark.end) {
-        activeMarks.push(aMark);
-      }
-    });
-
-    textParts.push({ text: sliced, activeMarks });
-  }
-
-  //TODO: only external links in blank
-
-  return (
-    <p className=''>
-      {textParts?.map((textPart) => {
-        const markTypes = textPart.activeMarks.map((m) => m.type);
-        const lines = textPart.text.split('\n');
-        return lines.map((line, i2) => (
-          <MkLink
-            enabled={markTypes.includes('link')}
-            className={{
-              all: `${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`,
-              link: 'underline hover:text-gray-600 hover:no-underline',
-            }}
-            key={i2}
-            href={textPart.activeMarks.find((m) => m.type === 'link')?.href}
-            target='_blank'
-          >
-            {i2 > 0 ? <br /> : null}
-            {line}
-          </MkLink>
-        ));
-      })}
-    </p>
-  );
-};
-
-//TODO: standardize colours
-const Quote = ({
-  part,
-}: {
-  part: Pick<ArticleBodyPartPayload, 'text' | 'author' | 'href'>;
-}) => {
-  const { text, author, href } = part;
-  return (
-    <div className='bg-accent-100 rounded-md px-4 py-4 border border-accent-200'>
-      <div className=' flex gap-8'>
-        <FaQuoteRight className=' text-[40px] w-8 text-accent-800' />
-        <p className='italic text-neutral-700 text-[20px] leading-9 flex-1'>
-          {text}
-        </p>
-      </div>
-      <cite className='not-italic pt-3 pb-1 flex justify-center'>
-        <MkLink
-          enabled={!!href}
-          href={href}
-          className={{
-            link: 'hover:text-gray-600 text-center  text-accent-800 font-semibold',
-          }}
-          target='_blank'
-        >
-          {author}
-        </MkLink>
-      </cite>
-    </div>
   );
 };
