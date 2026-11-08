@@ -116,6 +116,32 @@ const posts: Post[] = [
           },
         ],
       },
+      { type: 'heading', text: 'Läs mer' },
+      {
+        type: 'list',
+        items: [
+          {
+            icon: 'steam',
+            text: 'The Mummy Demastered på Steam',
+            marks: [{ type: 'link', start: 0, end: 29, href: 'https://store.steampowered.com/search/?term=the+mummy+demastered' }],
+          },
+          {
+            icon: 'studio',
+            text: 'WayForward – studion bakom spelet',
+            marks: [{ type: 'link', start: 0, end: 10, href: 'https://wayforward.com/' }],
+          },
+          {
+            icon: 'wikipedia',
+            text: 'Wikipedia-artikeln om spelet',
+            marks: [{ type: 'link', start: 0, end: 28, href: 'https://en.wikipedia.org/wiki/The_Mummy_Demastered' }],
+          },
+          {
+            icon: 'review',
+            text: 'Min recension av Iconoclasts, ett annat metroidvania värt att spela',
+            marks: [{ type: 'link', start: 0, end: 28, href: '/inlagg/iconoclasts' }],
+          },
+        ],
+      },
     ],
   },
   {

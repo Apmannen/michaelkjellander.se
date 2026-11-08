@@ -1,8 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaQuoteRight } from 'react-icons/fa6';
-import { BodyBlock, Mark } from '@/data/types';
+import { FaQuoteRight, FaSteam, FaWikipediaW } from 'react-icons/fa6';
+import { LuBuilding2, LuGamepad2 } from 'react-icons/lu';
+import { BodyBlock, ListIcon, Mark } from '@/data/types';
 import { Divider } from '../Divider';
+
+const listIcons: Record<ListIcon, typeof FaSteam> = {
+  steam: FaSteam,
+  studio: LuBuilding2,
+  wikipedia: FaWikipediaW,
+  review: LuGamepad2,
+};
 
 export const PostBody = ({ blocks }: { blocks: BodyBlock[] }) => {
   return (
@@ -71,7 +79,27 @@ const Block = ({ block }: { block: BodyBlock }) => {
           {block.caption ? <figcaption className='pt-2 text-[15px] italic text-muted'>{block.caption}</figcaption> : null}
         </figure>
       );
-    case 'list':
+    case 'list': {
+      const hasIcons = block.items.some((item) => item.icon);
+      if(hasIcons) {
+        return (
+          <ul className='space-y-2'>
+            {block.items.map((item, i) => {
+              const Icon = item.icon ? listIcons[item.icon] : undefined;
+              return (
+                <li key={i} className='flex items-baseline gap-3'>
+                  <span className='flex w-5 shrink-0 justify-center text-accent-800'>
+                    {Icon ? <Icon aria-hidden className='translate-y-[2px]' /> : undefined}
+                  </span>
+                  <span>
+                    <RichText text={item.text} marks={item.marks} />
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        );
+      }
       return (
         <ul className='list-disc space-y-2 pl-6 marker:text-accent-800'>
           {block.items.map((item, i) => (
@@ -81,6 +109,7 @@ const Block = ({ block }: { block: BodyBlock }) => {
           ))}
         </ul>
       );
+    }
   }
 };
 

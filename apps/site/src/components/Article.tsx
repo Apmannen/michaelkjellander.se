@@ -1,11 +1,11 @@
-import {
-  ArticlePayload,
-} from '@/lib/db/payload.types';
+import { ArticlePayload } from '@/lib/db/payload.types';
 import { storage } from '@/lib/storage';
 import Image from 'next/image';
 import { Divider } from './standard/Divider';
 import { Quote } from './bodyParts/Quote';
 import { Paragraph } from './bodyParts/Paragraph';
+import { MkLink } from './standard/MkLink';
+import { PiGlobeSimple } from 'react-icons/pi';
 
 const logPrefix = '[Article]';
 
@@ -55,6 +55,34 @@ export const Article = ({
               ) : null}
             </div>
           ))}
+        </div>
+        <div className='pt-8'>
+          <div>TESTYTA</div>
+          <MkLink
+            href='https://www.fotbollskanalen.se'
+            className={{ all: 'flex items-center group gap-2' }}
+          >
+            <span>
+              <PiGlobeSimple className='text-accent-800' />
+            </span>
+            <span className='underline group-hover:text-accent-800'>
+              Presentation av tekniken bakom Ludde
+            </span>
+          </MkLink>
+        </div>
+        <div className='pt-8'>
+          <div className='font-bold text-[32px]'>Läs mer</div>
+          <ul className='list-disc space-y-2 pl-6 marker:text-accent-800'>
+            <li>
+              <MkLink
+                href='https://www.fotbollskanalen.se'
+                className={{ all: 'underline' }}
+              >
+                Presentation av tekniken bakom Ludde
+              </MkLink>
+            </li>
+            <li>Presentation av tekniken bakom Ludde</li>
+          </ul>
         </div>
       </div>
     </article>
