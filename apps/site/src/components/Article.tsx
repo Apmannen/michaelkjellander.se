@@ -15,10 +15,11 @@ export const Article = ({
   article,
   isMain,
 }: {
-  article: Pick<ArticlePayload, 'title' | 'body' | 'cover_image'>;
+  article: Pick<ArticlePayload, 'title' | 'body' | 'cover_image' | 'intro'>;
   isMain: boolean;
 }) => {
   const Heading = isMain ? 'h1' : 'h2';
+  const SecondaryHeading = isMain ? 'h2' : 'h3';
   return (
     <article className='bg-default-box mb-12 shadow-sm max-w-[825px] py-12'>
       <div className='px-12 h-[400px]'>
@@ -40,6 +41,9 @@ export const Article = ({
         >
           {article.title}
         </Heading>
+        <SecondaryHeading className='text-[24px] italic'>
+          {article.intro}
+        </SecondaryHeading>
         <Divider />
         <div className='space-y-4'>
           {article.body.map((part, i) => (

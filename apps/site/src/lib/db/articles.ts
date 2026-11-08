@@ -11,7 +11,7 @@ const latest = async (): Promise<
 
   const res = await db.supabase
     .from('articles')
-    .select('id, title, body, cover_image')
+    .select('id, title, body, cover_image, intro')
     .order('published_at', { ascending: false });
 
   return (res.data as ArticlePayload[]) || [];
