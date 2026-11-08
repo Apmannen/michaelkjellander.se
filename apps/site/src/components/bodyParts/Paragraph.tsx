@@ -5,7 +5,33 @@ import {
 import { MkLink } from '../standard/MkLink';
 import { NamedIcon } from '../standard/NamedIcon';
 
-type TextPart = { text: string; activeMarks: BodyMarkPayload[] };
+type LinkMark = Extract<BodyMarkPayload, { type: 'link' }>;
+type TextPart = {
+  text: string;
+  activeMarks: BodyMarkPayload[];
+  inners: TextPart[];
+};
+
+const findLinkMark = (textPart: TextPart) =>
+  textPart.activeMarks.find((m): m is LinkMark => m.type === 'link');
+
+const TextPartContent = ({ textPart }: { textPart: TextPart }) => {
+  const markTypes = textPart.activeMarks.map((m) => m.type);
+  const className = `${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`;
+  const lines = textPart.text.split('\n');
+
+  return (
+    <span className={className}>
+      {lines.map((line, i) => (
+        <span key={i}>
+          {i > 0 ? <br /> : null}
+          {line}
+        </span>
+      ))}
+    </span>
+  );
+};
+
 export const Paragraph = ({
   part,
 }: {
@@ -14,15 +40,10 @@ export const Paragraph = ({
   const { text = '', marks = [] } = part;
 
   const breaks = Array.from(
-    new Set([
-      0,
-      ...(marks
-        .map((mark) => (mark.type !== 'icon' ? [mark.start, mark.end] : []))
-        .flat() ?? []),
-    ]),
+    new Set([0, ...(marks.map((mark) => [mark.start, mark.end]).flat() ?? [])]),
   ).sort((a, b) => a - b);
 
-  const textParts: TextPart[] = [];
+  const textPartsInitial: TextPart[] = [];
   for (let i = 0; i < breaks.length; i++) {
     const breakIndex = breaks[i];
     let nextBreakIndex = breaks.at(i + 1);
@@ -39,36 +60,55 @@ export const Paragraph = ({
       }
     });
 
-    textParts.push({ text: sliced, activeMarks });
+    textPartsInitial.push({ text: sliced, activeMarks, inners: [] });
+  }
+
+  // Group the parts following a link part into it, as long as they belong to
+  // the same link mark
+  const textParts: TextPart[] = [];
+  for (let i = 0; i < textPartsInitial.length; i++) {
+    const textPart = textPartsInitial[i];
+    textParts.push(textPart);
+
+    const linkMark = findLinkMark(textPart);
+    if (!linkMark) {
+      continue;
+    }
+
+    while (
+      i + 1 < textPartsInitial.length &&
+      textPartsInitial[i + 1].activeMarks.includes(linkMark)
+    ) {
+      textPart.inners.push(textPartsInitial[i + 1]);
+      i++;
+    }
   }
 
   //TODO: only external links in blank
 
   return (
     <p className=''>
-      {textParts?.map((textPart) => {
-        const markTypes = textPart.activeMarks.map((m) => m.type);
-        const lines = textPart.text.split('\n');
+      {textParts.map((textPart, i1) => {
+        const linkMark = findLinkMark(textPart);
 
-        const tmpIcon = textPart.activeMarks.find((m) => m.type === 'icon');
+        // const tmpIcon = textPart.activeMarks.find((m) => m.type === 'icon');
 
-        return lines.map((line, i2) => (
+        return (
           <MkLink
-            enabled={markTypes.includes('link')}
+            enabled={linkMark !== undefined}
             className={{
-              all: `${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`,
               link: 'underline hover:text-gray-600 hover:no-underline',
             }}
-            key={i2}
-            href={textPart.activeMarks.find((m) => m.type === 'link')?.href}
+            key={i1}
+            href={linkMark?.href}
             target='_blank'
           >
-            {i2 > 0 ? <br /> : null}
-            {tmpIcon ? <NamedIcon iconName={tmpIcon.name} /> : null}
-
-            {line}
+            {/* {tmpIcon ? <NamedIcon iconName={tmpIcon.name} /> : null} */}
+            {[textPart, ...textPart.inners].map((innerPart, i2) => (
+              <TextPartContent key={i2} textPart={innerPart} />
+            ))}
           </MkLink>
-        ));
+        );
       })}
     </p>
   );
