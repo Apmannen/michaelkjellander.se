@@ -14,6 +14,8 @@ import {
   type Body,
   type BodyBlock,
   type ImageBlock,
+  type ListBlock,
+  type ListItem,
   type Mark,
   type MarkType,
   type ParagraphBlock,
@@ -24,6 +26,7 @@ import {
   adjustMarks,
   hasMark,
   isValidHref,
+  listItem,
   newBlockId,
   normalizeHref,
   paragraph,
@@ -43,7 +46,9 @@ type Caret = { id: string; offset: number; end?: number };
 type TextSelection = { id: string; start: number; end: number };
 
 // href is empty while adding a new link.
-type LinkEdit = TextSelection & { href: string; text: string };
+type LinkRange = { start: number; end: number; href: string; text: string };
+
+type LinkEdit = LinkRange & { id: string };
 
 type QuoteFields = Pick<QuoteBlock, 'text' | 'author' | 'href'>;
 
@@ -54,6 +59,9 @@ type ImageFields = Omit<ImageBlock, 'id' | 'type'>;
 
 // Empty while inserting a new image.
 type ImageEdit = Partial<ImageFields> & { id?: string };
+
+// id is undefined while inserting a new list.
+type ListEdit = { id?: string; items: ListItem[] };
 
 const autosize = (input: HTMLTextAreaElement) => {
   input.style.height = 'auto';
@@ -90,6 +98,44 @@ const findEdit = (before: string, after: string, caret: number) => {
   };
 };
 
+// Double-clicking a word often selects the space after it too, so
+// surrounding whitespace is left out. Undefined if nothing remains.
+const trimRange = (text: string, start: number, end: number) => {
+  const selected = text.slice(start, end);
+  const trimmedStart = start + selected.length - selected.trimStart().length;
+  const trimmedEnd = end - (selected.length - selected.trimEnd().length);
+  return trimmedStart < trimmedEnd
+    ? { start: trimmedStart, end: trimmedEnd }
+    : undefined;
+};
+
+// A selection within a link gives that link, any other non-empty selection a
+// new one.
+const findLinkRange = (
+  text: string,
+  marks: Mark[] = [],
+  start: number,
+  end: number,
+): LinkRange | undefined => {
+  const link = marks.find(
+    (mark) => mark.type === 'link' && mark.start <= start && end <= mark.end,
+  );
+  if (link?.type === 'link') {
+    return {
+      start: link.start,
+      end: link.end,
+      href: link.href,
+      text: text.slice(link.start, link.end),
+    };
+  }
+
+  const trimmed = trimRange(text, start, end);
+  if (!trimmed) {
+    return undefined;
+  }
+  return { ...trimmed, href: '', text: text.slice(trimmed.start, trimmed.end) };
+};
+
 export function BodyEditor({
   id,
   value,
@@ -112,6 +158,9 @@ export function BodyEditor({
     undefined,
   );
   const [editingImage, setEditingImage] = useState<ImageEdit | undefined>(
+    undefined,
+  );
+  const [editingList, setEditingList] = useState<ListEdit | undefined>(
     undefined,
   );
   const [isPickingIcon, setIsPickingIcon] = useState(false);
@@ -177,17 +226,13 @@ export function BodyEditor({
     return block?.type === 'paragraph' ? { index, block } : undefined;
   };
 
-  // Double-clicking a word often selects the space after it too, so
-  // surrounding whitespace is left out. Undefined if nothing remains.
   const trimSelection = (target?: TextSelection) => {
     const block = findParagraphById(target?.id)?.block;
     if (!target || !block) {
       return undefined;
     }
-    const selected = block.text.slice(target.start, target.end);
-    const start = target.start + selected.length - selected.trimStart().length;
-    const end = target.end - (selected.length - selected.trimEnd().length);
-    return start < end ? { id: block.id, start, end } : undefined;
+    const trimmed = trimRange(block.text, target.start, target.end);
+    return trimmed && { id: block.id, ...trimmed };
   };
 
   // A selection within a link edits that link, any other non-empty selection
@@ -197,30 +242,13 @@ export function BodyEditor({
     if (!target || !block) {
       return undefined;
     }
-
-    const link = block.marks?.find(
-      (mark) =>
-        mark.type === 'link' &&
-        mark.start <= target.start &&
-        target.end <= mark.end,
+    const range = findLinkRange(
+      block.text,
+      block.marks,
+      target.start,
+      target.end,
     );
-    if (link?.type === 'link') {
-      const { start, end, href } = link;
-      return {
-        id: block.id,
-        start,
-        end,
-        href,
-        text: block.text.slice(start, end),
-      };
-    }
-
-    const trimmed = trimSelection(target);
-    if (!trimmed) {
-      return undefined;
-    }
-    const text = block.text.slice(trimmed.start, trimmed.end);
-    return { ...trimmed, href: '', text };
+    return range && { id: block.id, ...range };
   };
 
   const isEmpty =
@@ -579,6 +607,19 @@ export function BodyEditor({
     insertWidget({ id: newBlockId(), type: 'image', ...fields });
   };
 
+  const saveList = ({ id: listId, items }: ListEdit) => {
+    setEditingList(undefined);
+    if (listId) {
+      onChange(
+        value.map((block) =>
+          block.id === listId ? { id: block.id, type: 'list', items } : block,
+        ),
+      );
+      return;
+    }
+    insertWidget({ id: newBlockId(), type: 'list', items });
+  };
+
   const removeBlock = (index: number) => {
     commit(splice(index, 1));
   };
@@ -657,6 +698,14 @@ export function BodyEditor({
           className={toolbarButtonClass}
         >
           🖼 Bild
+        </button>
+        <button
+          type='button'
+          onClick={() => setEditingList({ items: [] })}
+          title='Infoga en punktlista där markören står'
+          className={toolbarButtonClass}
+        >
+          ☰ Lista
         </button>
         <button
           type='button'
@@ -770,6 +819,17 @@ export function BodyEditor({
             );
           }
 
+          if (block.type === 'list') {
+            return (
+              <ListWidget
+                key={block.id}
+                block={block}
+                onEdit={() => setEditingList(block)}
+                onRemove={() => removeBlock(index)}
+              />
+            );
+          }
+
           if (block.type === 'divider') {
             return (
               <DividerWidget
@@ -804,6 +864,14 @@ export function BodyEditor({
           initial={editingQuote}
           onSave={(fields) => saveQuote({ ...editingQuote, ...fields })}
           onClose={() => setEditingQuote(undefined)}
+        />
+      )}
+
+      {editingList && (
+        <ListDialog
+          initial={editingList.items}
+          onSave={(items) => saveList({ id: editingList.id, items })}
+          onClose={() => setEditingList(undefined)}
         />
       )}
 
@@ -956,6 +1024,484 @@ function DividerWidget({ onRemove }: { onRemove: () => void }) {
         </button>
       </div>
     </div>
+  );
+}
+
+// Only shows links, which are the only marks list items have.
+function LinkedText({ text, marks = [] }: { text: string; marks?: Mark[] }) {
+  const parts = [];
+  let position = 0;
+  for (const mark of marks) {
+    if (mark.type !== 'link') {
+      continue;
+    }
+    parts.push(text.slice(position, mark.start));
+    parts.push(
+      <span key={mark.start} title={mark.href} className={markClasses.link}>
+        {text.slice(mark.start, mark.end)}
+      </span>,
+    );
+    position = mark.end;
+  }
+  parts.push(text.slice(position));
+  return <>{parts}</>;
+}
+
+function ListWidget({
+  block,
+  onEdit,
+  onRemove,
+}: {
+  block: ListBlock;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div
+      onDoubleClick={onEdit}
+      className='group relative rounded-md bg-zinc-50 py-3 pr-32 pl-4 dark:bg-zinc-950'
+    >
+      <ul className='flex flex-col gap-1.5'>
+        {block.items.map((item, i) => (
+          <li key={i} className='flex items-baseline gap-2 text-sm'>
+            <span className='flex w-4 shrink-0 justify-center text-zinc-600 dark:text-zinc-400'>
+              {item.icon ? (
+                <Icon name={item.icon} className='translate-y-0.5' />
+              ) : (
+                '•'
+              )}
+            </span>
+            <span>
+              <LinkedText text={item.text} marks={item.marks} />
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className='absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100'>
+        <button type='button' onClick={onEdit} className={toolbarButtonClass}>
+          Redigera
+        </button>
+        <button
+          type='button'
+          onClick={onRemove}
+          className={`${toolbarButtonClass} text-red-600 dark:text-red-400`}
+        >
+          Ta bort
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// key only identifies the item while editing. Marks other than links can't
+// be added, and listItem drops any when saving.
+type ListItemDraft = {
+  key: string;
+  icon?: string;
+  text: string;
+  marks?: Mark[];
+};
+
+type ItemSelection = { key: string; start: number; end: number };
+
+type ItemLinkEdit = LinkRange & { key: string };
+
+const listItemDraft = (
+  item?: Omit<ListItemDraft, 'key'>,
+): ListItemDraft => ({
+  key: newBlockId(),
+  text: '',
+  ...item,
+});
+
+function ListDialog({
+  initial,
+  onSave,
+  onClose,
+}: {
+  initial: ListItem[];
+  onSave: (items: ListItem[]) => void;
+  onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const inputs = useRef(new Map<string, HTMLTextAreaElement>());
+  const pendingCaret = useRef<Caret | undefined>(undefined);
+  const [items, setItems] = useState(() =>
+    initial.length ? initial.map(listItemDraft) : [listItemDraft()],
+  );
+  // Kept after blur, so the link buttons know what to link.
+  const [selection, setSelection] = useState<ItemSelection | undefined>(
+    undefined,
+  );
+  const [editingLink, setEditingLink] = useState<ItemLinkEdit | undefined>(
+    undefined,
+  );
+  const [pickingIconFor, setPickingIconFor] = useState<string | undefined>(
+    undefined,
+  );
+
+  // Empty items are left out.
+  const result = items.flatMap((item) => {
+    const saved = listItem(item.text, item.marks, item.icon);
+    return saved ? [saved] : [];
+  });
+
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+
+  useLayoutEffect(() => {
+    inputs.current.forEach(autosize);
+
+    const caret = pendingCaret.current;
+    if (!caret) {
+      return;
+    }
+    pendingCaret.current = undefined;
+    const input = inputs.current.get(caret.id);
+    if (input) {
+      input.focus();
+      input.setSelectionRange(caret.offset, caret.end ?? caret.offset);
+    }
+  }, [items]);
+
+  const commit = (next: ListItemDraft[], caret?: Caret) => {
+    pendingCaret.current = caret;
+    setItems(next);
+  };
+
+  const update = (key: string, change: Partial<ListItemDraft>) => {
+    setItems(
+      items.map((item) => (item.key === key ? { ...item, ...change } : item)),
+    );
+  };
+
+  const findLinkTarget = (
+    target?: ItemSelection,
+  ): ItemLinkEdit | undefined => {
+    const item = items.find((other) => other.key === target?.key);
+    if (!target || !item) {
+      return undefined;
+    }
+    const range = findLinkRange(
+      item.text,
+      item.marks,
+      target.start,
+      target.end,
+    );
+    return range && { key: item.key, ...range };
+  };
+
+  // List items have no line breaks, so pasted ones become spaces.
+  const setText = (item: ListItemDraft, rawText: string, caret: number) => {
+    const text = rawText.replace(/\n/g, ' ');
+    const { from, oldEnd, newEnd } = findEdit(item.text, text, caret);
+    update(item.key, {
+      text,
+      marks: adjustMarks(item.marks, from, oldEnd, newEnd),
+    });
+  };
+
+  // Without href the link is removed.
+  const saveLink = ({ key, start, end }: ItemLinkEdit, href?: string) => {
+    setEditingLink(undefined);
+    const item = items.find((other) => other.key === key);
+    if (!item) {
+      return;
+    }
+    const marks = href
+      ? addMark(item.marks, { type: 'link', href, start, end })
+      : removeMarks(item.marks, 'link', start, end);
+    commit(
+      items.map((other) => (other.key === key ? { ...item, marks } : other)),
+      { id: key, offset: end },
+    );
+  };
+
+  const move = (index: number, by: 1 | -1) => {
+    const next = [...items];
+    const [item] = next.splice(index, 1);
+    next.splice(index + by, 0, item);
+    setItems(next);
+  };
+
+  // There's always an item to type in.
+  const remove = (index: number) => {
+    const next = items.filter((_, i) => i !== index);
+    setItems(next.length ? next : [listItemDraft()]);
+  };
+
+  const onKeyDown = (
+    event: KeyboardEvent<HTMLTextAreaElement>,
+    index: number,
+    item: ListItemDraft,
+  ) => {
+    const { selectionStart: start, selectionEnd: end } = event.currentTarget;
+
+    // Enter splits the item, and the text after the caret becomes a new item.
+    if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      const current = {
+        ...item,
+        text: item.text.slice(0, start),
+        marks: sliceMarks(item.marks, 0, start),
+      };
+      const next = listItemDraft({
+        text: item.text.slice(end),
+        marks: sliceMarks(item.marks, end),
+      });
+      const nextItems = [...items];
+      nextItems.splice(index, 1, current, next);
+      commit(nextItems, { id: next.key, offset: 0 });
+      return;
+    }
+
+    // Backspace in an empty item removes it.
+    if (event.key === 'Backspace' && !item.text && index > 0) {
+      event.preventDefault();
+      const previous = items[index - 1];
+      commit(
+        items.filter((_, i) => i !== index),
+        { id: previous.key, offset: previous.text.length },
+      );
+      return;
+    }
+
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey &&
+      event.key.toLowerCase() === 'k'
+    ) {
+      event.preventDefault();
+      const target = findLinkTarget({ key: item.key, start, end });
+      if (target) {
+        setEditingLink(target);
+      }
+    }
+  };
+
+  // Portaled out of the article <form>, since forms can't be nested. The link
+  // dialog is kept outside the list dialog, so its close event doesn't bubble
+  // to the list dialog's onClose.
+  const listDialog = createPortal(
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      className='m-auto w-full max-w-2xl rounded-lg bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/40 dark:bg-zinc-900 dark:text-zinc-100'
+    >
+      <form
+        className='flex flex-col gap-5 p-6'
+        onSubmit={(event) => {
+          // React events bubble through portals, so keep this submit from
+          // reaching the article form.
+          event.preventDefault();
+          event.stopPropagation();
+          onSave(result);
+        }}
+      >
+        <h2 className='text-base font-semibold'>Lista</h2>
+
+        <ul className='flex flex-col gap-3'>
+          {items.map((item, index) => {
+            const linkTarget =
+              selection?.key === item.key
+                ? findLinkTarget(selection)
+                : undefined;
+            const isPickingIcon = pickingIconFor === item.key;
+            return (
+              <li key={item.key} className='flex flex-col gap-2'>
+                <div className='flex items-start gap-2'>
+                  <button
+                    type='button'
+                    onClick={() =>
+                      setPickingIconFor(isPickingIcon ? undefined : item.key)
+                    }
+                    aria-pressed={isPickingIcon}
+                    aria-label={
+                      item.icon ? `Byt ikon (${item.icon})` : 'Välj ikon'
+                    }
+                    title={item.icon ?? 'Välj ikon'}
+                    className='flex size-[2.375rem] shrink-0 items-center justify-center rounded-md border border-zinc-300 text-zinc-400 transition-colors hover:bg-zinc-100 aria-pressed:border-blue-500 aria-pressed:ring-1 aria-pressed:ring-blue-500 dark:border-zinc-700 dark:hover:bg-zinc-800'
+                  >
+                    {item.icon ? (
+                      <Icon
+                        name={item.icon}
+                        className='size-4 text-zinc-900 dark:text-zinc-100'
+                      />
+                    ) : (
+                      '★'
+                    )}
+                  </button>
+
+                  <div className='min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950'>
+                    <div className='relative'>
+                      <MarkedText
+                        text={item.text}
+                        marks={item.marks}
+                        className={textClasses.body}
+                      />
+                      <textarea
+                        ref={(input) => {
+                          if (!input) {
+                            return;
+                          }
+                          inputs.current.set(item.key, input);
+                          autosize(input);
+                          return () => {
+                            inputs.current.delete(item.key);
+                          };
+                        }}
+                        rows={1}
+                        value={item.text}
+                        placeholder='Text'
+                        autoFocus={index === 0}
+                        aria-label={`Punkt ${index + 1}`}
+                        onChange={(event) =>
+                          setText(
+                            item,
+                            event.target.value,
+                            event.target.selectionEnd,
+                          )
+                        }
+                        onKeyDown={(event) => onKeyDown(event, index, item)}
+                        onSelect={(event) => {
+                          const { selectionStart, selectionEnd } =
+                            event.currentTarget;
+                          setSelection({
+                            key: item.key,
+                            start: selectionStart,
+                            end: selectionEnd,
+                          });
+                        }}
+                        // See the body paragraphs for why the text is
+                        // transparent.
+                        className={`${paragraphTextClass} ${textClasses.body} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='flex shrink-0 items-center gap-0.5 py-0.5'>
+                    {/* preventDefault on mousedown keeps the text selection. */}
+                    <button
+                      type='button'
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => setEditingLink(linkTarget)}
+                      disabled={!linkTarget}
+                      aria-label={linkTarget?.href ? 'Redigera länk' : 'Länk'}
+                      title={
+                        linkTarget?.href
+                          ? `Redigera länk (${linkTarget.href})`
+                          : 'Markera text för att lägga till en länk (Ctrl+K)'
+                      }
+                      className={toolbarButtonClass}
+                    >
+                      🔗
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => move(index, -1)}
+                      disabled={index === 0}
+                      aria-label='Flytta upp'
+                      title='Flytta upp'
+                      className={toolbarButtonClass}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => move(index, 1)}
+                      disabled={index === items.length - 1}
+                      aria-label='Flytta ner'
+                      title='Flytta ner'
+                      className={toolbarButtonClass}
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => remove(index)}
+                      aria-label='Ta bort punkt'
+                      title='Ta bort punkt'
+                      className={`${toolbarButtonClass} text-red-600 dark:text-red-400`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {isPickingIcon && (
+                  <div className='flex flex-col gap-2 rounded-md border border-zinc-200 p-3 dark:border-zinc-800'>
+                    <IconPicker
+                      value={item.icon}
+                      onSelect={(name) => {
+                        setPickingIconFor(undefined);
+                        update(item.key, { icon: name });
+                      }}
+                    />
+                    {item.icon && (
+                      <button
+                        type='button'
+                        onClick={() => {
+                          setPickingIconFor(undefined);
+                          update(item.key, { icon: undefined });
+                        }}
+                        className='self-start rounded-md px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950'
+                      >
+                        Ta bort ikon
+                      </button>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        <button
+          type='button'
+          onClick={() => {
+            const item = listItemDraft();
+            commit([...items, item], { id: item.key, offset: 0 });
+          }}
+          className='self-start rounded-md border border-dashed border-zinc-300 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800'
+        >
+          + Lägg till punkt
+        </button>
+
+        <div className='flex justify-end gap-3'>
+          <button
+            type='button'
+            onClick={() => dialog.current?.close()}
+            className='rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800'
+          >
+            Avbryt
+          </button>
+          <button
+            type='submit'
+            disabled={!result.length}
+            className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
+          >
+            {initial.length ? 'Uppdatera' : 'Infoga'}
+          </button>
+        </div>
+      </form>
+    </dialog>,
+    document.body,
+  );
+
+  return (
+    <>
+      {listDialog}
+      {editingLink && (
+        <LinkDialog
+          initial={editingLink}
+          onSave={(href) => saveLink(editingLink, href)}
+          onRemove={editingLink.href ? () => saveLink(editingLink) : undefined}
+          onClose={() => setEditingLink(undefined)}
+        />
+      )}
+    </>
   );
 }
 

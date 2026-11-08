@@ -54,7 +54,26 @@ export type DividerBlock = {
   type: 'divider';
 };
 
-export type WidgetBlock = QuoteBlock | ImageBlock | DividerBlock;
+export type LinkMark = Extract<Mark, { type: 'link' }>;
+
+export type ListItem = {
+  // A react-icons icon shown instead of the bullet, e.g. FaSteam. Left out
+  // for an ordinary bullet.
+  icon?: string;
+  // Has no line breaks.
+  text: string;
+  // Only links are allowed. Sorted by start and never overlapping. Left out
+  // when there are no links.
+  marks?: LinkMark[];
+};
+
+export type ListBlock = {
+  id: string;
+  type: 'list';
+  items: ListItem[];
+};
+
+export type WidgetBlock = QuoteBlock | ImageBlock | DividerBlock | ListBlock;
 
 export type BodyBlock = ParagraphBlock | WidgetBlock;
 
@@ -273,7 +292,13 @@ const toMarks = (value: unknown): Mark[] => {
 };
 
 // Placeholders without an icon, e.g. from pasted text, are removed.
-const removeOrphanPlaceholders = ({ text, marks = [] }: ParagraphBlock) => {
+const removeOrphanPlaceholders = ({
+  text,
+  marks = [],
+}: {
+  text: string;
+  marks?: Mark[];
+}) => {
   let result = { text, marks };
   for (let i = text.length - 1; i >= 0; i--) {
     if (
@@ -309,8 +334,53 @@ const parseParagraph = (item: Record<string, unknown>, id: string) => {
     : [];
 };
 
+// Line breaks become spaces and surrounding whitespace is trimmed. Marks other
+// than links are dropped, and so are icon placeholders, since a list item's
+// icon is never part of its text. Undefined if no text remains.
+export const listItem = (
+  rawText: string,
+  marks: Mark[] = [],
+  icon?: string,
+): ListItem | undefined => {
+  const cleaned = removeOrphanPlaceholders({
+    text: rawText.replace(/\r\n?|\n/g, ' '),
+    marks: marks.filter((mark) => mark.type === 'link'),
+  });
+  const text = cleaned.text.trim();
+  if (!text) {
+    return undefined;
+  }
+  const offset = cleaned.text.length - cleaned.text.trimStart().length;
+  const links = normalizeMarks(
+    sliceMarks(cleaned.marks, offset, offset + text.length),
+  ).filter((mark): mark is LinkMark => mark.type === 'link');
+  return {
+    ...(icon && isValidIconName(icon) ? { icon } : {}),
+    text,
+    ...(links.length ? { marks: links } : {}),
+  };
+};
+
+const parseListItems = (value: unknown): ListItem[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((entry): ListItem[] => {
+    if (typeof entry !== 'object' || !entry) {
+      return [];
+    }
+    const { text, marks, icon } = entry as Record<string, unknown>;
+    const item = listItem(
+      typeof text === 'string' ? text : '',
+      toMarks(marks),
+      typeof icon === 'string' ? icon : undefined,
+    );
+    return item ? [item] : [];
+  });
+};
+
 // Sanitizes untrusted input: drops unknown block types, empty paragraphs,
-// quotes without text, images that aren't uploads, invalid marks and icon
+// lists without items, quotes without text, images that aren't uploads, invalid marks and icon
 // placeholders without an icon.
 export const parseBody = (raw: unknown): Body => {
   if (!Array.isArray(raw)) {
@@ -344,6 +414,11 @@ export const parseBody = (raw: unknown): Body => {
 
     if (item.type === 'paragraph') {
       return parseParagraph(item, id);
+    }
+
+    if (item.type === 'list') {
+      const items = parseListItems(item.items);
+      return items.length ? [{ id, type: 'list', items }] : [];
     }
 
     const text = toText(item.text);
