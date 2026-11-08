@@ -2,7 +2,7 @@ import {
   ArticleBodyPartPayload,
   BodyMarkPayload,
 } from '@/lib/db/payload.types';
-import { MkLink } from '../MkLink';
+import { MkLink } from '../standard/MkLink';
 
 type TextPart = { text: string; activeMarks: BodyMarkPayload[] };
 export const Paragraph = ({

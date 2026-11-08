@@ -3,10 +3,10 @@ import {
   ArticlePayload,
   BodyMarkPayload,
 } from '@/lib/db/payload.types';
-import { MkLink } from './MkLink';
+import { MkLink } from './standard/MkLink';
 import { storage } from '@/lib/storage';
 import Image from 'next/image';
-import { Divider } from './Divider';
+import { Divider } from './standard/Divider';
 import { Quote } from './bodyParts/Quote';
 import { Paragraph } from './bodyParts/Paragraph';
 

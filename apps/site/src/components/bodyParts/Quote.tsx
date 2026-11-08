@@ -1,6 +1,6 @@
 import { ArticleBodyPartPayload } from '@/lib/db/payload.types';
 import { FaQuoteRight } from 'react-icons/fa';
-import { MkLink } from '../MkLink';
+import { MkLink } from '../standard/MkLink';
 
 export const Quote = ({
   part,
