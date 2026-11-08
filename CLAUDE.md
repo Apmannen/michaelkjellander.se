@@ -3,6 +3,7 @@
 ## Scope
 
 - When asked to change something in `apps/cms`, do not make any changes in `apps/site` unless explicitly told to.
+- Do not ask whether `apps/site` should be changed as well, and do not propose site changes. The site is handled separately.
 
 ## Git
 

@@ -20,6 +20,10 @@ export async function saveArticle(
   const input: ArticleInput = {
     title: String(raw.title ?? '').trim(),
     slug: String(raw.slug ?? '').trim(),
+    // The intro is a one-line tagline, so line breaks become spaces.
+    intro: String(raw.intro ?? '')
+      .replace(/\s*[\r\n]+\s*/g, ' ')
+      .trim(),
     published: raw.published === true,
     published_at: String(raw.published_at ?? ''),
     cover_image: parseImage(raw.cover_image),

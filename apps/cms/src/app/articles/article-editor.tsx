@@ -27,6 +27,7 @@ const now = () => {
 const toInput = (article: Article | null): ArticleInput => ({
   title: article?.title ?? '',
   slug: article?.slug ?? '',
+  intro: article?.intro ?? '',
   published: article?.published ?? false,
   published_at: article ? new Date(article.published_at).toISOString() : now(),
   cover_image: article?.cover_image,
@@ -65,6 +66,7 @@ const useIsClient = () =>
 const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.title === b.title &&
   a.slug === b.slug &&
+  a.intro === b.intro &&
   a.published === b.published &&
   a.published_at === b.published_at &&
   JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
@@ -216,6 +218,20 @@ export function ArticleEditor({ article }: { article: Article | null }) {
                 className={inputClass}
               />
             )}
+          </Field>
+
+          <Field
+            label='Intro'
+            htmlFor='intro'
+            description='Visas under rubriken. En kort mening, utan punkt på slutet.'
+          >
+            <textarea
+              id='intro'
+              rows={2}
+              value={draft.intro}
+              onChange={(event) => update({ intro: event.target.value })}
+              className={`${inputClass} resize-y`}
+            />
           </Field>
 
           <Field
