@@ -7,15 +7,15 @@ export const metadata: Metadata = {
   description: 'Min personliga hemsida',
 };
 
-const serif = Source_Serif_4({
+const sourceSerif = Source_Serif_4({
   subsets: ['latin'],
   style: ['normal', 'italic'],
-  variable: '--font-source-serif',
+  variable: '--font-source-serif-single',
 });
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang='sv' className={`${serif.variable} h-full antialiased `}>
+    <html lang='sv' className={`${sourceSerif.variable} h-full antialiased `}>
       {/* TODO: remove */}
       <head>
         <link rel='preconnect' href='https://fonts.googleapis.com'></link>
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           rel='stylesheet'
         ></link>
       </head>
-      <body className={`min-h-full font-serif`}>{children}</body>
+      <body className={`min-h-full font-source-serif`}>{children}</body>
     </html>
   );
 }

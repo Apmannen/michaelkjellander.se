@@ -10,7 +10,7 @@
   --color-foreground: var(--foreground); */
   --font-noto-serif: 'Noto Serif', serif;
   --font-georgia: Georgia, 'Times New Roman', serif;
-  --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
+  --font-source-serif: var(--font-source-serif-single), Georgia, 'Times New Roman', serif;
 
   /* --color-default-main: #F3EEE8; */
 
