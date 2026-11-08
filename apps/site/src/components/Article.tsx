@@ -45,7 +45,7 @@ export const Article = ({
         <div className='space-y-4'>
           {article.body.map((part, i) => (
             <div key={i} className=''>
-              {part.type === 'paragraph' && part.variant === 'heading' ? (
+              {part.type === 'heading' ? (
                 <Heading part={part} />
               ) : part.type === 'paragraph' ? (
                 <Paragraph part={part} />
@@ -53,6 +53,8 @@ export const Article = ({
                 <Quote part={part} />
               ) : part.type === 'divider' ? (
                 <Divider />
+              ) : part.type === 'list' ? (
+                <div>LISTA</div>
               ) : null}
             </div>
           ))}

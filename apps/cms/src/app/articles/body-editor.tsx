@@ -1,8 +1,10 @@
 'use client';
 
 import {
+  type ChangeEvent,
   type ClipboardEvent,
   type KeyboardEvent,
+  type SyntheticEvent,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -18,13 +20,16 @@ import {
   type ListItem,
   type Mark,
   type MarkType,
+  type HeadingBlock,
   type ParagraphBlock,
-  type ParagraphVariant,
   type QuoteBlock,
+  type TextBlock,
   ICON_PLACEHOLDER,
   addMark,
   adjustMarks,
   hasMark,
+  heading,
+  isTextBlock,
   isValidHref,
   listItem,
   newBlockId,
@@ -197,10 +202,10 @@ export function BodyEditor({
     return blocks;
   };
 
-  const findParagraph = (from: number, step: 1 | -1) => {
+  const findTextBlock = (from: number, step: 1 | -1) => {
     for (let i = from + step; i >= 0 && i < value.length; i += step) {
       const block = value[i];
-      if (block.type === 'paragraph') {
+      if (isTextBlock(block)) {
         return block;
       }
     }
@@ -209,21 +214,32 @@ export function BodyEditor({
 
   const setText = (
     index: number,
-    block: ParagraphBlock,
+    block: TextBlock,
     text: string,
     caret: number,
   ) => {
+    if (block.type === 'heading') {
+      onChange(splice(index, 1, heading(text, block.id)));
+      return;
+    }
     const { from, oldEnd, newEnd } = findEdit(block.text, text, caret);
     const marks = adjustMarks(block.marks, from, oldEnd, newEnd);
-    onChange(
-      splice(index, 1, paragraph(text, marks, block.id, block.variant)),
-    );
+    onChange(splice(index, 1, paragraph(text, marks, block.id)));
   };
 
-  const findParagraphById = (blockId?: string) => {
+  const findTextBlockById = (blockId?: string) => {
     const index = value.findIndex((block) => block.id === blockId);
     const block = value[index];
-    return block?.type === 'paragraph' ? { index, block } : undefined;
+    return isTextBlock(block) ? { index, block } : undefined;
+  };
+
+  // Only paragraphs have marks, so this also tells whether marks can be
+  // applied to a selection.
+  const findParagraphById = (blockId?: string) => {
+    const found = findTextBlockById(blockId);
+    return found?.block.type === 'paragraph'
+      ? { index: found.index, block: found.block }
+      : undefined;
   };
 
   const trimSelection = (target?: TextSelection) => {
@@ -286,72 +302,43 @@ export function BodyEditor({
     const marks = hasMark(block.marks, type, start, end)
       ? removeMarks(block.marks, type, start, end)
       : addMark(block.marks, { type, start, end });
-    commit(
-      splice(index, 1, paragraph(block.text, marks, block.id, block.variant)),
-      { id: block.id, offset: start, end },
-    );
+    commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
+      id: block.id,
+      offset: start,
+      end,
+    });
   };
 
   const isHeading = (blockId?: string) =>
-    findParagraphById(blockId)?.block.variant === 'heading';
+    findTextBlockById(blockId)?.block.type === 'heading';
 
-  // Turns the paragraph with the selection into a heading or back into body
-  // text. The selection is kept.
+  // Turns the paragraph with the selection into a heading, which drops its
+  // marks and icons, or a heading back into a paragraph. The selection is
+  // kept as far as the text allows.
   const toggleHeading = (target?: TextSelection) => {
-    const found = findParagraphById(target?.id);
+    const found = findTextBlockById(target?.id);
     if (!target || !found) {
       return;
     }
     const { index, block } = found;
-    const variant = block.variant === 'heading' ? undefined : 'heading';
-    commit(
-      splice(index, 1, paragraph(block.text, block.marks, block.id, variant)),
-      { id: block.id, offset: target.start, end: target.end },
-    );
+    const next =
+      block.type === 'heading'
+        ? paragraph(block.text, [], block.id)
+        : heading(block.text, block.id);
+    commit(splice(index, 1, next), {
+      id: block.id,
+      offset: Math.min(target.start, next.text.length),
+      end: Math.min(target.end, next.text.length),
+    });
   };
 
   const onKeyDown = (
     event: KeyboardEvent<HTMLTextAreaElement>,
     index: number,
-    block: ParagraphBlock,
+    block: TextBlock,
   ) => {
     const { selectionStart: start, selectionEnd: end } = event.currentTarget;
     const isCollapsed = start === end;
-
-    // Shift+Enter falls through and the textarea inserts a line break,
-    // except in a heading, which has no line breaks.
-    if (
-      event.key === 'Enter' &&
-      !event.shiftKey &&
-      !event.nativeEvent.isComposing
-    ) {
-      event.preventDefault();
-      // Text after a heading is almost always body text, so a new paragraph
-      // at the end of a heading isn't one. Splitting a heading gives two.
-      const next = paragraph(
-        block.text.slice(end),
-        sliceMarks(block.marks, end),
-        undefined,
-        end < block.text.length ? block.variant : undefined,
-      );
-      const current = paragraph(
-        block.text.slice(0, start),
-        sliceMarks(block.marks, 0, start),
-        block.id,
-        block.variant,
-      );
-      commit(splice(index, 1, current, next), { id: next.id, offset: 0 });
-      return;
-    }
-
-    if (
-      event.key === 'Enter' &&
-      block.variant === 'heading' &&
-      !event.nativeEvent.isComposing
-    ) {
-      event.preventDefault();
-      return;
-    }
 
     if (
       (event.ctrlKey || event.metaKey) &&
@@ -361,6 +348,63 @@ export function BodyEditor({
     ) {
       event.preventDefault();
       toggleHeading({ id: block.id, start, end });
+      return;
+    }
+
+    if (event.key === 'ArrowUp' && isCollapsed && start === 0) {
+      const previous = findTextBlock(index, -1);
+      if (previous) {
+        event.preventDefault();
+        commit(value, { id: previous.id, offset: previous.text.length });
+      }
+      return;
+    }
+
+    if (
+      event.key === 'ArrowDown' &&
+      isCollapsed &&
+      start === block.text.length
+    ) {
+      const next = findTextBlock(index, 1);
+      if (next) {
+        event.preventDefault();
+        commit(value, { id: next.id, offset: 0 });
+      }
+      return;
+    }
+
+    if (block.type === 'heading') {
+      onHeadingKeyDown(event, index, block);
+    } else {
+      onParagraphKeyDown(event, index, block);
+    }
+  };
+
+  const onParagraphKeyDown = (
+    event: KeyboardEvent<HTMLTextAreaElement>,
+    index: number,
+    block: ParagraphBlock,
+  ) => {
+    const { selectionStart: start, selectionEnd: end } = event.currentTarget;
+    const isCollapsed = start === end;
+
+    // Shift+Enter falls through and the textarea inserts a line break.
+    if (
+      event.key === 'Enter' &&
+      !event.shiftKey &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+      const next = paragraph(
+        block.text.slice(end),
+        sliceMarks(block.marks, end),
+      );
+      const current = paragraph(
+        block.text.slice(0, start),
+        sliceMarks(block.marks, 0, start),
+        block.id,
+      );
+      commit(splice(index, 1, current, next), { id: next.id, offset: 0 });
       return;
     }
 
@@ -375,30 +419,33 @@ export function BodyEditor({
         }
         return;
       }
-      // A heading is bold as a whole, so bold isn't toggled within it.
       if (key === 'b' || key === 'u') {
         event.preventDefault();
-        if (key === 'u' || block.variant !== 'heading') {
-          toggleMark(key === 'b' ? 'bold' : 'underline', target);
-        }
+        toggleMark(key === 'b' ? 'bold' : 'underline', target);
         return;
       }
     }
 
-    // Backspace at the start of a heading first turns it into body text.
-    if (
-      event.key === 'Backspace' &&
-      isCollapsed &&
-      start === 0 &&
-      block.variant === 'heading'
-    ) {
-      event.preventDefault();
-      toggleHeading({ id: block.id, start, end });
-      return;
-    }
-
+    // A heading has no marks, so a paragraph with marks isn't merged into
+    // one, the caret just moves there.
     if (event.key === 'Backspace' && isCollapsed && start === 0) {
       const previous = value[index - 1];
+      if (previous?.type === 'heading') {
+        event.preventDefault();
+        if (block.marks) {
+          commit(value, { id: previous.id, offset: previous.text.length });
+          return;
+        }
+        commit(
+          splice(
+            index - 1,
+            2,
+            heading(previous.text + block.text, previous.id),
+          ),
+          { id: previous.id, offset: previous.text.length },
+        );
+        return;
+      }
       if (previous?.type === 'paragraph') {
         event.preventDefault();
         const marks = [
@@ -409,12 +456,7 @@ export function BodyEditor({
           splice(
             index - 1,
             2,
-            paragraph(
-              previous.text + block.text,
-              marks,
-              previous.id,
-              previous.variant,
-            ),
+            paragraph(previous.text + block.text, marks, previous.id),
           ),
           { id: previous.id, offset: previous.text.length },
         );
@@ -424,42 +466,79 @@ export function BodyEditor({
 
     if (event.key === 'Delete' && isCollapsed && start === block.text.length) {
       const next = value[index + 1];
-      if (next?.type === 'paragraph') {
+      if (isTextBlock(next)) {
         event.preventDefault();
         const marks = [
           ...(block.marks ?? []),
-          ...shiftMarks(next.marks, block.text.length),
+          ...(next.type === 'paragraph'
+            ? shiftMarks(next.marks, block.text.length)
+            : []),
         ];
         commit(
-          splice(
-            index,
-            2,
-            paragraph(block.text + next.text, marks, block.id, block.variant),
-          ),
+          splice(index, 2, paragraph(block.text + next.text, marks, block.id)),
           { id: block.id, offset: block.text.length },
         );
       }
-      return;
     }
+  };
 
-    if (event.key === 'ArrowUp' && isCollapsed && start === 0) {
-      const previous = findParagraph(index, -1);
-      if (previous) {
-        event.preventDefault();
-        commit(value, { id: previous.id, offset: previous.text.length });
+  const onHeadingKeyDown = (
+    event: KeyboardEvent<HTMLTextAreaElement>,
+    index: number,
+    block: HeadingBlock,
+  ) => {
+    const { selectionStart: start, selectionEnd: end } = event.currentTarget;
+    const isCollapsed = start === end;
+
+    // A heading has no line breaks, so Shift+Enter does nothing. Enter at the
+    // start of a heading makes room for a paragraph above it. Text after a
+    // heading is almost always body text, so Enter at the end of a heading
+    // starts a paragraph, while splitting a heading gives two headings.
+    if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      if (event.shiftKey) {
+        return;
       }
+      if (end === 0 && block.text) {
+        commit(splice(index, 0, paragraph()), { id: block.id, offset: 0 });
+        return;
+      }
+      const rest = block.text.slice(end);
+      const next = rest ? heading(rest) : paragraph();
+      const current = heading(block.text.slice(0, start), block.id);
+      commit(splice(index, 1, current, next), { id: next.id, offset: 0 });
       return;
     }
 
-    if (
-      event.key === 'ArrowDown' &&
-      isCollapsed &&
-      start === block.text.length
-    ) {
-      const next = findParagraph(index, 1);
-      if (next) {
+    // Marks aren't allowed in a heading.
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+      const key = event.key.toLowerCase();
+      if (key === 'k' || key === 'b' || key === 'u') {
         event.preventDefault();
-        commit(value, { id: next.id, offset: 0 });
+        return;
+      }
+    }
+
+    // Backspace at the start of a heading first turns it into a paragraph.
+    if (event.key === 'Backspace' && isCollapsed && start === 0) {
+      event.preventDefault();
+      toggleHeading({ id: block.id, start, end });
+      return;
+    }
+
+    // A paragraph with marks isn't merged into a heading, which can't keep
+    // them.
+    if (event.key === 'Delete' && isCollapsed && start === block.text.length) {
+      const next = value[index + 1];
+      if (isTextBlock(next)) {
+        event.preventDefault();
+        if (next.type === 'paragraph' && next.marks) {
+          return;
+        }
+        commit(splice(index, 2, heading(block.text + next.text, block.id)), {
+          id: block.id,
+          offset: block.text.length,
+        });
       }
     }
   };
@@ -482,18 +561,14 @@ export function BodyEditor({
     const after = block.text.slice(end);
     const middle = parts.slice(1, -1).map((part) => paragraph(part));
     const lastPart = parts.at(-1) ?? '';
-    // Like Enter, only the part holding the rest of a heading stays one.
     const last = paragraph(
       lastPart + after,
       shiftMarks(sliceMarks(block.marks, end), lastPart.length),
-      undefined,
-      after ? block.variant : undefined,
     );
     const first = paragraph(
       before + parts[0],
       sliceMarks(block.marks, 0, start),
       block.id,
-      block.variant,
     );
 
     commit(splice(index, 1, first, ...middle, last), {
@@ -502,31 +577,38 @@ export function BodyEditor({
     });
   };
 
-  // Inserts at the last known caret position, splitting that paragraph.
+  // Inserts at the last known caret position, splitting that text block. The
+  // end of the body always has a paragraph to fall back on.
   const insertWidget = (widget: BodyBlock) => {
-    let index = value.findIndex((block) => block.id === selection?.id);
-    let offset = selection?.start ?? 0;
-    if (index === -1) {
-      index = value.length - 1;
-      offset = Infinity;
-    }
+    const found = findTextBlockById(selection?.id);
+    const { index, block } = found ?? {
+      index: value.length - 1,
+      block: value.at(-1) as ParagraphBlock,
+    };
+    const offset = found ? (selection?.start ?? 0) : Infinity;
 
-    const block = value[index] as ParagraphBlock;
     const before = block.text.slice(0, offset).trimEnd();
     const after = block.text.slice(offset).trimStart();
+
+    if (block.type === 'heading') {
+      // An empty heading isn't left behind before the widget, and the text
+      // after it is body text unless there's more of the heading.
+      const next = after ? heading(after) : paragraph();
+      const current = before ? [heading(before, block.id)] : [];
+      commit(splice(index, 1, ...current, widget, next), {
+        id: next.id,
+        offset: 0,
+      });
+      return;
+    }
+
     const afterStart = block.text.length - after.length;
     const current = paragraph(
       before,
       sliceMarks(block.marks, 0, before.length),
       block.id,
-      block.variant,
     );
-    const next = paragraph(
-      after,
-      sliceMarks(block.marks, afterStart),
-      undefined,
-      after ? block.variant : undefined,
-    );
+    const next = paragraph(after, sliceMarks(block.marks, afterStart));
 
     commit(splice(index, 1, current, widget, next), {
       id: next.id,
@@ -554,10 +636,10 @@ export function BodyEditor({
       start,
       end: start + 1,
     });
-    commit(
-      splice(index, 1, paragraph(text, marks, block.id, block.variant)),
-      { id: block.id, offset: start + 1 },
-    );
+    commit(splice(index, 1, paragraph(text, marks, block.id)), {
+      id: block.id,
+      offset: start + 1,
+    });
   };
 
   // Without href the link is removed.
@@ -571,10 +653,10 @@ export function BodyEditor({
     const marks = href
       ? addMark(block.marks, { type: 'link', href, start, end })
       : removeMarks(block.marks, 'link', start, end);
-    commit(
-      splice(index, 1, paragraph(block.text, marks, block.id, block.variant)),
-      { id: blockId, offset: end },
-    );
+    commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
+      id: blockId,
+      offset: end,
+    });
   };
 
   const saveQuote = ({ id: quoteId, ...fields }: QuoteEdit) => {
@@ -624,6 +706,31 @@ export function BodyEditor({
     commit(splice(index, 1));
   };
 
+  // What the textareas of paragraphs and headings have in common.
+  const textInputProps = (index: number, block: TextBlock) => ({
+    id: index === 0 ? id : undefined,
+    ref: (input: HTMLTextAreaElement | null) => {
+      if (!input) {
+        return;
+      }
+      inputs.current.set(block.id, input);
+      autosize(input);
+      return () => {
+        inputs.current.delete(block.id);
+      };
+    },
+    rows: 1,
+    value: block.text,
+    onChange: (event: ChangeEvent<HTMLTextAreaElement>) =>
+      setText(index, block, event.target.value, event.target.selectionEnd),
+    onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) =>
+      onKeyDown(event, index, block),
+    onSelect: (event: SyntheticEvent<HTMLTextAreaElement>) => {
+      const { selectionStart, selectionEnd } = event.currentTarget;
+      setSelection({ id: block.id, start: selectionStart, end: selectionEnd });
+    },
+  });
+
   return (
     <div className='rounded-md border border-zinc-300 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900'>
       <div className='flex items-center gap-1 border-b border-zinc-200 px-2 py-1.5 dark:border-zinc-800'>
@@ -632,7 +739,7 @@ export function BodyEditor({
           type='button'
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => toggleHeading(selection)}
-          disabled={!findParagraphById(selection?.id)}
+          disabled={!findTextBlockById(selection?.id)}
           aria-pressed={isHeading(selection?.id)}
           title='Gör stycket där markören står till en rubrik (Ctrl+Shift+H)'
           className={`${toolbarButtonClass} font-semibold`}
@@ -646,7 +753,7 @@ export function BodyEditor({
           type='button'
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => toggleMark('bold', selection)}
-          disabled={!formatTarget || isHeading(formatTarget.id)}
+          disabled={!formatTarget}
           aria-pressed={isFormatted('bold')}
           aria-label='Fet'
           title='Fet (Ctrl+B)'
@@ -710,6 +817,8 @@ export function BodyEditor({
         <button
           type='button'
           onClick={() => setIsPickingIcon(true)}
+          // Headings can't have icons.
+          disabled={isHeading(selection?.id)}
           title={
             selectedIcon
               ? 'Byt den markerade ikonen'
@@ -745,64 +854,31 @@ export function BodyEditor({
 
       <div className='flex flex-col gap-3 px-3 py-3'>
         {value.map((block, index) => {
-          if (block.type === 'paragraph') {
-            const textClass = textClasses[block.variant ?? 'body'];
+          if (block.type === 'heading') {
             return (
-              <div
+              <textarea
                 key={block.id}
-                className={
-                  block.variant === 'heading' ? 'relative mt-2' : 'relative'
-                }
-              >
-                <MarkedText
-                  text={block.text}
-                  marks={block.marks}
-                  className={textClass}
-                />
+                {...textInputProps(index, block)}
+                placeholder='Rubrik'
+                className={`${headingTextClass} mt-2 block w-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-zinc-400`}
+              />
+            );
+          }
+
+          if (block.type === 'paragraph') {
+            return (
+              <div key={block.id} className='relative'>
+                <MarkedText text={block.text} marks={block.marks} />
                 <textarea
-                  id={index === 0 ? id : undefined}
-                  ref={(input) => {
-                    if (!input) {
-                      return;
-                    }
-                    inputs.current.set(block.id, input);
-                    autosize(input);
-                    return () => {
-                      inputs.current.delete(block.id);
-                    };
-                  }}
-                  rows={1}
-                  value={block.text}
+                  {...textInputProps(index, block)}
                   placeholder={
-                    value.length === 1
-                      ? 'Skriv brödtext…'
-                      : block.variant === 'heading'
-                        ? 'Rubrik'
-                        : undefined
+                    value.length === 1 ? 'Skriv brödtext…' : undefined
                   }
-                  onChange={(event) =>
-                    setText(
-                      index,
-                      block,
-                      event.target.value,
-                      event.target.selectionEnd,
-                    )
-                  }
-                  onKeyDown={(event) => onKeyDown(event, index, block)}
                   onPaste={(event) => onPaste(event, index, block)}
-                  onSelect={(event) => {
-                    const { selectionStart, selectionEnd } =
-                      event.currentTarget;
-                    setSelection({
-                      id: block.id,
-                      start: selectionStart,
-                      end: selectionEnd,
-                    });
-                  }}
                   // The text is transparent, so selected text needs its own
                   // color. Firefox then drops the default selection
                   // background, so both are set to the system colors.
-                  className={`${paragraphTextClass} ${textClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
+                  className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
                 />
               </div>
             );
@@ -898,14 +974,10 @@ const toolbarButtonClass =
   'rounded px-2 py-1 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent aria-pressed:bg-zinc-200 dark:hover:bg-zinc-800 dark:aria-pressed:bg-zinc-700';
 
 // Shared by the textarea and the styled text, so their text wraps identically.
-const paragraphTextClass = 'whitespace-pre-wrap break-words';
+const paragraphTextClass =
+  'text-sm leading-relaxed whitespace-pre-wrap break-words';
 
-// The textarea and the styled text behind it must get the same classes, or
-// the caret ends up off.
-const textClasses: Record<ParagraphVariant | 'body', string> = {
-  body: 'text-sm leading-relaxed',
-  heading: 'text-lg leading-snug font-semibold',
-};
+const headingTextClass = 'text-lg leading-snug font-semibold break-words';
 
 // font-bold would make the text wider than in the textarea and throw the
 // caret off, so bold is drawn with a stroke that keeps the glyph widths.
@@ -918,15 +990,7 @@ const markClasses: Record<MarkType, string> = {
 
 // A textarea can't style parts of its text, so its own text is transparent
 // and the visible, styled text is laid out identically right behind it.
-function MarkedText({
-  text,
-  marks = [],
-  className,
-}: {
-  text: string;
-  marks?: Mark[];
-  className: string;
-}) {
+function MarkedText({ text, marks = [] }: { text: string; marks?: Mark[] }) {
   const boundaries = [
     ...new Set([0, text.length, ...marks.flatMap((m) => [m.start, m.end])]),
   ].sort((a, b) => a - b);
@@ -960,7 +1024,7 @@ function MarkedText({
   return (
     <div
       aria-hidden
-      className={`${paragraphTextClass} ${className} pointer-events-none absolute inset-0`}
+      className={`${paragraphTextClass} pointer-events-none absolute inset-0`}
     >
       {parts}
     </div>
@@ -1336,11 +1400,7 @@ function ListDialog({
 
                   <div className='min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950'>
                     <div className='relative'>
-                      <MarkedText
-                        text={item.text}
-                        marks={item.marks}
-                        className={textClasses.body}
-                      />
+                      <MarkedText text={item.text} marks={item.marks} />
                       <textarea
                         ref={(input) => {
                           if (!input) {
@@ -1376,7 +1436,7 @@ function ListDialog({
                         }}
                         // See the body paragraphs for why the text is
                         // transparent.
-                        className={`${paragraphTextClass} ${textClasses.body} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
+                        className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
                       />
                     </div>
                   </div>

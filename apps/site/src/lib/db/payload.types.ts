@@ -12,8 +12,7 @@ export type BodyMarkPayload = {
   | { type: 'bold' | 'underline' }
 );
 export type ArticleBodyPartPayload = {
-  type: 'paragraph' | 'quote' | 'divider';
-  variant?: 'heading',
+  type: 'paragraph' | 'heading' | 'quote' | 'divider' | 'list';
   text?: string;
   author?: string;
   marks?: BodyMarkPayload[];
