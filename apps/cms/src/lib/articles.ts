@@ -5,6 +5,7 @@ export type Article = {
   id: string;
   title: string;
   slug: string;
+  intro: string;
   published: boolean;
   published_at: string;
   cover_image?: Image;
@@ -15,7 +16,13 @@ export type Article = {
 
 export type ArticleInput = Pick<
   Article,
-  'title' | 'slug' | 'published' | 'published_at' | 'cover_image' | 'body'
+  | 'title'
+  | 'slug'
+  | 'intro'
+  | 'published'
+  | 'published_at'
+  | 'cover_image'
+  | 'body'
 >;
 
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
