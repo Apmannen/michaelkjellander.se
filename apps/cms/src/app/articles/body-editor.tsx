@@ -17,6 +17,7 @@ import {
   type Mark,
   type MarkType,
   type ParagraphBlock,
+  type ParagraphVariant,
   type QuoteBlock,
   ICON_PLACEHOLDER,
   addMark,
@@ -165,7 +166,9 @@ export function BodyEditor({
   ) => {
     const { from, oldEnd, newEnd } = findEdit(block.text, text, caret);
     const marks = adjustMarks(block.marks, from, oldEnd, newEnd);
-    onChange(splice(index, 1, paragraph(text, marks, block.id)));
+    onChange(
+      splice(index, 1, paragraph(text, marks, block.id, block.variant)),
+    );
   };
 
   const findParagraphById = (blockId?: string) => {
@@ -255,11 +258,28 @@ export function BodyEditor({
     const marks = hasMark(block.marks, type, start, end)
       ? removeMarks(block.marks, type, start, end)
       : addMark(block.marks, { type, start, end });
-    commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
-      id: block.id,
-      offset: start,
-      end,
-    });
+    commit(
+      splice(index, 1, paragraph(block.text, marks, block.id, block.variant)),
+      { id: block.id, offset: start, end },
+    );
+  };
+
+  const isHeading = (blockId?: string) =>
+    findParagraphById(blockId)?.block.variant === 'heading';
+
+  // Turns the paragraph with the selection into a heading or back into body
+  // text. The selection is kept.
+  const toggleHeading = (target?: TextSelection) => {
+    const found = findParagraphById(target?.id);
+    if (!target || !found) {
+      return;
+    }
+    const { index, block } = found;
+    const variant = block.variant === 'heading' ? undefined : 'heading';
+    commit(
+      splice(index, 1, paragraph(block.text, block.marks, block.id, variant)),
+      { id: block.id, offset: target.start, end: target.end },
+    );
   };
 
   const onKeyDown = (
@@ -270,23 +290,49 @@ export function BodyEditor({
     const { selectionStart: start, selectionEnd: end } = event.currentTarget;
     const isCollapsed = start === end;
 
-    // Shift+Enter falls through and the textarea inserts a line break.
+    // Shift+Enter falls through and the textarea inserts a line break,
+    // except in a heading, which has no line breaks.
     if (
       event.key === 'Enter' &&
       !event.shiftKey &&
       !event.nativeEvent.isComposing
     ) {
       event.preventDefault();
+      // Text after a heading is almost always body text, so a new paragraph
+      // at the end of a heading isn't one. Splitting a heading gives two.
       const next = paragraph(
         block.text.slice(end),
         sliceMarks(block.marks, end),
+        undefined,
+        end < block.text.length ? block.variant : undefined,
       );
       const current = paragraph(
         block.text.slice(0, start),
         sliceMarks(block.marks, 0, start),
         block.id,
+        block.variant,
       );
       commit(splice(index, 1, current, next), { id: next.id, offset: 0 });
+      return;
+    }
+
+    if (
+      event.key === 'Enter' &&
+      block.variant === 'heading' &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+      return;
+    }
+
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.shiftKey &&
+      !event.altKey &&
+      event.key.toLowerCase() === 'h'
+    ) {
+      event.preventDefault();
+      toggleHeading({ id: block.id, start, end });
       return;
     }
 
@@ -301,11 +347,26 @@ export function BodyEditor({
         }
         return;
       }
+      // A heading is bold as a whole, so bold isn't toggled within it.
       if (key === 'b' || key === 'u') {
         event.preventDefault();
-        toggleMark(key === 'b' ? 'bold' : 'underline', target);
+        if (key === 'u' || block.variant !== 'heading') {
+          toggleMark(key === 'b' ? 'bold' : 'underline', target);
+        }
         return;
       }
+    }
+
+    // Backspace at the start of a heading first turns it into body text.
+    if (
+      event.key === 'Backspace' &&
+      isCollapsed &&
+      start === 0 &&
+      block.variant === 'heading'
+    ) {
+      event.preventDefault();
+      toggleHeading({ id: block.id, start, end });
+      return;
     }
 
     if (event.key === 'Backspace' && isCollapsed && start === 0) {
@@ -320,7 +381,12 @@ export function BodyEditor({
           splice(
             index - 1,
             2,
-            paragraph(previous.text + block.text, marks, previous.id),
+            paragraph(
+              previous.text + block.text,
+              marks,
+              previous.id,
+              previous.variant,
+            ),
           ),
           { id: previous.id, offset: previous.text.length },
         );
@@ -337,7 +403,11 @@ export function BodyEditor({
           ...shiftMarks(next.marks, block.text.length),
         ];
         commit(
-          splice(index, 2, paragraph(block.text + next.text, marks, block.id)),
+          splice(
+            index,
+            2,
+            paragraph(block.text + next.text, marks, block.id, block.variant),
+          ),
           { id: block.id, offset: block.text.length },
         );
       }
@@ -384,14 +454,18 @@ export function BodyEditor({
     const after = block.text.slice(end);
     const middle = parts.slice(1, -1).map((part) => paragraph(part));
     const lastPart = parts.at(-1) ?? '';
+    // Like Enter, only the part holding the rest of a heading stays one.
     const last = paragraph(
       lastPart + after,
       shiftMarks(sliceMarks(block.marks, end), lastPart.length),
+      undefined,
+      after ? block.variant : undefined,
     );
     const first = paragraph(
       before + parts[0],
       sliceMarks(block.marks, 0, start),
       block.id,
+      block.variant,
     );
 
     commit(splice(index, 1, first, ...middle, last), {
@@ -417,8 +491,14 @@ export function BodyEditor({
       before,
       sliceMarks(block.marks, 0, before.length),
       block.id,
+      block.variant,
     );
-    const next = paragraph(after, sliceMarks(block.marks, afterStart));
+    const next = paragraph(
+      after,
+      sliceMarks(block.marks, afterStart),
+      undefined,
+      after ? block.variant : undefined,
+    );
 
     commit(splice(index, 1, current, widget, next), {
       id: next.id,
@@ -446,10 +526,10 @@ export function BodyEditor({
       start,
       end: start + 1,
     });
-    commit(splice(index, 1, paragraph(text, marks, block.id)), {
-      id: block.id,
-      offset: start + 1,
-    });
+    commit(
+      splice(index, 1, paragraph(text, marks, block.id, block.variant)),
+      { id: block.id, offset: start + 1 },
+    );
   };
 
   // Without href the link is removed.
@@ -463,10 +543,10 @@ export function BodyEditor({
     const marks = href
       ? addMark(block.marks, { type: 'link', href, start, end })
       : removeMarks(block.marks, 'link', start, end);
-    commit(splice(index, 1, paragraph(block.text, marks, block.id)), {
-      id: blockId,
-      offset: end,
-    });
+    commit(
+      splice(index, 1, paragraph(block.text, marks, block.id, block.variant)),
+      { id: blockId, offset: end },
+    );
   };
 
   const saveQuote = ({ id: quoteId, ...fields }: QuoteEdit) => {
@@ -510,8 +590,22 @@ export function BodyEditor({
         <button
           type='button'
           onMouseDown={(event) => event.preventDefault()}
+          onClick={() => toggleHeading(selection)}
+          disabled={!findParagraphById(selection?.id)}
+          aria-pressed={isHeading(selection?.id)}
+          title='Gör stycket där markören står till en rubrik (Ctrl+Shift+H)'
+          className={`${toolbarButtonClass} font-semibold`}
+        >
+          Rubrik
+        </button>
+
+        <span className='mx-1 h-4 w-px shrink-0 bg-zinc-200 dark:bg-zinc-800' />
+
+        <button
+          type='button'
+          onMouseDown={(event) => event.preventDefault()}
           onClick={() => toggleMark('bold', selection)}
-          disabled={!formatTarget}
+          disabled={!formatTarget || isHeading(formatTarget.id)}
           aria-pressed={isFormatted('bold')}
           aria-label='Fet'
           title='Fet (Ctrl+B)'
@@ -603,9 +697,19 @@ export function BodyEditor({
       <div className='flex flex-col gap-3 px-3 py-3'>
         {value.map((block, index) => {
           if (block.type === 'paragraph') {
+            const textClass = textClasses[block.variant ?? 'body'];
             return (
-              <div key={block.id} className='relative'>
-                <MarkedText text={block.text} marks={block.marks} />
+              <div
+                key={block.id}
+                className={
+                  block.variant === 'heading' ? 'relative mt-2' : 'relative'
+                }
+              >
+                <MarkedText
+                  text={block.text}
+                  marks={block.marks}
+                  className={textClass}
+                />
                 <textarea
                   id={index === 0 ? id : undefined}
                   ref={(input) => {
@@ -621,7 +725,11 @@ export function BodyEditor({
                   rows={1}
                   value={block.text}
                   placeholder={
-                    value.length === 1 ? 'Skriv brödtext…' : undefined
+                    value.length === 1
+                      ? 'Skriv brödtext…'
+                      : block.variant === 'heading'
+                        ? 'Rubrik'
+                        : undefined
                   }
                   onChange={(event) =>
                     setText(
@@ -645,7 +753,7 @@ export function BodyEditor({
                   // The text is transparent, so selected text needs its own
                   // color. Firefox then drops the default selection
                   // background, so both are set to the system colors.
-                  className={`${paragraphTextClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
+                  className={`${paragraphTextClass} ${textClass} relative block w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground outline-none selection:bg-[color:Highlight] selection:text-[color:HighlightText] placeholder:text-zinc-400`}
                 />
               </div>
             );
@@ -722,8 +830,14 @@ const toolbarButtonClass =
   'rounded px-2 py-1 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent aria-pressed:bg-zinc-200 dark:hover:bg-zinc-800 dark:aria-pressed:bg-zinc-700';
 
 // Shared by the textarea and the styled text, so their text wraps identically.
-const paragraphTextClass =
-  'text-sm leading-relaxed whitespace-pre-wrap break-words';
+const paragraphTextClass = 'whitespace-pre-wrap break-words';
+
+// The textarea and the styled text behind it must get the same classes, or
+// the caret ends up off.
+const textClasses: Record<ParagraphVariant | 'body', string> = {
+  body: 'text-sm leading-relaxed',
+  heading: 'text-lg leading-snug font-semibold',
+};
 
 // font-bold would make the text wider than in the textarea and throw the
 // caret off, so bold is drawn with a stroke that keeps the glyph widths.
@@ -736,7 +850,15 @@ const markClasses: Record<MarkType, string> = {
 
 // A textarea can't style parts of its text, so its own text is transparent
 // and the visible, styled text is laid out identically right behind it.
-function MarkedText({ text, marks = [] }: { text: string; marks?: Mark[] }) {
+function MarkedText({
+  text,
+  marks = [],
+  className,
+}: {
+  text: string;
+  marks?: Mark[];
+  className: string;
+}) {
   const boundaries = [
     ...new Set([0, text.length, ...marks.flatMap((m) => [m.start, m.end])]),
   ].sort((a, b) => a - b);
@@ -770,7 +892,7 @@ function MarkedText({ text, marks = [] }: { text: string; marks?: Mark[] }) {
   return (
     <div
       aria-hidden
-      className={`${paragraphTextClass} pointer-events-none absolute inset-0`}
+      className={`${paragraphTextClass} ${className} pointer-events-none absolute inset-0`}
     >
       {parts}
     </div>

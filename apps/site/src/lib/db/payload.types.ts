@@ -13,6 +13,7 @@ export type BodyMarkPayload = {
 );
 export type ArticleBodyPartPayload = {
   type: 'paragraph' | 'quote' | 'divider';
+  variant?: 'heading',
   text?: string;
   author?: string;
   marks?: BodyMarkPayload[];

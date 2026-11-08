@@ -6,6 +6,7 @@ import { Quote } from './bodyParts/Quote';
 import { Paragraph } from './bodyParts/Paragraph';
 import { MkLink } from './standard/MkLink';
 import { PiGlobeSimple } from 'react-icons/pi';
+import { Heading } from './bodyParts/Heading';
 
 const logPrefix = '[Article]';
 
@@ -16,8 +17,8 @@ export const Article = ({
   article: Pick<ArticlePayload, 'title' | 'body' | 'cover_image' | 'intro'>;
   isMain: boolean;
 }) => {
-  const Heading = isMain ? 'h1' : 'h2';
-  const SecondaryHeading = isMain ? 'h2' : 'h3';
+  const H = isMain ? 'h1' : 'h2';
+  const SecondaryH = isMain ? 'h2' : 'h3';
   return (
     <article className='bg-default-box mb-12 shadow-sm max-w-[825px] py-12'>
       <div className='px-12 h-[400px]'>
@@ -33,20 +34,20 @@ export const Article = ({
         ) : null}
       </div>
       <div className='px-12 text-[20px]'>
-        <Heading
+        <H
           className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
         >
           {article.title}
-        </Heading>
-        <SecondaryHeading className='text-[24px] italic'>
-          {article.intro}
-        </SecondaryHeading>
+        </H>
+        <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
         <Divider />
         <div className='space-y-4'>
           {article.body.map((part, i) => (
             <div key={i} className=''>
-              {part.type === 'paragraph' ? (
+              {part.type === 'paragraph' && part.variant === 'heading' ? (
+                <Heading part={part} />
+              ) : part.type === 'paragraph' ? (
                 <Paragraph part={part} />
               ) : part.type === 'quote' ? (
                 <Quote part={part} />

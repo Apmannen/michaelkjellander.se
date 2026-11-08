@@ -16,10 +16,16 @@ export type Mark = MarkStyle & {
   end: number;
 };
 
+// A heading is a whole paragraph shown as an inner heading of the body.
+export type ParagraphVariant = 'heading';
+
 export type ParagraphBlock = {
   id: string;
   type: 'paragraph';
-  // Line breaks within the paragraph are stored as '\n'.
+  // Left out for ordinary body text.
+  variant?: ParagraphVariant;
+  // Line breaks within the paragraph are stored as '\n'. Headings have no
+  // line breaks.
   text: string;
   // Sorted by start. Marks of the same type never overlap, but marks of
   // different types may, e.g. a bold link. Left out when there are no marks.
@@ -85,12 +91,15 @@ const normalizeMarks = (marks: Mark[]): Mark[] => {
   return result;
 };
 
-// Icon marks that don't cover exactly one placeholder are dropped.
+// Icon marks that don't cover exactly one placeholder are dropped. Line
+// breaks in a heading become spaces, which keeps the marks in place.
 export const paragraph = (
-  text = '',
+  rawText = '',
   marks: Mark[] = [],
   id = newBlockId(),
+  variant?: ParagraphVariant,
 ): ParagraphBlock => {
+  const text = variant === 'heading' ? rawText.replace(/\n/g, ' ') : rawText;
   const normalized = normalizeMarks(
     marks.filter(
       (mark) =>
@@ -98,9 +107,13 @@ export const paragraph = (
         (mark.end === mark.start + 1 && text[mark.start] === ICON_PLACEHOLDER),
     ),
   );
-  return normalized.length
-    ? { id, type: 'paragraph', text, marks: normalized }
-    : { id, type: 'paragraph', text };
+  return {
+    id,
+    type: 'paragraph',
+    ...(variant ? { variant } : {}),
+    text,
+    ...(normalized.length ? { marks: normalized } : {}),
+  };
 };
 
 // Clips marks to [from, to) and makes them relative to from.
@@ -278,8 +291,9 @@ const removeOrphanPlaceholders = ({ text, marks = [] }: ParagraphBlock) => {
 
 const parseParagraph = (item: Record<string, unknown>, id: string) => {
   const raw = typeof item.text === 'string' ? item.text : '';
+  const variant = item.variant === 'heading' ? item.variant : undefined;
   const cleaned = removeOrphanPlaceholders(
-    paragraph(raw.replace(/\r\n?/g, '\n'), toMarks(item.marks), id),
+    paragraph(raw.replace(/\r\n?/g, '\n'), toMarks(item.marks), id, variant),
   );
   const text = cleaned.text.trim();
   const offset = cleaned.text.length - cleaned.text.trimStart().length;
@@ -289,6 +303,7 @@ const parseParagraph = (item: Record<string, unknown>, id: string) => {
           text,
           sliceMarks(cleaned.marks, offset, offset + text.length),
           id,
+          variant,
         ),
       ]
     : [];
