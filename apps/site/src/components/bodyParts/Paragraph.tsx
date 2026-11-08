@@ -5,6 +5,7 @@ import {
 import { MkLink } from '../standard/MkLink';
 
 type TextPart = { text: string; activeMarks: BodyMarkPayload[] };
+type TextPartWithInners = TextPart & { inners: TextPart[] };
 export const Paragraph = ({
   part,
 }: {
@@ -16,7 +17,7 @@ export const Paragraph = ({
     new Set([0, ...(marks.map((mark) => [mark.start, mark.end]).flat() ?? [])]),
   ).sort((a, b) => a - b);
 
-  const textPartsInitial: TextPart[] = [];
+  const textPartsInitial: TextPartWithInners[] = [];
   for (let i = 0; i < breaks.length; i++) {
     const breakIndex = breaks[i];
     const nextBreakIndex = breaks.at(i + 1);
@@ -32,12 +33,20 @@ export const Paragraph = ({
       }
     });
 
-    textPartsInitial.push({ text: sliced, activeMarks });
+    textPartsInitial.push({ text: sliced, activeMarks, inners: [] });
   }
   const textParts: (TextPart & { inner?: TextPart })[] = [];
   for (let i1 = 0; i1 < textPartsInitial.length; i1++) {
     const part = textPartsInitial[i1];
     if (part.activeMarks.some((m) => m.type === 'link')) {
+      textParts.push(part);
+      for (let i2 = i1 + 1; i2 < textPartsInitial.length; i2++) {
+        i1 = i2;
+        if (!part.activeMarks.some((m) => m.type === 'link')) {
+          break;
+        }
+        //part.inners.push(textPartsInitial[i2]);
+      }
     } else {
       textParts.push(part);
     }
