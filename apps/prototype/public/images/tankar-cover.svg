@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500">
+  <defs><radialGradient id="l" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#ffe6b8"/><stop offset=".55" stop-color="#e9b98c" stop-opacity=".5"/><stop offset="1" stop-color="#3a2a24" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1200" height="500" fill="#3a2a24"/>
+  <path d="M520 120 L380 500 L900 500 L700 120 Z" fill="url(#l)"/>
+  <rect x="0" y="380" width="1200" height="120" fill="#6b4632"/>
+  <rect x="0" y="380" width="1200" height="8" fill="#80563e"/>
+  <path d="M600 40 L560 110 L660 110 Z" fill="#c36e4d"/><rect x="606" y="0" width="8" height="44" fill="#2a1d18"/>
+  <rect x="470" y="350" width="260" height="60" rx="4" fill="#fbf5ec" transform="rotate(-4 600 380)"/>
+  <g stroke="#b9a99a" stroke-width="3" transform="rotate(-4 600 380)"><path d="M495 368 H700 M495 382 H680 M495 396 H640"/></g>
+  <rect x="760" y="356" width="150" height="10" rx="5" fill="#c36e4d" transform="rotate(12 835 361)"/>
+  <rect x="300" y="300" width="70" height="86" rx="8" fill="#a44b30"/><rect x="370" y="320" width="22" height="36" rx="10" fill="none" stroke="#a44b30" stroke-width="8"/>
+</svg>

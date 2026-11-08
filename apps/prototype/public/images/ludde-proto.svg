@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340">
+  <rect width="600" height="340" fill="#b9bcc4"/>
+  <g stroke="#a3a7b0" stroke-width="1">
+    <path d="M0 260 H600 M0 290 H600 M0 320 H600 M100 230 L40 340 M200 230 L170 340 M300 230 L300 340 M400 230 L430 340 M500 230 L560 340"/>
+  </g>
+  <rect x="0" y="230" width="600" height="110" fill="#8d919b" opacity=".35"/>
+  <rect x="80" y="170" width="120" height="60" fill="#7b7f89"/><rect x="80" y="160" width="120" height="12" fill="#9a9ea8"/>
+  <rect x="280" y="120" width="100" height="40" fill="#7b7f89"/><rect x="280" y="110" width="100" height="12" fill="#9a9ea8"/>
+  <rect x="440" y="70" width="100" height="40" fill="#7b7f89"/><rect x="440" y="60" width="100" height="12" fill="#9a9ea8"/>
+  <rect x="120" y="120" width="40" height="40" fill="#c36e4d"/>
+  <path d="M160 120 Q230 40 300 100" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 6"/>
+  <text x="20" y="34" font-family="monospace" font-size="16" fill="#4a4d55">prototype_v0.3 · fps 144</text>
+</svg>

@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+
+/* Samma palett som apps/site, så att prototypen går att lyfta över. */
+@theme inline {
+  --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
+
+  --color-page: #f3eee8;
+  --color-default-box: #fcf8f4;
+  --color-ink: #1f1a17;
+  --color-muted: #5f544c;
+
+  --color-accent-50: #fdf8f4;
+  --color-accent-100: #f8ece3;
+  --color-accent-200: #f0d6c6;
+  --color-accent-300: #e4b69f;
+  --color-accent-400: #d58f71;
+  --color-accent-500: #c36e4d;
+  --color-accent-600: #b35737;
+  --color-accent-700: #a44b30;
+  --color-accent-800: #9e4429;
+  --color-accent-900: #783724;
+  --color-accent-950: #432016;
+
+  --color-line: #d7cbc0;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+}
+
+/* Anfang på första stycket i ett inlägg. */
+.drop-cap::first-letter {
+  float: left;
+  font-size: 5.2em;
+  line-height: 0.8;
+  font-weight: 700;
+  color: var(--color-accent-800);
+  padding: 0.08em 0.1em 0 0;
+}
