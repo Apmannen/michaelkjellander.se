@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## Language
+
+- Always reply to the user in Swedish in the chat.
+
 ## Scope
 
 - When asked to change something in `apps/cms`, do not make any changes in `apps/site` unless explicitly told to.

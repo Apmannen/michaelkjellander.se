@@ -90,7 +90,31 @@ const posts: Post[] = [
       },
       {
         type: 'paragraph',
-        text: 'Kartan är kompakt och hemligheterna många. Bossarna är höjdpunkterna, även om ett par av dem drar ut lite väl länge på tiden.',
+        text: 'Kartan är kompakt och hemligheterna många, lite som i Iconoclasts. Bossarna är höjdpunkterna, även om ett par av dem drar ut lite väl länge på tiden.',
+        marks: [{ type: 'link', start: 54, end: 65, href: '/inlagg/iconoclasts' }],
+      },
+      { type: 'divider' },
+      { type: 'heading', text: 'Läs mer' },
+      {
+        type: 'list',
+        items: [
+          {
+            text: 'The Mummy Demastered på Steam',
+            marks: [{ type: 'link', start: 0, end: 29, href: 'https://store.steampowered.com/search/?term=the+mummy+demastered' }],
+          },
+          {
+            text: 'WayForward – studion bakom spelet',
+            marks: [{ type: 'link', start: 0, end: 10, href: 'https://wayforward.com/' }],
+          },
+          {
+            text: 'Wikipedia-artikeln om spelet',
+            marks: [{ type: 'link', start: 0, end: 28, href: 'https://en.wikipedia.org/wiki/The_Mummy_Demastered' }],
+          },
+          {
+            text: 'Min recension av Iconoclasts, ett annat metroidvania värt att spela',
+            marks: [{ type: 'link', start: 0, end: 28, href: '/inlagg/iconoclasts' }],
+          },
+        ],
       },
     ],
   },
