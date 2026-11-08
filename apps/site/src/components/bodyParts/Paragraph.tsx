@@ -35,7 +35,7 @@ export const Paragraph = ({
 
     textPartsInitial.push({ text: sliced, activeMarks, inners: [] });
   }
-  const textParts: (TextPart & { inner?: TextPart })[] = [];
+  const textParts: TextPartWithInners[] = [];
   for (let i1 = 0; i1 < textPartsInitial.length; i1++) {
     const part = textPartsInitial[i1];
     if (part.activeMarks.some((m) => m.type === 'link')) {
@@ -45,7 +45,7 @@ export const Paragraph = ({
         if (!part.activeMarks.some((m) => m.type === 'link')) {
           break;
         }
-        //part.inners.push(textPartsInitial[i2]);
+        part.inners.push(textPartsInitial[i2]);
       }
     } else {
       textParts.push(part);
@@ -72,6 +72,9 @@ export const Paragraph = ({
           >
             {i2 > 0 ? <br /> : null}
             {line}
+            {textPart.inners.map((innerPart, i3) => (
+              <span key={i3}>{innerPart.text}</span>
+            ))}
           </MkLink>
         ));
       })}
