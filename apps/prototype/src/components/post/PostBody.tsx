@@ -71,6 +71,16 @@ const Block = ({ block }: { block: BodyBlock }) => {
           {block.caption ? <figcaption className='pt-2 text-[15px] italic text-muted'>{block.caption}</figcaption> : null}
         </figure>
       );
+    case 'list':
+      return (
+        <ul className='list-disc space-y-2 pl-6 marker:text-accent-800'>
+          {block.items.map((item, i) => (
+            <li key={i}>
+              <RichText text={item.text} marks={item.marks} />
+            </li>
+          ))}
+        </ul>
+      );
   }
 };
 

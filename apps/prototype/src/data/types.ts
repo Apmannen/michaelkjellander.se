@@ -24,7 +24,9 @@ export type BodyBlock =
   | { type: 'quote'; text: string; author?: string; href?: string }
   /** Rubrik + kort text med en bild bredvid, som "Världen och känslan" i skissen. */
   | { type: 'feature'; heading: string; text: string; image: ImageRef; imageSide?: 'left' | 'right' }
-  | { type: 'image'; image: ImageRef; caption?: string };
+  | { type: 'image'; image: ImageRef; caption?: string }
+  /** Punktlista där varje punkt är rik text, precis som ett stycke. */
+  | { type: 'list'; items: { text: string; marks?: Mark[] }[] };
 
 type PostBase = {
   slug: string;
