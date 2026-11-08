@@ -17,15 +17,17 @@ const findLinkMark = (textPart: TextPart) =>
 
 const TextPartContent = ({ textPart }: { textPart: TextPart }) => {
   const markTypes = textPart.activeMarks.map((m) => m.type);
-  const className = `${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`;
   const lines = textPart.text.split('\n');
+  const icon = textPart.activeMarks.find((m) => m.type === 'icon');
 
   return (
-    <span className={className}>
+    <span
+      className={`${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`}
+    >
       {lines.map((line, i) => (
         <span key={i}>
           {i > 0 ? <br /> : null}
-          {line}
+          {icon ? <NamedIcon className='inline' iconName={icon.name} /> : line}
         </span>
       ))}
     </span>
