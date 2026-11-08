@@ -99,7 +99,7 @@ export const Paragraph = ({
           <MkLink
             enabled={linkMark !== undefined}
             className={{
-              link: 'underline hover:text-gray-600 hover:no-underline',
+              link: 'underline hover:text-accent-800',
             }}
             key={i1}
             href={linkMark?.href}
