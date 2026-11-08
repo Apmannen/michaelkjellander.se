@@ -5,7 +5,6 @@ import {
 import { MkLink } from '../standard/MkLink';
 
 type TextPart = { text: string; activeMarks: BodyMarkPayload[] };
-type TextPartWithInners = TextPart & { inners: TextPart[] };
 export const Paragraph = ({
   part,
 }: {
@@ -14,13 +13,19 @@ export const Paragraph = ({
   const { text = '', marks = [] } = part;
 
   const breaks = Array.from(
-    new Set([0, ...(marks.map((mark) => [mark.start, mark.end]).flat() ?? [])]),
+    new Set([
+      0,
+      ...(marks
+        .map((mark) => (mark.type !== 'icon' ? [mark.start, mark.end] : []))
+        .flat() ?? []),
+    ]),
   ).sort((a, b) => a - b);
 
-  const textPartsInitial: TextPartWithInners[] = [];
+  const textParts: TextPart[] = [];
   for (let i = 0; i < breaks.length; i++) {
     const breakIndex = breaks[i];
-    const nextBreakIndex = breaks.at(i + 1);
+    let nextBreakIndex = breaks.at(i + 1);
+
     const sliced = text.slice(
       breakIndex,
       nextBreakIndex !== undefined ? nextBreakIndex : Number.MAX_SAFE_INTEGER,
@@ -33,23 +38,7 @@ export const Paragraph = ({
       }
     });
 
-    textPartsInitial.push({ text: sliced, activeMarks, inners: [] });
-  }
-  const textParts: TextPartWithInners[] = [];
-  for (let i1 = 0; i1 < textPartsInitial.length; i1++) {
-    const part = textPartsInitial[i1];
-    if (part.activeMarks.some((m) => m.type === 'link')) {
-      textParts.push(part);
-      for (let i2 = i1 + 1; i2 < textPartsInitial.length; i2++) {
-        i1 = i2;
-        if (!part.activeMarks.some((m) => m.type === 'link')) {
-          break;
-        }
-        part.inners.push(textPartsInitial[i2]);
-      }
-    } else {
-      textParts.push(part);
-    }
+    textParts.push({ text: sliced, activeMarks });
   }
 
   //TODO: only external links in blank
@@ -72,9 +61,6 @@ export const Paragraph = ({
           >
             {i2 > 0 ? <br /> : null}
             {line}
-            {textPart.inners.map((innerPart, i3) => (
-              <span key={i3}>{innerPart.text}</span>
-            ))}
           </MkLink>
         ));
       })}

@@ -6,7 +6,7 @@ export type BodyMarkPayload = {
   start: number;
   end: number;
   href?: string;
-  type: 'link' | 'bold' | 'underline';
+  type: 'link' | 'bold' | 'underline' | 'icon';
 };
 export type ArticleBodyPartPayload = {
   type: 'paragraph' | 'quote' | 'divider';
