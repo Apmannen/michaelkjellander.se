@@ -1,9 +1,6 @@
 import {
-  ArticleBodyPartPayload,
   ArticlePayload,
-  BodyMarkPayload,
 } from '@/lib/db/payload.types';
-import { MkLink } from './standard/MkLink';
 import { storage } from '@/lib/storage';
 import Image from 'next/image';
 import { Divider } from './standard/Divider';

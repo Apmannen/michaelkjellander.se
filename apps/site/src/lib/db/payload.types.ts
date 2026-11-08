@@ -1,3 +1,4 @@
+import { IconName } from '@/components/standard/NamedIcon/types';
 import { Database } from './supabase.types';
 
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
@@ -5,9 +6,11 @@ type Prettify<T> = { [K in keyof T]: T[K] } & {};
 export type BodyMarkPayload = {
   start: number;
   end: number;
-  href?: string;
-  type: 'link' | 'bold' | 'underline' | 'icon';
-};
+} & (
+  | { type: 'link'; href: string }
+  | { type: 'icon'; name: IconName }
+  | { type: 'bold' | 'underline' }
+);
 export type ArticleBodyPartPayload = {
   type: 'paragraph' | 'quote' | 'divider';
   text?: string;

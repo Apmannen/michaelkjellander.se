@@ -3,6 +3,7 @@ import {
   BodyMarkPayload,
 } from '@/lib/db/payload.types';
 import { MkLink } from '../standard/MkLink';
+import { NamedIcon } from '../standard/NamedIcon';
 
 type TextPart = { text: string; activeMarks: BodyMarkPayload[] };
 export const Paragraph = ({
@@ -48,6 +49,9 @@ export const Paragraph = ({
       {textParts?.map((textPart) => {
         const markTypes = textPart.activeMarks.map((m) => m.type);
         const lines = textPart.text.split('\n');
+
+        const tmpIcon = textPart.activeMarks.find((m) => m.type === 'icon');
+
         return lines.map((line, i2) => (
           <MkLink
             enabled={markTypes.includes('link')}
@@ -60,6 +64,8 @@ export const Paragraph = ({
             target='_blank'
           >
             {i2 > 0 ? <br /> : null}
+            {tmpIcon ? <NamedIcon iconName={tmpIcon.name} /> : null}
+
             {line}
           </MkLink>
         ));
