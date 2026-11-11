@@ -3,7 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { type Article, type ArticleInput, validateArticle } from '@/lib/articles';
+import {
+  type Article,
+  type ArticleInput,
+  parseCallToAction,
+  validateArticle,
+} from '@/lib/articles';
 import { parseBody } from '@/lib/body';
 import { db } from '@/lib/db';
 import { parseImage } from '@/lib/images';
@@ -24,6 +29,7 @@ export async function saveArticle(
     intro: String(raw.intro ?? '')
       .replace(/\s*[\r\n]+\s*/g, ' ')
       .trim(),
+    cta: parseCallToAction(raw.cta),
     published: raw.published === true,
     published_at: String(raw.published_at ?? ''),
     cover_image: parseImage(raw.cover_image),

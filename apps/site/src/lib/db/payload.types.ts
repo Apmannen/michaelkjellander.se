@@ -4,6 +4,11 @@ import { Database } from './supabase.types';
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
 export type LinkPayload = { type: 'link'; href: string };
+export type CallToActionPayload = {
+  icon?: IconName;
+  text: string;
+  href: string;
+};
 
 export type BodyMarkPayload = {
   start: number;
@@ -33,5 +38,6 @@ export type ArticlePayload = Prettify<
   > & {
     body: ArticleBodyPartPayload[];
     cover_image: { path: string } | null;
+    cta: CallToActionPayload;
   }
 >;

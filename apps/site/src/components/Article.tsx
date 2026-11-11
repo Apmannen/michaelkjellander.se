@@ -6,6 +6,7 @@ import { Quote } from './bodyParts/Quote';
 import { Paragraph } from './bodyParts/Paragraph';
 import { Heading } from './bodyParts/Heading';
 import { List } from './bodyParts/List';
+import { Button } from './standard/Button';
 
 //const logPrefix = '[Article]';
 
@@ -13,7 +14,10 @@ export const Article = ({
   article,
   isMain,
 }: {
-  article: Pick<ArticlePayload, 'title' | 'body' | 'cover_image' | 'intro'>;
+  article: Pick<
+    ArticlePayload,
+    'title' | 'body' | 'cover_image' | 'intro' | 'cta'
+  >;
   isMain: boolean;
 }) => {
   const H = isMain ? 'h1' : 'h2';
@@ -40,6 +44,17 @@ export const Article = ({
           {article.title}
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
+        <div className='flex justify-end'>
+          {article.cta ? (
+            <Button
+              href={article.cta.href}
+              target='_blank'
+              iconName={article.cta.icon}
+            >
+              {article.cta.text}
+            </Button>
+          ) : null}
+        </div>
         <Divider />
         <div className='space-y-4'>
           {article.body.map((part, i) => (

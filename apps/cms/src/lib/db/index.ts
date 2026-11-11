@@ -2,7 +2,7 @@ import 'server-only';
 
 import {createClient, type PostgrestSingleResponse} from '@supabase/supabase-js';
 
-import type {Article, ArticleInput} from '@/lib/articles';
+import type {Article, ArticleInput, CallToAction} from '@/lib/articles';
 import {IMAGE_BUCKET, type Image} from '@/lib/images';
 
 // Service role key bypasses RLS, so this client must never reach the browser.
@@ -13,17 +13,24 @@ const supabase = createClient(
 );
 
 const ARTICLE_COLUMNS =
-  'id, title, slug, intro, published, published_at, cover_image, body, created_at, updated_at';
+  'id, title, slug, intro, cta, published, published_at, cover_image, body, created_at, updated_at';
 
 // The database uses null where the app uses undefined.
-type ArticleRow = Omit<Article, 'cover_image'> & {cover_image: Image | null};
+type ArticleRow = Omit<Article, 'cover_image' | 'cta'> & {
+  cover_image: Image | null;
+  cta: CallToAction | null;
+};
 
-const toArticle = ({cover_image, ...row}: ArticleRow): Article =>
-  cover_image ? {...row, cover_image} : row;
+const toArticle = ({cover_image, cta, ...row}: ArticleRow): Article => ({
+  ...row,
+  ...(cover_image ? {cover_image} : {}),
+  ...(cta ? {cta} : {}),
+});
 
 const toRow = (input: ArticleInput) => ({
   ...input,
   cover_image: input.cover_image ?? null,
+  cta: input.cta ?? null,
 });
 
 const toArticleResult = ({data, error}: PostgrestSingleResponse<ArticleRow>) =>
