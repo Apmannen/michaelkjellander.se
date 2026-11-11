@@ -35,7 +35,6 @@ const listArticles = async (): Promise<Article[]> => {
   const {data, error} = await supabase
     .from('articles')
     .select(ARTICLE_COLUMNS)
-    .is('deleted_at', null)
     .order('updated_at', {ascending: false})
     .overrideTypes<ArticleRow[], {merge: false}>();
 
@@ -51,7 +50,6 @@ const getArticle = async (id: string): Promise<Article | undefined> => {
     .from('articles')
     .select(ARTICLE_COLUMNS)
     .eq('id', id)
-    .is('deleted_at', null)
     .maybeSingle<ArticleRow>();
 
   if (error) {
@@ -77,7 +75,6 @@ const updateArticle = async (id: string, input: ArticleInput) => {
       .from('articles')
       .update({...toRow(input), updated_at: new Date().toISOString()})
       .eq('id', id)
-      .is('deleted_at', null)
       .select(ARTICLE_COLUMNS)
       .single<ArticleRow>(),
   );
@@ -93,12 +90,9 @@ const uploadImage = async (
     .upload(path, data, {contentType, cacheControl: '31536000'});
 };
 
+// Moves the article to the trash table, see db/002_trash.sql.
 const deleteArticle = async (id: string) => {
-  return supabase
-    .from('articles')
-    .update({deleted_at: new Date().toISOString()})
-    .eq('id', id)
-    .is('deleted_at', null);
+  return supabase.rpc('trash_article', {article_id: id});
 };
 
 export const db = {
