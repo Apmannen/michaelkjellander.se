@@ -3,20 +3,24 @@ import { Database } from './supabase.types';
 
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
+export type IconPayload = { type: 'icon'; name: IconName };
+export type LinkPayload = { type: 'link'; href: string };
+
 export type BodyMarkPayload = {
   start: number;
   end: number;
-} & (
-  | { type: 'link'; href: string }
-  | { type: 'icon'; name: IconName }
-  | { type: 'bold' | 'underline' }
-);
+} & (LinkPayload | IconPayload | { type: 'bold' | 'underline' });
 export type ArticleBodyPartPayload = {
   type: 'paragraph' | 'heading' | 'quote' | 'divider' | 'list';
   text?: string;
   author?: string;
   marks?: BodyMarkPayload[];
   href?: string;
+  items?: {
+    icon?: IconPayload;
+    text: string;
+    marks: (BodyMarkPayload & { type: 'link' })[];
+  }[];
 };
 
 export type ArticlePayload = Prettify<

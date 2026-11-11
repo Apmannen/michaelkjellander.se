@@ -7,6 +7,7 @@ import { Paragraph } from './bodyParts/Paragraph';
 import { MkLink } from './standard/MkLink';
 import { PiGlobeSimple } from 'react-icons/pi';
 import { Heading } from './bodyParts/Heading';
+import { List } from './bodyParts/List';
 
 const logPrefix = '[Article]';
 
@@ -54,38 +55,10 @@ export const Article = ({
               ) : part.type === 'divider' ? (
                 <Divider />
               ) : part.type === 'list' ? (
-                <div>LISTA</div>
+                <List part={part} />
               ) : null}
             </div>
           ))}
-        </div>
-        <div className='pt-8'>
-          <div>TESTYTA</div>
-          <MkLink
-            href='https://www.fotbollskanalen.se'
-            className={{ all: 'flex items-center group gap-2' }}
-          >
-            <span>
-              <PiGlobeSimple className='text-accent-800' />
-            </span>
-            <span className='underline group-hover:text-accent-800'>
-              Presentation av tekniken bakom Ludde
-            </span>
-          </MkLink>
-        </div>
-        <div className='pt-8'>
-          <div className='font-bold text-[32px]'>Läs mer</div>
-          <ul className='list-disc space-y-2 pl-6 marker:text-accent-800'>
-            <li>
-              <MkLink
-                href='https://www.fotbollskanalen.se'
-                className={{ all: 'underline' }}
-              >
-                Presentation av tekniken bakom Ludde
-              </MkLink>
-            </li>
-            <li>Presentation av tekniken bakom Ludde</li>
-          </ul>
         </div>
       </div>
     </article>
