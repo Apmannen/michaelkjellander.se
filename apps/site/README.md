@@ -30,3 +30,8 @@ Tänker därför att det ska finnas ett object där man styr dynamiska element (
 - Tänk på "Spela även", ska den ingå bland de viktiga fälten men med en custom-taggning? tror nog mer på de fördefinerade fälten man ska skapa upp? så att de alltid får samma ikon
 
 
+
+UPPSTÄDNING:
+eventuellt ta bort stöd för ikoner mitt i text
+gör rubriker till egen typ
+flytta ut rensa-knapp

@@ -2,9 +2,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { db } from '.';
 import { ArticlePayload } from './payload.types';
 
-const latest = async (): Promise<
-  Pick<ArticlePayload, 'id' | 'title' | 'body' | 'cover_image'>[]
-> => {
+const latest = async (): Promise<ArticlePayload[]> => {
   'use cache';
   cacheTag('articles');
   cacheLife('hours');

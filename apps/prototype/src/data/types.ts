@@ -25,8 +25,10 @@ export type BodyBlock =
   /** Rubrik + kort text med en bild bredvid, som "Världen och känslan" i skissen. */
   | { type: 'feature'; heading: string; text: string; image: ImageRef; imageSide?: 'left' | 'right' }
   | { type: 'image'; image: ImageRef; caption?: string }
-  /** Punktlista där varje punkt är rik text, precis som ett stycke. */
-  | { type: 'list'; items: { text: string; marks?: Mark[] }[] };
+  /** Punktlista där varje punkt är rik text, precis som ett stycke. Med ikon ersätter den punkten. */
+  | { type: 'list'; items: { text: string; marks?: Mark[]; icon?: ListIcon }[] };
+
+export type ListIcon = 'steam' | 'studio' | 'wikipedia' | 'review';
 
 type PostBase = {
   slug: string;
