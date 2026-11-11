@@ -1,4 +1,5 @@
 import { ArticleBodyPartPayload } from '@/lib/db/payload.types';
+import { RichText } from './shared/RichText';
 
 export const List = ({
   part,
@@ -11,7 +12,9 @@ export const List = ({
   return (
     <ul>
       {part.items.map((item, i) => (
-        <li key={i}>{item.text}</li>
+        <li key={i}>
+          <RichText text={item.text} marks={item.marks} />
+        </li>
       ))}
     </ul>
   );
