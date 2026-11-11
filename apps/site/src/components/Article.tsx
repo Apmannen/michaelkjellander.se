@@ -4,12 +4,10 @@ import Image from 'next/image';
 import { Divider } from './standard/Divider';
 import { Quote } from './bodyParts/Quote';
 import { Paragraph } from './bodyParts/Paragraph';
-import { MkLink } from './standard/MkLink';
-import { PiGlobeSimple } from 'react-icons/pi';
 import { Heading } from './bodyParts/Heading';
 import { List } from './bodyParts/List';
 
-const logPrefix = '[Article]';
+//const logPrefix = '[Article]';
 
 export const Article = ({
   article,

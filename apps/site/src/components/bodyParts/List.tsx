@@ -16,7 +16,7 @@ export const List = ({
         <li key={i} className='flex items-center'>
           <span className='mr-2'>
             {item.icon ? (
-              <NamedIcon className='text-accent-900' iconName={item.icon} />
+              <NamedIcon className='text-accent-800' iconName={item.icon} />
             ) : null}
           </span>
           <RichText text={item.text} marks={item.marks} />
