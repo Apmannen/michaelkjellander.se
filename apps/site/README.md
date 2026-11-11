@@ -35,3 +35,8 @@ UPPSTÄDNING:
 eventuellt ta bort stöd för ikoner mitt i text
 gör rubriker till egen typ
 flytta ut rensa-knapp
+
+---
+
+custom fält:
+t.ex. spela även/hellre (två olika). Text + länk. inre fält?

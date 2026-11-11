@@ -19,7 +19,7 @@ export type Database = {
           body: Json
           cover_image: Json | null
           created_at: string
-          deleted_at: string | null
+          cta: Json | null
           id: string
           intro: string
           published: boolean
@@ -32,7 +32,7 @@ export type Database = {
           body?: Json
           cover_image?: Json | null
           created_at?: string
-          deleted_at?: string | null
+          cta?: Json | null
           id?: string
           intro?: string
           published?: boolean
@@ -45,7 +45,7 @@ export type Database = {
           body?: Json
           cover_image?: Json | null
           created_at?: string
-          deleted_at?: string | null
+          cta?: Json | null
           id?: string
           intro?: string
           published?: boolean
@@ -74,12 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      trash: {
+        Row: {
+          data: Json
+          deleted_at: string
+          document_id: string
+          document_type: string
+          id: string
+        }
+        Insert: {
+          data: Json
+          deleted_at?: string
+          document_id: string
+          document_type: string
+          id?: string
+        }
+        Update: {
+          data?: Json
+          deleted_at?: string
+          document_id?: string
+          document_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      trash_article: { Args: { article_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

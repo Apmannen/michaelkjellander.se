@@ -16,6 +16,7 @@ import type { UploadedImage } from '@/lib/images';
 import { ImagePicker } from '../images/image-picker';
 import { deleteArticle, saveArticle } from './actions';
 import { BodyEditor } from './body-editor';
+import { CallToActionField } from './cta-field';
 
 // New articles default to the current minute.
 const now = () => {
@@ -28,6 +29,7 @@ const toInput = (article: Article | null): ArticleInput => ({
   title: article?.title ?? '',
   slug: article?.slug ?? '',
   intro: article?.intro ?? '',
+  cta: article?.cta,
   published: article?.published ?? false,
   published_at: article ? new Date(article.published_at).toISOString() : now(),
   cover_image: article?.cover_image,
@@ -67,6 +69,10 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.title === b.title &&
   a.slug === b.slug &&
   a.intro === b.intro &&
+  // Compared field by field, since jsonb doesn't keep the key order.
+  a.cta?.icon === b.cta?.icon &&
+  a.cta?.text === b.cta?.text &&
+  a.cta?.href === b.cta?.href &&
   a.published === b.published &&
   a.published_at === b.published_at &&
   JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
@@ -231,6 +237,18 @@ export function ArticleEditor({ article }: { article: Article | null }) {
               value={draft.intro}
               onChange={(event) => update({ intro: event.target.value })}
               className={`${inputClass} resize-y`}
+            />
+          </Field>
+
+          <Field
+            label='Knapp'
+            htmlFor='cta'
+            description='Valfri call to action som visas under introt. Ikonen är valfri. Töm fälten för att ta bort knappen.'
+          >
+            <CallToActionField
+              id='cta'
+              value={draft.cta}
+              onChange={(cta) => update({ cta })}
             />
           </Field>
 
