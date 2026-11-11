@@ -16,13 +16,13 @@ export const Button = ({
 }) => {
   return (
     <Link
-      className='bg-accent-800 text-default-box px-4 py-2 rounded-md flex items-center text-[16px] gap-2 hover:bg-accent-600'
+      className='bg-accent-800 text-white px-4 py-2 rounded-md flex items-center text-[18px] gap-2 hover:bg-accent-600'
       href={href}
       target={target}
     >
-      {iconName ? <NamedIcon iconName={iconName} /> : null}
+      {iconName ? <NamedIcon iconName={iconName} size={20} /> : null}
       {children}
-      <GoArrowUpRight />
+      <GoArrowUpRight size={20} />
     </Link>
   );
 };
