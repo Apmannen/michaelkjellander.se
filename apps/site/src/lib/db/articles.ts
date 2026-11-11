@@ -9,7 +9,7 @@ const latest = async (): Promise<ArticlePayload[]> => {
 
   const res = await db.supabase
     .from('articles')
-    .select('id, title, body, cover_image, intro')
+    .select('id, title, body, cover_image, intro, cta')
     .order('published_at', { ascending: false });
 
   return (res.data as ArticlePayload[]) || [];
