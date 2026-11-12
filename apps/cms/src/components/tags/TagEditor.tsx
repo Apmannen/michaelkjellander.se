@@ -10,14 +10,14 @@ import {
   findDescendantIds,
 } from '@/lib/tags';
 
-import { BodyEditor } from '../body/body-editor';
-import { ConfirmDeleteDialog } from '../editor/confirm-delete-dialog';
+import { BodyEditor } from '../body/BodyEditor';
+import { ConfirmDeleteDialog } from '../editor/ConfirmDeleteDialog';
 import {
   EditorFooter,
   useUnsavedChangesWarning,
-} from '../editor/editor-footer';
-import { Field, inputClass } from '../editor/field';
-import { SlugField } from '../editor/slug-field';
+} from '../editor/EditorFooter';
+import { Field, inputClass } from '../editor/Field';
+import { SlugField } from '../editor/SlugField';
 import { deleteTag, saveTag } from './actions';
 import { TagPicker } from './tag-picker';
 

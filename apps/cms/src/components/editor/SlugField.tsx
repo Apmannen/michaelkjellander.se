@@ -2,7 +2,7 @@
 
 import { slugify } from '@/lib/slug';
 
-import { inputClass, secondaryButtonClass } from './field';
+import { inputClass, secondaryButtonClass } from './Field';
 
 // source is what Generera makes the slug from, e.g. the title.
 export function SlugField({

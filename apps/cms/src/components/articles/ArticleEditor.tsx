@@ -7,18 +7,18 @@ import { withParagraphSlots } from '@/lib/body';
 import type { UploadedImage } from '@/lib/images';
 import type { Tag } from '@/lib/tags';
 
-import { BodyEditor } from '../body/body-editor';
-import { ConfirmDeleteDialog } from '../editor/confirm-delete-dialog';
+import { BodyEditor } from '../body/BodyEditor';
+import { ConfirmDeleteDialog } from '../editor/ConfirmDeleteDialog';
 import {
   EditorFooter,
   useUnsavedChangesWarning,
-} from '../editor/editor-footer';
-import { Field, inputClass } from '../editor/field';
-import { SlugField } from '../editor/slug-field';
+} from '../editor/EditorFooter';
+import { Field, inputClass } from '../editor/Field';
+import { SlugField } from '../editor/SlugField';
 import { ImagePicker } from '../images/image-picker';
 import { TagPicker } from '../tags/tag-picker';
 import { deleteArticle, saveArticle } from './actions';
-import { CallToActionField } from './cta-field';
+import { CallToActionField } from './CallToActionField';
 
 // New articles default to the current minute.
 const now = () => {
