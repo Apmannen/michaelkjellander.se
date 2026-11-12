@@ -5,6 +5,7 @@ import { categories } from '@/data/categories';
 import { Post, ReviewPost } from '@/data/types';
 import { Divider } from '../Divider';
 import { PostBody } from './PostBody';
+import { PostMeta } from './PostMeta';
 import { ArticleHeader, GameHeader, ReviewHeader } from './PostHeaders';
 
 export const PostPage = ({ post }: { post: Post }) => {
@@ -42,6 +43,8 @@ export const PostPage = ({ post }: { post: Post }) => {
         <PostBody blocks={post.body} />
 
         {post.kind === 'review' && post.alsoPlay ? <AlsoPlay alsoPlay={post.alsoPlay} /> : null}
+
+        <PostMeta post={post} />
       </div>
     </article>
   );
