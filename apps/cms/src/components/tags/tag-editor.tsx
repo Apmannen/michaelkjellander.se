@@ -19,7 +19,7 @@ import {
 import { Field, inputClass } from '../editor/field';
 import { SlugField } from '../editor/slug-field';
 import { deleteTag, saveTag } from './actions';
-import { TagPicker } from './tag-picker';
+import { TagPicker } from '../../app/tags/tag-picker';
 
 const toInput = (tag?: Tag): TagInput => ({
   name: tag?.name ?? '',

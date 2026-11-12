@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
 
-import { TagList } from './tag-list';
+import { TagList } from '../../app/tags/tag-list';
 
 async function Tags() {
   const tags = await db.listTags();
