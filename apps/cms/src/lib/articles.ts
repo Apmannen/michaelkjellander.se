@@ -5,6 +5,7 @@ import {
   normalizeHref,
 } from '@/lib/body';
 import type { Image } from '@/lib/images';
+import { validateSlug } from '@/lib/slug';
 
 // A button shown under the intro, e.g. "Spela nu" linking to a game.
 export type CallToAction = {
@@ -24,6 +25,8 @@ export type Article = {
   published_at: string;
   cover_image?: Image;
   body: Body;
+  // In the order they were picked.
+  tag_ids: string[];
   created_at: string;
   updated_at: string;
 };
@@ -38,17 +41,8 @@ export type ArticleInput = Pick<
   | 'published_at'
   | 'cover_image'
   | 'body'
+  | 'tag_ids'
 >;
-
-export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-export const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '') // å, ä, ö, é ... -> a, a, o, e
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 
 // Undefined if every field is empty, so a cleared button is removed. A button
 // with missing fields is kept so validateArticle can point them out.
@@ -72,11 +66,9 @@ export const validateArticle = (input: ArticleInput): string | undefined => {
   if (!input.title.trim()) {
     return 'Rubrik måste anges.';
   }
-  if (!input.slug) {
-    return 'Slug måste anges.';
-  }
-  if (!SLUG_PATTERN.test(input.slug)) {
-    return 'Slug får bara innehålla a–z, 0–9 och bindestreck.';
+  const slugError = validateSlug(input.slug);
+  if (slugError) {
+    return slugError;
   }
   if (Number.isNaN(Date.parse(input.published_at))) {
     return 'Publiceringstid måste anges.';

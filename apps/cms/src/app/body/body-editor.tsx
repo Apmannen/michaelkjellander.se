@@ -13,8 +13,10 @@ import {
 import { createPortal } from 'react-dom';
 
 import {
+  ALL_BODY_FEATURES,
   type Body,
   type BodyBlock,
+  type BodyFeature,
   type ImageBlock,
   type ListBlock,
   type ListItem,
@@ -141,15 +143,29 @@ const findLinkRange = (
   return { ...trimmed, href: '', text: text.slice(trimmed.start, trimmed.end) };
 };
 
+// features limits what the toolbar and shortcuts offer besides plain
+// paragraphs. parseBody should be given the same features when saving.
 export function BodyEditor({
   id,
   value,
   onChange,
+  features = ALL_BODY_FEATURES,
+  placeholder = 'Skriv brödtext…',
 }: {
   id: string;
   value: Body;
   onChange: (value: Body) => void;
+  features?: readonly BodyFeature[];
+  placeholder?: string;
 }) {
+  const has = (feature: BodyFeature) => features.includes(feature);
+  const hasFormatting = has('bold') || has('underline') || has('link');
+  const hasWidgets =
+    has('quote') ||
+    has('image') ||
+    has('list') ||
+    has('icon') ||
+    has('divider');
   const inputs = useRef(new Map<string, HTMLTextAreaElement>());
   const pendingCaret = useRef<Caret | undefined>(undefined);
   // Kept after blur, so the toolbar knows where to insert or link.
@@ -294,7 +310,7 @@ export function BodyEditor({
   const toggleMark = (type: 'bold' | 'underline', target?: TextSelection) => {
     const trimmed = trimSelection(target);
     const found = findParagraphById(trimmed?.id);
-    if (!trimmed || !found) {
+    if (!has(type) || !trimmed || !found) {
       return;
     }
     const { index, block } = found;
@@ -317,7 +333,7 @@ export function BodyEditor({
   // kept as far as the text allows.
   const toggleHeading = (target?: TextSelection) => {
     const found = findTextBlockById(target?.id);
-    if (!target || !found) {
+    if (!has('heading') || !target || !found) {
       return;
     }
     const { index, block } = found;
@@ -414,7 +430,7 @@ export function BodyEditor({
       if (key === 'k') {
         event.preventDefault();
         const linkTarget = findLinkTarget(target);
-        if (linkTarget) {
+        if (has('link') && linkTarget) {
           setEditingLink(linkTarget);
         }
         return;
@@ -735,107 +751,131 @@ export function BodyEditor({
     <div className='rounded-md border border-zinc-300 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900'>
       <div className='flex items-center gap-1 border-b border-zinc-200 px-2 py-1.5 dark:border-zinc-800'>
         {/* preventDefault on mousedown keeps the text selection visible. */}
-        <button
-          type='button'
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={() => toggleHeading(selection)}
-          disabled={!findTextBlockById(selection?.id)}
-          aria-pressed={isHeading(selection?.id)}
-          title='Gör stycket där markören står till en rubrik (Ctrl+Shift+H)'
-          className={`${toolbarButtonClass} font-semibold`}
-        >
-          Rubrik
-        </button>
-
-        <span className='mx-1 h-4 w-px shrink-0 bg-zinc-200 dark:bg-zinc-800' />
-
-        <button
-          type='button'
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={() => toggleMark('bold', selection)}
-          disabled={!formatTarget}
-          aria-pressed={isFormatted('bold')}
-          aria-label='Fet'
-          title='Fet (Ctrl+B)'
-          className={`${toolbarButtonClass} w-8 font-bold`}
-        >
-          F
-        </button>
-        <button
-          type='button'
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={() => toggleMark('underline', selection)}
-          disabled={!formatTarget}
-          aria-pressed={isFormatted('underline')}
-          aria-label='Understruken'
-          title='Understruken (Ctrl+U)'
-          className={`${toolbarButtonClass} w-8 underline`}
-        >
-          U
-        </button>
-        <button
-          type='button'
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={() => setEditingLink(linkTarget)}
-          disabled={!linkTarget}
-          title='Markera text för att lägga till en länk (Ctrl+K)'
-          className={toolbarButtonClass}
-        >
-          🔗 {linkTarget?.href ? 'Redigera länk' : 'Länk'}
-        </button>
-        {linkTarget?.href && (
-          <span className='truncate px-1 text-xs text-zinc-500'>
-            {linkTarget.href}
-          </span>
+        {has('heading') && (
+          <button
+            type='button'
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => toggleHeading(selection)}
+            disabled={!findTextBlockById(selection?.id)}
+            aria-pressed={isHeading(selection?.id)}
+            title='Gör stycket där markören står till en rubrik (Ctrl+Shift+H)'
+            className={`${toolbarButtonClass} font-semibold`}
+          >
+            Rubrik
+          </button>
         )}
 
-        <span className='mx-1 h-4 w-px shrink-0 bg-zinc-200 dark:bg-zinc-800' />
+        {has('heading') && hasFormatting && <ToolbarSeparator />}
 
-        <span className='px-1 text-xs text-zinc-500'>Infoga:</span>
-        <button
-          type='button'
-          onClick={() => setEditingQuote({ text: '', author: '' })}
-          className={toolbarButtonClass}
-        >
-          ❝ Citat
-        </button>
-        <button
-          type='button'
-          onClick={() => setEditingImage({})}
-          className={toolbarButtonClass}
-        >
-          🖼 Bild
-        </button>
-        <button
-          type='button'
-          onClick={() => setEditingList({ items: [] })}
-          title='Infoga en punktlista där markören står'
-          className={toolbarButtonClass}
-        >
-          ☰ Lista
-        </button>
-        <button
-          type='button'
-          onClick={() => setIsPickingIcon(true)}
-          // Headings can't have icons.
-          disabled={isHeading(selection?.id)}
-          title={
-            selectedIcon
-              ? 'Byt den markerade ikonen'
-              : 'Infoga en ikon där markören står'
-          }
-          className={toolbarButtonClass}
-        >
-          ★ {selectedIcon ? 'Byt ikon' : 'Ikon'}
-        </button>
-        <button
-          type='button'
-          onClick={() => insertWidget({ id: newBlockId(), type: 'divider' })}
-          title='Infoga en avskiljare där markören står'
-          className={toolbarButtonClass}
-        >
-          ― Avskiljare
-        </button>
+        {has('bold') && (
+          <button
+            type='button'
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => toggleMark('bold', selection)}
+            disabled={!formatTarget}
+            aria-pressed={isFormatted('bold')}
+            aria-label='Fet'
+            title='Fet (Ctrl+B)'
+            className={`${toolbarButtonClass} w-8 font-bold`}
+          >
+            F
+          </button>
+        )}
+        {has('underline') && (
+          <button
+            type='button'
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => toggleMark('underline', selection)}
+            disabled={!formatTarget}
+            aria-pressed={isFormatted('underline')}
+            aria-label='Understruken'
+            title='Understruken (Ctrl+U)'
+            className={`${toolbarButtonClass} w-8 underline`}
+          >
+            U
+          </button>
+        )}
+        {has('link') && (
+          <>
+            <button
+              type='button'
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setEditingLink(linkTarget)}
+              disabled={!linkTarget}
+              title='Markera text för att lägga till en länk (Ctrl+K)'
+              className={toolbarButtonClass}
+            >
+              🔗 {linkTarget?.href ? 'Redigera länk' : 'Länk'}
+            </button>
+            {linkTarget?.href && (
+              <span className='truncate px-1 text-xs text-zinc-500'>
+                {linkTarget.href}
+              </span>
+            )}
+          </>
+        )}
+
+        {(has('heading') || hasFormatting) && hasWidgets && (
+          <ToolbarSeparator />
+        )}
+
+        {hasWidgets && (
+          <span className='px-1 text-xs text-zinc-500'>Infoga:</span>
+        )}
+        {has('quote') && (
+          <button
+            type='button'
+            onClick={() => setEditingQuote({ text: '', author: '' })}
+            className={toolbarButtonClass}
+          >
+            ❝ Citat
+          </button>
+        )}
+        {has('image') && (
+          <button
+            type='button'
+            onClick={() => setEditingImage({})}
+            className={toolbarButtonClass}
+          >
+            🖼 Bild
+          </button>
+        )}
+        {has('list') && (
+          <button
+            type='button'
+            onClick={() => setEditingList({ items: [] })}
+            title='Infoga en punktlista där markören står'
+            className={toolbarButtonClass}
+          >
+            ☰ Lista
+          </button>
+        )}
+        {has('icon') && (
+          <button
+            type='button'
+            onClick={() => setIsPickingIcon(true)}
+            // Headings can't have icons.
+            disabled={isHeading(selection?.id)}
+            title={
+              selectedIcon
+                ? 'Byt den markerade ikonen'
+                : 'Infoga en ikon där markören står'
+            }
+            className={toolbarButtonClass}
+          >
+            ★ {selectedIcon ? 'Byt ikon' : 'Ikon'}
+          </button>
+        )}
+        {has('divider') && (
+          <button
+            type='button'
+            onClick={() => insertWidget({ id: newBlockId(), type: 'divider' })}
+            title='Infoga en avskiljare där markören står'
+            className={toolbarButtonClass}
+          >
+            ― Avskiljare
+          </button>
+        )}
 
         <button
           type='button'
@@ -871,9 +911,7 @@ export function BodyEditor({
                 <MarkedText text={block.text} marks={block.marks} />
                 <textarea
                   {...textInputProps(index, block)}
-                  placeholder={
-                    value.length === 1 ? 'Skriv brödtext…' : undefined
-                  }
+                  placeholder={value.length === 1 ? placeholder : undefined}
                   onPaste={(event) => onPaste(event, index, block)}
                   // The text is transparent, so selected text needs its own
                   // color. Firefox then drops the default selection
@@ -946,6 +984,7 @@ export function BodyEditor({
       {editingList && (
         <ListDialog
           initial={editingList.items}
+          allowLinks={has('link')}
           onSave={(items) => saveList({ id: editingList.id, items })}
           onClose={() => setEditingList(undefined)}
         />
@@ -967,6 +1006,12 @@ export function BodyEditor({
         />
       )}
     </div>
+  );
+}
+
+function ToolbarSeparator() {
+  return (
+    <span className='mx-1 h-4 w-px shrink-0 bg-zinc-200 dark:bg-zinc-800' />
   );
 }
 
@@ -1178,12 +1223,16 @@ const listItemDraft = (
   ...item,
 });
 
+// Without allowLinks, the items' links can't be edited, and parseBody drops
+// them when saving.
 function ListDialog({
   initial,
+  allowLinks,
   onSave,
   onClose,
 }: {
   initial: ListItem[];
+  allowLinks: boolean;
   onSave: (items: ListItem[]) => void;
   onClose: () => void;
 }) {
@@ -1244,7 +1293,7 @@ function ListDialog({
     target?: ItemSelection,
   ): ItemLinkEdit | undefined => {
     const item = items.find((other) => other.key === target?.key);
-    if (!target || !item) {
+    if (!allowLinks || !target || !item) {
       return undefined;
     }
     const range = findLinkRange(
@@ -1443,21 +1492,25 @@ function ListDialog({
 
                   <div className='flex shrink-0 items-center gap-0.5 py-0.5'>
                     {/* preventDefault on mousedown keeps the text selection. */}
-                    <button
-                      type='button'
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => setEditingLink(linkTarget)}
-                      disabled={!linkTarget}
-                      aria-label={linkTarget?.href ? 'Redigera länk' : 'Länk'}
-                      title={
-                        linkTarget?.href
-                          ? `Redigera länk (${linkTarget.href})`
-                          : 'Markera text för att lägga till en länk (Ctrl+K)'
-                      }
-                      className={toolbarButtonClass}
-                    >
-                      🔗
-                    </button>
+                    {allowLinks && (
+                      <button
+                        type='button'
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => setEditingLink(linkTarget)}
+                        disabled={!linkTarget}
+                        aria-label={
+                          linkTarget?.href ? 'Redigera länk' : 'Länk'
+                        }
+                        title={
+                          linkTarget?.href
+                            ? `Redigera länk (${linkTarget.href})`
+                            : 'Markera text för att lägga till en länk (Ctrl+K)'
+                        }
+                        className={toolbarButtonClass}
+                      >
+                        🔗
+                      </button>
+                    )}
                     <button
                       type='button'
                       onClick={() => move(index, -1)}

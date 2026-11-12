@@ -1,5 +1,20 @@
+import { Suspense } from 'react';
+
+import { db } from '@/lib/db';
+
 import { ArticleEditor } from '../article-editor';
 
+async function Editor() {
+  const tags = await db.listTags();
+  return <ArticleEditor article={null} tags={tags} />;
+}
+
 export default function NewArticlePage() {
-  return <ArticleEditor article={null} />;
+  return (
+    <Suspense
+      fallback={<p className="px-6 py-3 text-sm text-zinc-500">Laddar…</p>}
+    >
+      <Editor />
+    </Suspense>
+  );
 }

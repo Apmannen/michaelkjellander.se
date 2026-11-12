@@ -1,0 +1,98 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+
+import { parseBody } from '@/lib/body';
+import { db } from '@/lib/db';
+import {
+  TAG_DESCRIPTION_FEATURES,
+  type Tag,
+  type TagInput,
+  findDescendantIds,
+  parseIds,
+  validateTag,
+} from '@/lib/tags';
+
+export type SaveTagResult =
+  | { ok: true; tag: Tag }
+  | { ok: false; error: string };
+
+const CYCLE_ERROR =
+  'En tagg kan inte ha sig själv eller någon av sina undertaggar som förälder.';
+
+// The article editors list the tags, so they're refreshed too.
+const revalidate = () => {
+  revalidatePath('/tags', 'layout');
+  revalidatePath('/articles', 'layout');
+};
+
+// TODO: verify authentication here once the cms has login.
+export async function saveTag(
+  id: string | undefined,
+  raw: TagInput,
+): Promise<SaveTagResult> {
+  const input: TagInput = {
+    // The name is shown on one line, so line breaks become spaces.
+    name: String(raw.name ?? '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+    slug: String(raw.slug ?? '').trim(),
+    description: parseBody(raw.description, TAG_DESCRIPTION_FEATURES),
+    parent_ids: parseIds(raw.parent_ids),
+  };
+
+  const validationError = validateTag(input);
+  if (validationError) {
+    return { ok: false, error: validationError };
+  }
+
+  // Checked before saving, so the tag isn't saved without its parents. The
+  // database checks it again when setting the parents.
+  if (id) {
+    const descendants = findDescendantIds(await db.listTags(), id);
+    if (input.parent_ids.some((parentId) => descendants.has(parentId))) {
+      return { ok: false, error: CYCLE_ERROR };
+    }
+  }
+
+  const { data, error } = id
+    ? await db.updateTag(id, input)
+    : await db.createTag(input);
+
+  if (error) {
+    // 23505 = unique_violation
+    if (error.code === '23505') {
+      return { ok: false, error: 'Det finns redan en tagg med den sluggen.' };
+    }
+    // 23514 = check_violation, raised by set_tag_parents.
+    if (error.code === '23514') {
+      return { ok: false, error: CYCLE_ERROR };
+    }
+    console.error('saveTag failed', error);
+    return { ok: false, error: 'Kunde inte spara taggen.' };
+  }
+
+  revalidate();
+
+  if (!id) {
+    redirect(`/tags/${data.id}`);
+  }
+
+  return { ok: true, tag: data };
+}
+
+// TODO: verify authentication here once the cms has login.
+export async function deleteTag(
+  id: string,
+): Promise<{ ok: false; error: string }> {
+  const { error } = await db.deleteTag(id);
+
+  if (error) {
+    console.error('deleteTag failed', error);
+    return { ok: false, error: 'Kunde inte ta bort taggen.' };
+  }
+
+  revalidate();
+  redirect('/tags');
+}
