@@ -24,7 +24,7 @@ export const Article = ({
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
   return (
-    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] py-12'>
+    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] pt-12'>
       <div className='px-12 h-[400px]'>
         {article.cover_image ? (
           <Image
@@ -56,7 +56,7 @@ export const Article = ({
             </Button>
           ) : null}
         </div>
-        <Divider />
+        <Divider className={{ container: 'py-4' }} />
         <div className='space-y-4'>
           {article.body.map((part, i) => (
             <div key={i} className=''>
@@ -67,7 +67,7 @@ export const Article = ({
               ) : part.type === 'quote' ? (
                 <Quote part={part} />
               ) : part.type === 'divider' ? (
-                <Divider />
+                <Divider className={{ container: 'py-4' }} />
               ) : part.type === 'list' ? (
                 <List part={part} />
               ) : null}
@@ -75,6 +75,13 @@ export const Article = ({
           ))}
         </div>
       </div>
+      <footer>
+        <div className='h-8' />
+        <Divider />
+        <div className='h-4' />
+        <div className='px-12'>HEJ</div>
+        <div className='h-4' />
+      </footer>
     </article>
   );
 };
