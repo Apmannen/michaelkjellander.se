@@ -24,7 +24,7 @@ export const Article = ({
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
   return (
-    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] pt-12'> 
+    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] pt-12'>
       <div className='sm:px-12 sm:h-[400px]'>
         {article.cover_image ? (
           <Image
@@ -46,12 +46,12 @@ export const Article = ({
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
         <Divider className={{ container: 'py-4' }} />
-        <div className='flex items-center'>
+        <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
           <div className='text-[16px]'>
             <div>Utvecklingsår: 2021-2023</div>
             <div>Utvecklat i: Unity</div>
           </div>
-          <div className='flex-1 flex items-center justify-end'>
+          <div className='flex-1 flex items-center sm:justify-end'>
             {article.cta ? (
               <Button
                 href={article.cta.href}
