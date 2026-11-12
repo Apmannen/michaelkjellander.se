@@ -21,7 +21,7 @@ export const Quote = ({
           enabled={!!href}
           href={href}
           className={{
-            link: 'hover:text-accent-950 text-center  text-accent-800 font-semibold',
+            link: 'hover:text-accent-950 text-center text-accent-800 font-bold font-nunito text-[17px]',
           }}
           target='_blank'
         >

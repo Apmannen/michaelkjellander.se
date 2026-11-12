@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Source_Serif_4 } from 'next/font/google';
+import { Source_Serif_4, Nunito } from 'next/font/google';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -12,10 +12,18 @@ const sourceSerif = Source_Serif_4({
   style: ['normal', 'italic'],
   variable: '--font-source-serif-single',
 });
+const nunito = Nunito({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-nunito-single',
+});
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang='sv' className={`${sourceSerif.variable} h-full antialiased `}>
+    <html
+      lang='sv'
+      className={`${sourceSerif.variable} ${nunito.variable} h-full antialiased `}
+    >
       {/* TODO: remove */}
       <head>
         <link rel='preconnect' href='https://fonts.googleapis.com'></link>

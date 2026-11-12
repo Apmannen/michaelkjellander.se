@@ -11,6 +11,7 @@
   --font-noto-serif: 'Noto Serif', serif;
   --font-georgia: Georgia, 'Times New Roman', serif;
   --font-source-serif: var(--font-source-serif-single), Georgia, 'Times New Roman', serif;
+  --font-nunito: var(--font-nunito-single), Arial, serif;
 
   --color-default-main: #F3EEE8;
   --color-default-box: #fcf6f0;
