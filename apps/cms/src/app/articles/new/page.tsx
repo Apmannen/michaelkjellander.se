@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
 
-import { ArticleEditor } from '../article-editor';
+import { ArticleEditor } from '@/components/articles/ArticleEditor';
 
 async function Editor() {
   const tags = await db.listTags();
@@ -12,7 +12,7 @@ async function Editor() {
 export default function NewArticlePage() {
   return (
     <Suspense
-      fallback={<p className="px-6 py-3 text-sm text-zinc-500">Laddar…</p>}
+      fallback={<p className='px-6 py-3 text-sm text-zinc-500'>Laddar…</p>}
     >
       <Editor />
     </Suspense>

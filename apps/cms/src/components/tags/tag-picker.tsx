@@ -4,7 +4,7 @@ import { type KeyboardEvent, useState } from 'react';
 
 import type { Tag } from '@/lib/tags';
 
-import { inputClass } from '../editor/field';
+import { inputClass } from '../editor/Field';
 
 const normalize = (value: string) =>
   value

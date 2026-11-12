@@ -1,6 +1,6 @@
 import { triggers } from '@/lib/triggers';
 
-import { TriggerButton } from './trigger-button';
+import { TriggerButton } from '../../components/triggers/trigger-button';
 
 export default function TriggersPage() {
   return (
