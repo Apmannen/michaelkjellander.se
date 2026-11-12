@@ -24,7 +24,7 @@ export const Article = ({
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
   return (
-    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] pt-12'>
+    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] pt-12'> 
       <div className='sm:px-12 sm:h-[400px]'>
         {article.cover_image ? (
           <Image
@@ -32,7 +32,7 @@ export const Article = ({
             alt=''
             width={729}
             height={400}
-            className='w-full rounded-lg object-cover h-full'
+            className='w-full sm:rounded-lg object-cover h-full'
             loading='eager'
           />
         ) : null}
