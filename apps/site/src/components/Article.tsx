@@ -75,11 +75,14 @@ export const Article = ({
           ))}
         </div>
       </div>
-      <footer className='mt-8 border-t border-[#E8DBCF]'>
-        <div className='h-4' />
-        <div className='px-12 text-[#5f544c]'>2026-01-03</div>
-        <div className='h-4' />
+      <footer className='mt-8 border-t border-[#E8DBCF] py-6'>
+        <div className='px-12 text-muted'>2026-01-03</div>
       </footer>
+      {/* <footer className='mt-0 py-12'>
+        <div className='h-' />
+        <div className='px-12 flex justify-start'>Publicerad 2026-01-03</div>
+        <div className='h' />
+      </footer> */}
     </article>
   );
 };

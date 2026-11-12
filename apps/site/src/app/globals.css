@@ -28,6 +28,7 @@
   --color-accent-950: #432016;
 
   --color-line: #d7cbc0;
+  --color-muted: #5f544c;
 }
 
 @media (prefers-color-scheme: dark) {
