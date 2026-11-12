@@ -45,16 +45,23 @@ export const Article = ({
           {article.title}
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
-        <div className='flex justify-end'>
-          {article.cta ? (
-            <Button
-              href={article.cta.href}
-              target='_blank'
-              iconName={article.cta.icon}
-            >
-              {article.cta.text}
-            </Button>
-          ) : null}
+        <Divider className={{container: 'py-4'}}/>
+        <div className='flex items-center'>
+          <div className='text-[16px]'>
+            <div>Utvecklingsår: 2021-2023</div>
+            <div>Utvecklat i: Unity</div>
+          </div>
+          <div className='flex-1 flex items-center justify-end'>
+            {article.cta ? (
+              <Button
+                href={article.cta.href}
+                target='_blank'
+                iconName={article.cta.icon}
+              >
+                {article.cta.text}
+              </Button>
+            ) : null}
+          </div>
         </div>
         <Divider className={{ container: 'py-4' }} />
         <div className='space-y-4'>
@@ -74,11 +81,12 @@ export const Article = ({
             </div>
           ))}
         </div>
-        <Divider className={{ container: 'py-8' }} />
+        <div className='h-12'></div>
+        {/* <Divider className={{ container: 'py-8' }} /> */}
       </div>
-      <div className='px-12 flex justify-start pb-12  text-muted'>
+      {/* <div className='px-12 flex justify-start pb-12  text-muted'>
         Publicerad 2026-01-03
-      </div>
+      </div> */}
       {/* <footer className='mt-8 border-t border-[#E8DBCF] py-6'>
         <div className='px-12 text-muted'>2026-01-03</div>
       </footer> */}
