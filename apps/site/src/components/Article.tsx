@@ -25,7 +25,7 @@ export const Article = ({
   const SecondaryH = isMain ? 'h2' : 'h3';
   return (
     <article className='bg-default-box mb-12 shadow-sm max-w-[825px] pt-12'>
-      <div className='px-12 h-[400px]'>
+      <div className='sm:px-12 sm:h-[400px]'>
         {article.cover_image ? (
           <Image
             src={storage.getPublicUrl(article.cover_image?.path)}
@@ -37,7 +37,7 @@ export const Article = ({
           />
         ) : null}
       </div>
-      <div className='px-12 text-[20px]'>
+      <div className='px-4 sm:px-12 text-[20px]'>
         <H
           className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
@@ -45,7 +45,7 @@ export const Article = ({
           {article.title}
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
-        <Divider className={{container: 'py-4'}}/>
+        <Divider className={{ container: 'py-4' }} />
         <div className='flex items-center'>
           <div className='text-[16px]'>
             <div>Utvecklingsår: 2021-2023</div>
