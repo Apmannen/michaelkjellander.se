@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
 
-import { TagList } from '../../app/tags/tag-list';
+import { TagList } from '@/components/tags/tag-list';
 
 async function Tags() {
   const tags = await db.listTags();
@@ -25,7 +25,9 @@ export default function TagsLayout({ children }: LayoutProps<'/tags'>) {
         </header>
         <div className='flex-1 overflow-y-auto'>
           <Suspense
-            fallback={<p className='px-4 py-3 text-sm text-zinc-500'>Laddar…</p>}
+            fallback={
+              <p className='px-4 py-3 text-sm text-zinc-500'>Laddar…</p>
+            }
           >
             <Tags />
           </Suspense>
