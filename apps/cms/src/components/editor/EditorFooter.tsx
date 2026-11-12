@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-import { secondaryButtonClass } from './field';
+import { secondaryButtonClass } from './Field';
 
 // Asks before leaving the page while there are unsaved changes.
 export const useUnsavedChangesWarning = (isDirty: boolean) => {

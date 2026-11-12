@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
 
-import { ArticleList } from '@/components/articles/article-list';
+import { ArticleList } from '@/components/articles/ArticleList';
 
 async function Articles() {
   const articles = await db.listArticles();

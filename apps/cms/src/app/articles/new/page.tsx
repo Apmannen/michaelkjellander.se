@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
 
-import { ArticleEditor } from '@/components/articles/article-editor';
+import { ArticleEditor } from '@/components/articles/ArticleEditor';
 
 async function Editor() {
   const tags = await db.listTags();
