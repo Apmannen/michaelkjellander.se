@@ -2,7 +2,6 @@ import { FaItchIo, FaSteam } from 'react-icons/fa6';
 import { LuArrowUpRight, LuBox, LuCalendar, LuGlobe } from 'react-icons/lu';
 import { ArticlePost, GamePost, ReviewPost, StoreLink } from '@/data/types';
 import { RatingBox } from './Rating';
-import { formatDate } from '@/lib/format';
 
 const titleClass = 'font-bold leading-none tracking-[-0.03em] text-[clamp(48px,9vw,80px)]';
 
@@ -61,7 +60,6 @@ export const ArticleHeader = ({ post }: { post: ArticlePost }) => {
   return (
     <header>
       <h1 className={titleClass}>{post.title}</h1>
-      <p className='pt-3 text-muted'>{formatDate(post.publishedAt)}</p>
     </header>
   );
 };

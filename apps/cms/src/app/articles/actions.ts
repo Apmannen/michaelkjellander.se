@@ -12,6 +12,7 @@ import {
 import { parseBody } from '@/lib/body';
 import { db } from '@/lib/db';
 import { parseImage } from '@/lib/images';
+import { parseIds } from '@/lib/tags';
 
 export type SaveArticleResult =
   | { ok: true; article: Article }
@@ -34,6 +35,7 @@ export async function saveArticle(
     published_at: String(raw.published_at ?? ''),
     cover_image: parseImage(raw.cover_image),
     body: parseBody(raw.body),
+    tag_ids: parseIds(raw.tag_ids),
   };
 
   const validationError = validateArticle(input);

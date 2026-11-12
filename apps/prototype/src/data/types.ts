@@ -35,6 +35,8 @@ type PostBase = {
   title: string;
   category: CategoryId;
   publishedAt: string;
+  /** Fria taggar som visas på inläggssidan. */
+  tags: string[];
   cover: ImageRef;
   /** Kort text för listor/kort. */
   excerpt: string;

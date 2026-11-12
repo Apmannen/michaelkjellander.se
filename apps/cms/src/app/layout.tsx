@@ -35,6 +35,12 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
             Artiklar
           </Link>
           <Link
+            href='/tags'
+            className='text-zinc-600 hover:text-foreground dark:text-zinc-400'
+          >
+            Taggar
+          </Link>
+          <Link
             href='/triggers'
             className='text-zinc-600 hover:text-foreground dark:text-zinc-400'
           >

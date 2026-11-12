@@ -20,6 +20,7 @@ export const Article = ({
   >;
   isMain: boolean;
 }) => {
+  //TODO: can remove this since we won't display full articles in a feed
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
   return (

@@ -83,6 +83,23 @@ export type BodyBlock = TextBlock | WidgetBlock;
 
 export type Body = BodyBlock[];
 
+// What a body may contain besides plain paragraphs: the marks and the block
+// types other than paragraph. Lets e.g. a tag's description use the same
+// editor as an article's body, but only with links and lists.
+export type BodyFeature = MarkType | Exclude<BodyBlock['type'], 'paragraph'>;
+
+export const ALL_BODY_FEATURES: readonly BodyFeature[] = [
+  'heading',
+  'bold',
+  'underline',
+  'link',
+  'quote',
+  'image',
+  'list',
+  'icon',
+  'divider',
+];
+
 // Stands in for an icon in a paragraph's text, so the icon takes up a
 // position that marks such as links can cover.
 export const ICON_PLACEHOLDER = '\uFFFC';
@@ -275,7 +292,10 @@ const toMarkStyle = (item: Record<string, unknown>): MarkStyle | undefined => {
   return undefined;
 };
 
-const toMarks = (value: unknown): Mark[] => {
+const toMarks = (
+  value: unknown,
+  features: readonly BodyFeature[],
+): Mark[] => {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -288,6 +308,7 @@ const toMarks = (value: unknown): Mark[] => {
     const style = toMarkStyle(item as Record<string, unknown>);
     if (
       !style ||
+      !features.includes(style.type) ||
       typeof start !== 'number' ||
       typeof end !== 'number' ||
       !Number.isInteger(start) ||
@@ -322,10 +343,14 @@ const removeOrphanPlaceholders = ({
   return result;
 };
 
-const parseParagraph = (item: Record<string, unknown>, id: string) => {
+const parseParagraph = (
+  item: Record<string, unknown>,
+  id: string,
+  features: readonly BodyFeature[],
+) => {
   const raw = typeof item.text === 'string' ? item.text : '';
   const cleaned = removeOrphanPlaceholders(
-    paragraph(raw.replace(/\r\n?/g, '\n'), toMarks(item.marks), id),
+    paragraph(raw.replace(/\r\n?/g, '\n'), toMarks(item.marks, features), id),
   );
   const text = cleaned.text.trim();
   const offset = cleaned.text.length - cleaned.text.trimStart().length;
@@ -367,7 +392,11 @@ export const listItem = (
   };
 };
 
-const parseListItems = (value: unknown): ListItem[] => {
+// A list item's icon is part of the list, so it doesn't need the icon feature.
+const parseListItems = (
+  value: unknown,
+  features: readonly BodyFeature[],
+): ListItem[] => {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -378,7 +407,7 @@ const parseListItems = (value: unknown): ListItem[] => {
     const { text, marks, icon } = entry as Record<string, unknown>;
     const item = listItem(
       typeof text === 'string' ? text : '',
-      toMarks(marks),
+      toMarks(marks, features),
       typeof icon === 'string' ? icon : undefined,
     );
     return item ? [item] : [];
@@ -387,8 +416,13 @@ const parseListItems = (value: unknown): ListItem[] => {
 
 // Sanitizes untrusted input: drops unknown block types, empty paragraphs and
 // headings, lists without items, quotes without text, images that aren't
-// uploads, invalid marks and icon placeholders without an icon.
-export const parseBody = (raw: unknown): Body => {
+// uploads, invalid marks and icon placeholders without an icon. Blocks and
+// marks that aren't among the features are dropped too, except headings,
+// which become paragraphs.
+export const parseBody = (
+  raw: unknown,
+  features: readonly BodyFeature[] = ALL_BODY_FEATURES,
+): Body => {
   if (!Array.isArray(raw)) {
     return [];
   }
@@ -400,6 +434,15 @@ export const parseBody = (raw: unknown): Body => {
 
     const item = value as Record<string, unknown>;
     const id = toId(item.id);
+
+    if (
+      typeof item.type === 'string' &&
+      item.type !== 'paragraph' &&
+      item.type !== 'heading' &&
+      !features.includes(item.type as BodyFeature)
+    ) {
+      return [];
+    }
 
     if (item.type === 'image') {
       const image = parseImage(item);
@@ -418,8 +461,11 @@ export const parseBody = (raw: unknown): Body => {
       return [{ id, type: 'divider' }];
     }
 
-    if (item.type === 'paragraph') {
-      return parseParagraph(item, id);
+    if (
+      item.type === 'paragraph' ||
+      (item.type === 'heading' && !features.includes('heading'))
+    ) {
+      return parseParagraph(item, id, features);
     }
 
     if (item.type === 'heading') {
@@ -429,7 +475,7 @@ export const parseBody = (raw: unknown): Body => {
     }
 
     if (item.type === 'list') {
-      const items = parseListItems(item.items);
+      const items = parseListItems(item.items, features);
       return items.length ? [{ id, type: 'list', items }] : [];
     }
 

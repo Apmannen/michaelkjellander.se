@@ -7,6 +7,11 @@ const sections = [
     description: 'Skapa och redigera artiklar.',
   },
   {
+    href: '/tags',
+    title: 'Taggar',
+    description: 'Skapa och redigera taggar som artiklar kan kopplas till.',
+  },
+  {
     href: '/triggers',
     title: 'Triggers',
     description: 'Kör åtgärder på sajten, t.ex. rensa cache.',

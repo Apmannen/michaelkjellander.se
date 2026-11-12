@@ -10,10 +10,13 @@ const UUID_PATTERN =
 
 async function Editor({ params }: { params: PageProps<'/articles/[id]'>['params'] }) {
   const { id } = await params;
-  const article = UUID_PATTERN.test(id) ? await db.getArticle(id) : null;
+  const [article, tags] = await Promise.all([
+    UUID_PATTERN.test(id) ? db.getArticle(id) : undefined,
+    db.listTags(),
+  ]);
   if (!article) notFound();
 
-  return <ArticleEditor key={article.id} article={article} />;
+  return <ArticleEditor key={article.id} article={article} tags={tags} />;
 }
 
 export default function ArticlePage({ params }: PageProps<'/articles/[id]'>) {

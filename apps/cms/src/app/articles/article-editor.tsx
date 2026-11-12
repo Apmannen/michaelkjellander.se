@@ -1,21 +1,23 @@
 'use client';
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  useTransition,
-} from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useSyncExternalStore, useTransition } from 'react';
 
-import { type Article, type ArticleInput, slugify } from '@/lib/articles';
+import type { Article, ArticleInput } from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
 import type { UploadedImage } from '@/lib/images';
+import type { Tag } from '@/lib/tags';
 
+import { BodyEditor } from '../body/body-editor';
+import { ConfirmDeleteDialog } from '../editor/confirm-delete-dialog';
+import {
+  EditorFooter,
+  useUnsavedChangesWarning,
+} from '../editor/editor-footer';
+import { Field, inputClass } from '../editor/field';
+import { SlugField } from '../editor/slug-field';
 import { ImagePicker } from '../images/image-picker';
+import { TagPicker } from '../tags/tag-picker';
 import { deleteArticle, saveArticle } from './actions';
-import { BodyEditor } from './body-editor';
 import { CallToActionField } from './cta-field';
 
 // New articles default to the current minute.
@@ -34,6 +36,7 @@ const toInput = (article: Article | null): ArticleInput => ({
   published_at: article ? new Date(article.published_at).toISOString() : now(),
   cover_image: article?.cover_image,
   body: withParagraphSlots(article?.body ?? []),
+  tag_ids: article?.tag_ids ?? [],
 });
 
 // ISO string -> value for <input type="datetime-local">, in the browser's
@@ -76,29 +79,31 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.published === b.published &&
   a.published_at === b.published_at &&
   JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
-  JSON.stringify(a.body) === JSON.stringify(b.body);
+  JSON.stringify(a.body) === JSON.stringify(b.body) &&
+  JSON.stringify(a.tag_ids) === JSON.stringify(b.tag_ids);
 
-export function ArticleEditor({ article }: { article: Article | null }) {
+// tags are all tags, which the article's tags are picked from.
+export function ArticleEditor({
+  article,
+  tags,
+}: {
+  article: Article | null;
+  tags: Tag[];
+}) {
   const [saved, setSaved] = useState<ArticleInput>(() => toInput(article));
   const [draft, setDraft] = useState<ArticleInput>(saved);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
   const [isSaving, startSaving] = useTransition();
   const [isDeleting, startDeleting] = useTransition();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const isClient = useIsClient();
 
   const isDirty = !isSame(draft, saved);
-
-  useEffect(() => {
-    if (!isDirty) return;
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [isDirty]);
+  useUnsavedChangesWarning(isDirty);
 
   const update = (patch: Partial<ArticleInput>) => {
     setDraft((current) => ({ ...current, ...patch }));
-    setError(null);
+    setError(undefined);
   };
 
   // Uploads finish later, so the alt text is read from the current draft
@@ -108,7 +113,7 @@ export function ArticleEditor({ article }: { article: Article | null }) {
       ...current,
       cover_image: { ...image, alt: current.cover_image?.alt ?? '' },
     }));
-    setError(null);
+    setError(undefined);
   };
 
   const setCoverAlt = (alt: string) => {
@@ -117,7 +122,7 @@ export function ArticleEditor({ article }: { article: Article | null }) {
         ? { ...current, cover_image: { ...current.cover_image, alt } }
         : current,
     );
-    setError(null);
+    setError(undefined);
   };
 
   const save = () => {
@@ -183,23 +188,12 @@ export function ArticleEditor({ article }: { article: Article | null }) {
             htmlFor='slug'
             description='Används i artikelns adress.'
           >
-            <div className='flex gap-2'>
-              <input
-                id='slug'
-                type='text'
-                value={draft.slug}
-                onChange={(event) => update({ slug: event.target.value })}
-                className={`${inputClass} font-mono`}
-              />
-              <button
-                type='button'
-                onClick={() => update({ slug: slugify(draft.title) })}
-                disabled={!draft.title.trim()}
-                className={secondaryButtonClass}
-              >
-                Generera
-              </button>
-            </div>
+            <SlugField
+              id='slug'
+              value={draft.slug}
+              source={draft.title}
+              onChange={(slug) => update({ slug })}
+            />
           </Field>
 
           <Field
@@ -264,6 +258,15 @@ export function ArticleEditor({ article }: { article: Article | null }) {
             />
           </Field>
 
+          <Field label='Taggar' htmlFor='tag_ids'>
+            <TagPicker
+              id='tag_ids'
+              tags={tags}
+              value={draft.tag_ids}
+              onChange={(tag_ids) => update({ tag_ids })}
+            />
+          </Field>
+
           <Field label='Publiceringstid' htmlFor='published_at'>
             <input
               id='published_at'
@@ -297,133 +300,27 @@ export function ArticleEditor({ article }: { article: Article | null }) {
         </div>
       </div>
 
-      <footer className='flex items-center justify-end gap-4 border-t border-zinc-200 px-6 py-3 dark:border-zinc-800'>
-        <p
-          role='status'
-          className={`mr-auto text-sm ${error ? 'text-red-600 dark:text-red-400' : 'text-zinc-500'}`}
-        >
-          {error ??
-            (isDirty ? 'Osparade ändringar' : article ? 'Allt sparat' : '')}
-        </p>
-        {isDirty && article && (
-          <button
-            type='button'
-            onClick={() => {
-              setDraft(saved);
-              setError(null);
-            }}
-            disabled={isSaving || isDeleting}
-            className={secondaryButtonClass}
-          >
-            Ångra ändringar
-          </button>
-        )}
-        {article && (
-          <button
-            type='button'
-            onClick={() => setIsConfirmingDelete(true)}
-            disabled={isSaving || isDeleting}
-            className='rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40'
-          >
-            {isDeleting ? 'Tar bort…' : 'Ta bort'}
-          </button>
-        )}
-        <button
-          type='submit'
-          disabled={!isDirty || isSaving || isDeleting}
-          className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
-        >
-          {isSaving ? 'Sparar…' : 'Spara'}
-        </button>
-      </footer>
+      <EditorFooter
+        error={error}
+        isDirty={isDirty}
+        isSaved={!!article}
+        isSaving={isSaving}
+        isDeleting={isDeleting}
+        onUndo={() => {
+          setDraft(saved);
+          setError(undefined);
+        }}
+        onDelete={() => setIsConfirmingDelete(true)}
+      />
 
       {article && isConfirmingDelete && (
         <ConfirmDeleteDialog
-          title={saved.title}
+          heading='Ta bort artikel?'
+          message={`”${saved.title}” tas bort och försvinner från sajten.`}
           onConfirm={() => remove(article.id)}
           onClose={() => setIsConfirmingDelete(false)}
         />
       )}
     </form>
-  );
-}
-
-function ConfirmDeleteDialog({
-  title,
-  onConfirm,
-  onClose,
-}: {
-  title: string;
-  onConfirm: () => void;
-  onClose: () => void;
-}) {
-  const dialog = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
-
-  // Portaled out of the article <form>, so its buttons can't submit it.
-  return createPortal(
-    <dialog
-      ref={dialog}
-      onClose={onClose}
-      className='m-auto w-full max-w-md rounded-lg bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/40 dark:bg-zinc-900 dark:text-zinc-100'
-    >
-      <div className='flex flex-col gap-5 p-6'>
-        <h2 className='text-base font-semibold'>Ta bort artikel?</h2>
-        <p className='text-sm text-zinc-600 dark:text-zinc-400'>
-          ”{title}” tas bort och försvinner från sajten.
-        </p>
-        <div className='flex justify-end gap-3'>
-          <button
-            type='button'
-            onClick={() => dialog.current?.close()}
-            autoFocus
-            className={secondaryButtonClass}
-          >
-            Avbryt
-          </button>
-          <button
-            type='button'
-            onClick={onConfirm}
-            className='rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700'
-          >
-            Ta bort
-          </button>
-        </div>
-      </div>
-    </dialog>,
-    document.body,
-  );
-}
-
-const inputClass =
-  'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900';
-
-const secondaryButtonClass =
-  'shrink-0 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:hover:bg-zinc-800';
-
-function Field({
-  label,
-  htmlFor,
-  description,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  description?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className='flex flex-col gap-2'>
-      <div>
-        <label htmlFor={htmlFor} className='text-sm font-semibold'>
-          {label}
-        </label>
-        {description && <p className='text-xs text-zinc-500'>{description}</p>}
-      </div>
-      {children}
-    </div>
   );
 }
