@@ -75,11 +75,9 @@ export const Article = ({
           ))}
         </div>
       </div>
-      <footer>
-        <div className='h-8' />
-        <Divider />
+      <footer className='mt-8 border-t border-[#E8DBCF]'>
         <div className='h-4' />
-        <div className='px-12'>HEJ</div>
+        <div className='px-12 text-[#5f544c]'>2026-01-03</div>
         <div className='h-4' />
       </footer>
     </article>
