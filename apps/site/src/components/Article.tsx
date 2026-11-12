@@ -74,15 +74,19 @@ export const Article = ({
             </div>
           ))}
         </div>
+        <Divider className={{ container: 'py-8' }} />
       </div>
-      <footer className='mt-8 border-t border-[#E8DBCF] py-6'>
+      <div className='px-12 flex justify-start pb-12  text-muted'>
+        Publicerad 2026-01-03
+      </div>
+      {/* <footer className='mt-8 border-t border-[#E8DBCF] py-6'>
         <div className='px-12 text-muted'>2026-01-03</div>
-      </footer>
+      </footer> */}
       {/* <footer className='mt-0 py-12'>
         <div className='h-' />
         <div className='px-12 flex justify-start'>Publicerad 2026-01-03</div>
         <div className='h' />
-      </footer> */}
+      </footer>  */}
     </article>
   );
 };
