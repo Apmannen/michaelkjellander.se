@@ -44,7 +44,7 @@ export type ArticlePayload = Pick<
 export type DynamicFieldPayload = {
   //href: string | null;
   text: string;
-  field: { key: string; };
+  field: { key: 'dev_tool' | 'dev_years' };
 };
 
 /* {
