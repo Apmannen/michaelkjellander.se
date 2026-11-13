@@ -9,6 +9,7 @@ import {
 import type {Article, ArticleInput, CallToAction} from '@/lib/articles';
 import type {Body} from '@/lib/body';
 import {IMAGE_BUCKET, type Image} from '@/lib/images';
+import type {Board, Issue, IssueColumn, IssueInput} from '@/lib/issues';
 import type {NewSiteInput, Site, SiteInput} from '@/lib/sites';
 import type {Tag, TagInput} from '@/lib/tags';
 
@@ -302,6 +303,129 @@ const updateSite = async (id: string, input: SiteInput) => {
     .single<Site>();
 };
 
+const ISSUE_COLUMN_COLUMNS = 'id, name, position, created_at, updated_at';
+
+const ISSUE_COLUMNS =
+  'id, number, column_id, position, title, text, created_at, updated_at';
+
+const getBoard = async (siteId: string): Promise<Board> => {
+  const [columns, issues] = await Promise.all([
+    supabase
+      .from('issue_columns')
+      .select(ISSUE_COLUMN_COLUMNS)
+      .eq('site_id', siteId)
+      .order('position')
+      .overrideTypes<IssueColumn[], {merge: false}>(),
+    supabase
+      .from('issues')
+      .select(ISSUE_COLUMNS)
+      .eq('site_id', siteId)
+      .order('position')
+      .overrideTypes<Issue[], {merge: false}>(),
+  ]);
+
+  if (columns.error) {
+    throw columns.error;
+  }
+  if (issues.error) {
+    throw issues.error;
+  }
+
+  return {columns: columns.data, issues: issues.data};
+};
+
+const getIssue = async (
+  siteId: string,
+  number: number,
+): Promise<Issue | undefined> => {
+  const {data, error} = await supabase
+    .from('issues')
+    .select(ISSUE_COLUMNS)
+    .eq('site_id', siteId)
+    .eq('number', number)
+    .maybeSingle<Issue>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? undefined;
+};
+
+// Added last on the board, see db/006_issues.sql.
+const createIssueColumn = async (siteId: string, name: string) => {
+  return supabase
+    .rpc('create_issue_column', {site_id: siteId, name})
+    .single<IssueColumn>();
+};
+
+const renameIssueColumn = async (siteId: string, id: string, name: string) => {
+  return supabase
+    .from('issue_columns')
+    .update({name, updated_at: new Date().toISOString()})
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .select(ISSUE_COLUMN_COLUMNS)
+    .single<IssueColumn>();
+};
+
+// position is counted among the other columns.
+const moveIssueColumn = async (id: string, position: number) => {
+  return supabase.rpc('move_issue_column', {column_id: id, position});
+};
+
+// Fails with foreign_key_violation (23503) if the column has issues.
+const deleteIssueColumn = async (id: string) => {
+  return supabase.rpc('delete_issue_column', {column_id: id});
+};
+
+// Added last in the column, with the site's next number. Fails with
+// foreign_key_violation (23503) if the column isn't on the site's board.
+const createIssue = async (
+  siteId: string,
+  columnId: string,
+  input: IssueInput,
+) => {
+  return supabase
+    .rpc('create_issue', {
+      site_id: siteId,
+      column_id: columnId,
+      title: input.title,
+      text: input.text,
+    })
+    .single<Issue>();
+};
+
+const updateIssue = async (siteId: string, id: string, input: IssueInput) => {
+  return supabase
+    .from('issues')
+    .update({
+      title: input.title,
+      text: input.text,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .select(ISSUE_COLUMNS)
+    .single<Issue>();
+};
+
+// position is counted among the column's other issues. Fails with
+// foreign_key_violation (23503) if the column isn't on the issue's site's
+// board.
+const moveIssue = async (id: string, columnId: string, position: number) => {
+  return supabase.rpc('move_issue', {
+    issue_id: id,
+    column_id: columnId,
+    position,
+  });
+};
+
+// Moves the issue to the trash table, see db/006_issues.sql.
+const deleteIssue = async (id: string) => {
+  return supabase.rpc('trash_issue', {issue_id: id});
+};
+
 export const db = {
   listSites,
   getSite,
@@ -316,5 +440,15 @@ export const db = {
   createTag,
   updateTag,
   deleteTag,
+  getBoard,
+  getIssue,
+  createIssueColumn,
+  renameIssueColumn,
+  moveIssueColumn,
+  deleteIssueColumn,
+  createIssue,
+  updateIssue,
+  moveIssue,
+  deleteIssue,
   uploadImage,
 };

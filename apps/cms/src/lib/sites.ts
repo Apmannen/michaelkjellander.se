@@ -70,6 +70,11 @@ export const SITE_SECTIONS = [
     description: 'Skapa och redigera taggar som artiklar kan kopplas till.',
   },
   {
+    path: 'issues',
+    title: 'Ärenden',
+    description: 'Anslagstavla med ärenden i kolumner.',
+  },
+  {
     path: 'triggers',
     title: 'Triggers',
     description: 'Kör åtgärder på sajten, t.ex. rensa cache.',
