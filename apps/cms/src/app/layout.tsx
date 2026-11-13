@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { Suspense } from 'react';
+
+import { db } from '@/lib/db';
+
+import { SiteMenu } from '@/components/sites/SiteMenu';
+
 import './globals.css';
 
 const geistSans = Geist({
@@ -17,6 +23,12 @@ export const metadata: Metadata = {
   title: 'Kjelle CMS',
 };
 
+// The secrets stay on the server, the menu only needs the names.
+async function Sites() {
+  const sites = await db.listSites();
+  return <SiteMenu sites={sites.map(({ id, name }) => ({ id, name }))} />;
+}
+
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
@@ -28,24 +40,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           <Link href='/' className='font-semibold'>
             Kjelle CMS
           </Link>
-          <Link
-            href='/articles'
-            className='text-zinc-600 hover:text-foreground dark:text-zinc-400'
-          >
-            Artiklar
-          </Link>
-          <Link
-            href='/tags'
-            className='text-zinc-600 hover:text-foreground dark:text-zinc-400'
-          >
-            Taggar
-          </Link>
-          <Link
-            href='/triggers'
-            className='text-zinc-600 hover:text-foreground dark:text-zinc-400'
-          >
-            Triggers
-          </Link>
+          <Suspense fallback={null}>
+            <Sites />
+          </Suspense>
         </nav>
         {children}
       </body>

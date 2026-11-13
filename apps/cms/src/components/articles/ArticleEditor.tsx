@@ -84,9 +84,11 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
 
 // tags are all tags, which the article's tags are picked from.
 export function ArticleEditor({
+  siteId,
   article,
   tags,
 }: {
+  siteId: string;
   article: Article | null;
   tags: Tag[];
 }) {
@@ -127,7 +129,7 @@ export function ArticleEditor({
 
   const save = () => {
     startSaving(async () => {
-      const result = await saveArticle(article?.id ?? null, draft);
+      const result = await saveArticle(siteId, article?.id ?? null, draft);
       if (!result.ok) {
         setError(result.error);
         return;
@@ -141,7 +143,7 @@ export function ArticleEditor({
   const remove = (id: string) => {
     setIsConfirmingDelete(false);
     startDeleting(async () => {
-      const result = await deleteArticle(id);
+      const result = await deleteArticle(siteId, id);
       setError(result.error);
     });
   };

@@ -1,5 +1,6 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import { useRef, useState, useTransition } from 'react';
 
 import {
@@ -44,8 +45,8 @@ export function ImagePreview({
   );
 }
 
-// Uploads the chosen file right away. id goes on the button, so a <label> can
-// point at it.
+// Uploads the chosen file right away, to the site in the URL. id goes on the
+// button, so a <label> can point at it.
 export function ImagePicker({
   id,
   value,
@@ -57,6 +58,9 @@ export function ImagePicker({
   onChange: (image: UploadedImage) => void;
   onRemove?: () => void;
 }) {
+  // Read from the URL rather than passed down, since the body editor's image
+  // blocks have one too.
+  const { site } = useParams<{ site: string }>();
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | undefined>(undefined);
   const [isUploading, startUploading] = useTransition();
@@ -78,7 +82,7 @@ export function ImagePicker({
       const formData = new FormData();
       formData.append('file', file);
       try {
-        const result = await uploadImage(formData);
+        const result = await uploadImage(site, formData);
         if (!result.ok) {
           setError(result.error);
           return;

@@ -18,7 +18,7 @@ export const useUnsavedChangesWarning = (isDirty: boolean) => {
 
 // The status and buttons under an editor's <form>. The save button submits
 // the form. isSaved tells whether the document exists yet, which is when it
-// can be deleted.
+// can be deleted, if onDelete is given.
 export function EditorFooter({
   error,
   isDirty,
@@ -34,7 +34,7 @@ export function EditorFooter({
   isSaving: boolean;
   isDeleting: boolean;
   onUndo: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }) {
   return (
     <footer className='flex items-center justify-end gap-4 border-t border-zinc-200 px-6 py-3 dark:border-zinc-800'>
@@ -54,7 +54,7 @@ export function EditorFooter({
           Ångra ändringar
         </button>
       )}
-      {isSaved && (
+      {isSaved && onDelete && (
         <button
           type='button'
           onClick={onDelete}

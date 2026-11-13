@@ -5,7 +5,13 @@ import { usePathname } from 'next/navigation';
 
 import type { Article } from '@/lib/articles';
 
-export function ArticleList({ articles }: { articles: Article[] }) {
+export function ArticleList({
+  siteId,
+  articles,
+}: {
+  siteId: string;
+  articles: Article[];
+}) {
   const pathname = usePathname();
 
   if (articles.length === 0) {
@@ -15,7 +21,7 @@ export function ArticleList({ articles }: { articles: Article[] }) {
   return (
     <ul className="flex flex-col p-2">
       {articles.map((article) => {
-        const href = `/articles/${article.id}`;
+        const href = `/${siteId}/articles/${article.id}`;
         const isActive = pathname === href;
         return (
           <li key={article.id}>

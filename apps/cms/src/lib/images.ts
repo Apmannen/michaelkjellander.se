@@ -58,9 +58,10 @@ export const IMAGE_ACCEPT = IMAGE_FORMATS.map(
 export const detectImageFormat = (bytes: Uint8Array) =>
   IMAGE_FORMATS.find((format) => format.matches(bytes));
 
-// Uploads are named <uuid>.<extension>.
+// Uploads are named <site id>/<uuid>.<extension>. Ones uploaded before there
+// were several sites have no site id.
 const IMAGE_PATH_PATTERN = new RegExp(
-  `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(${IMAGE_FORMATS.map((format) => format.extension).join('|')})$`,
+  `^(?:[a-z0-9]+(?:-[a-z0-9]+)*/)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(${IMAGE_FORMATS.map((format) => format.extension).join('|')})$`,
 );
 
 // NEXT_PUBLIC_SUPABASE_URL is set from SUPABASE_URL in next.config.ts, so the

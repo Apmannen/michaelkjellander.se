@@ -9,6 +9,7 @@ import {
 import type {Article, ArticleInput, CallToAction} from '@/lib/articles';
 import type {Body} from '@/lib/body';
 import {IMAGE_BUCKET, type Image} from '@/lib/images';
+import type {NewSiteInput, Site, SiteInput} from '@/lib/sites';
 import type {Tag, TagInput} from '@/lib/tags';
 
 // Service role key bypasses RLS, so this client must never reach the browser.
@@ -85,10 +86,11 @@ const setArticleTags = async (
   };
 };
 
-const listArticles = async (): Promise<Article[]> => {
+const listArticles = async (siteId: string): Promise<Article[]> => {
   const {data, error} = await supabase
     .from('articles')
     .select(ARTICLE_COLUMNS)
+    .eq('site_id', siteId)
     .order('updated_at', {ascending: false})
     .overrideTypes<ArticleRow[], {merge: false}>();
 
@@ -99,10 +101,14 @@ const listArticles = async (): Promise<Article[]> => {
   return data.map(toArticle);
 };
 
-const getArticle = async (id: string): Promise<Article | undefined> => {
+const getArticle = async (
+  siteId: string,
+  id: string,
+): Promise<Article | undefined> => {
   const {data, error} = await supabase
     .from('articles')
     .select(ARTICLE_COLUMNS)
+    .eq('site_id', siteId)
     .eq('id', id)
     .maybeSingle<ArticleRow>();
 
@@ -113,22 +119,27 @@ const getArticle = async (id: string): Promise<Article | undefined> => {
   return data ? toArticle(data) : undefined;
 };
 
-const createArticle = async (input: ArticleInput) => {
+const createArticle = async (siteId: string, input: ArticleInput) => {
   return setArticleTags(
     await supabase
       .from('articles')
-      .insert(toRow(input))
+      .insert({...toRow(input), site_id: siteId})
       .select(ARTICLE_COLUMNS)
       .single<ArticleRow>(),
     input.tag_ids,
   );
 };
 
-const updateArticle = async (id: string, input: ArticleInput) => {
+const updateArticle = async (
+  siteId: string,
+  id: string,
+  input: ArticleInput,
+) => {
   return setArticleTags(
     await supabase
       .from('articles')
       .update({...toRow(input), updated_at: new Date().toISOString()})
+      .eq('site_id', siteId)
       .eq('id', id)
       .select(ARTICLE_COLUMNS)
       .single<ArticleRow>(),
@@ -194,10 +205,11 @@ const setTagParents = async (
   };
 };
 
-const listTags = async (): Promise<Tag[]> => {
+const listTags = async (siteId: string): Promise<Tag[]> => {
   const {data, error} = await supabase
     .from('tags')
     .select(TAG_COLUMNS)
+    .eq('site_id', siteId)
     .order('name')
     .overrideTypes<TagRow[], {merge: false}>();
 
@@ -208,22 +220,23 @@ const listTags = async (): Promise<Tag[]> => {
   return data.map(toTag);
 };
 
-const createTag = async (input: TagInput) => {
+const createTag = async (siteId: string, input: TagInput) => {
   return setTagParents(
     await supabase
       .from('tags')
-      .insert(toTagRow(input))
+      .insert({...toTagRow(input), site_id: siteId})
       .select(TAG_COLUMNS)
       .single<TagRow>(),
     input.parent_ids,
   );
 };
 
-const updateTag = async (id: string, input: TagInput) => {
+const updateTag = async (siteId: string, id: string, input: TagInput) => {
   return setTagParents(
     await supabase
       .from('tags')
       .update({...toTagRow(input), updated_at: new Date().toISOString()})
+      .eq('site_id', siteId)
       .eq('id', id)
       .select(TAG_COLUMNS)
       .single<TagRow>(),
@@ -236,7 +249,64 @@ const deleteTag = async (id: string) => {
   return supabase.rpc('trash_tag', {tag_id: id});
 };
 
+const SITE_COLUMNS = 'id, name, url, api_secret, created_at, updated_at';
+
+const listSites = async (): Promise<Site[]> => {
+  const {data, error} = await supabase
+    .from('sites')
+    .select(SITE_COLUMNS)
+    .order('name')
+    .overrideTypes<Site[], {merge: false}>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};
+
+const getSite = async (id: string): Promise<Site | undefined> => {
+  const {data, error} = await supabase
+    .from('sites')
+    .select(SITE_COLUMNS)
+    .eq('id', id)
+    .maybeSingle<Site>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? undefined;
+};
+
+const toSiteRow = (input: SiteInput) => ({
+  name: input.name,
+  url: input.url,
+  api_secret: input.api_secret,
+});
+
+const createSite = async (input: NewSiteInput) => {
+  return supabase
+    .from('sites')
+    .insert({...toSiteRow(input), id: input.id})
+    .select(SITE_COLUMNS)
+    .single<Site>();
+};
+
+const updateSite = async (id: string, input: SiteInput) => {
+  return supabase
+    .from('sites')
+    .update({...toSiteRow(input), updated_at: new Date().toISOString()})
+    .eq('id', id)
+    .select(SITE_COLUMNS)
+    .single<Site>();
+};
+
 export const db = {
+  listSites,
+  getSite,
+  createSite,
+  updateSite,
   listArticles,
   getArticle,
   createArticle,

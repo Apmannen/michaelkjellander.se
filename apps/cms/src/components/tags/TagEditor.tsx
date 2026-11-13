@@ -35,7 +35,15 @@ const isSame = (a: TagInput, b: TagInput) =>
   JSON.stringify(a.parent_ids) === JSON.stringify(b.parent_ids);
 
 // tags are all tags, which the parents are picked from.
-export function TagEditor({ tag, tags }: { tag?: Tag; tags: Tag[] }) {
+export function TagEditor({
+  siteId,
+  tag,
+  tags,
+}: {
+  siteId: string;
+  tag?: Tag;
+  tags: Tag[];
+}) {
   const [saved, setSaved] = useState<TagInput>(() => toInput(tag));
   const [draft, setDraft] = useState<TagInput>(saved);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -56,7 +64,7 @@ export function TagEditor({ tag, tags }: { tag?: Tag; tags: Tag[] }) {
 
   const save = () => {
     startSaving(async () => {
-      const result = await saveTag(tag?.id, draft);
+      const result = await saveTag(siteId, tag?.id, draft);
       if (!result.ok) {
         setError(result.error);
         return;
@@ -70,7 +78,7 @@ export function TagEditor({ tag, tags }: { tag?: Tag; tags: Tag[] }) {
   const remove = (id: string) => {
     setIsConfirmingDelete(false);
     startDeleting(async () => {
-      const result = await deleteTag(id);
+      const result = await deleteTag(siteId, id);
       setError(result.error);
     });
   };

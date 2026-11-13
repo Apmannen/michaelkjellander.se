@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import type { Tag } from '@/lib/tags';
 
-export function TagList({ tags }: { tags: Tag[] }) {
+export function TagList({ siteId, tags }: { siteId: string; tags: Tag[] }) {
   const pathname = usePathname();
 
   if (tags.length === 0) {
@@ -17,7 +17,7 @@ export function TagList({ tags }: { tags: Tag[] }) {
   return (
     <ul className='flex flex-col p-2'>
       {tags.map((tag) => {
-        const href = `/tags/${tag.id}`;
+        const href = `/${siteId}/tags/${tag.id}`;
         const isActive = pathname === href;
         const parents = tag.parent_ids.flatMap((id) => names.get(id) ?? []);
         return (
