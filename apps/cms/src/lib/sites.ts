@@ -70,6 +70,11 @@ export const SITE_SECTIONS = [
     description: 'Skapa och redigera taggar som artiklar kan kopplas till.',
   },
   {
+    path: 'fields',
+    title: 'Fält',
+    description: 'Dynamiska fält som kan läggas till på artiklar, t.ex. Spela även.',
+  },
+  {
     path: 'issues',
     title: 'Ärenden',
     description: 'Anslagstavla med ärenden i kolumner.',

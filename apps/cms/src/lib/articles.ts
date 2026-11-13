@@ -4,6 +4,7 @@ import {
   isValidIconName,
   normalizeHref,
 } from '@/lib/body';
+import type { FieldValue } from '@/lib/fields';
 import type { Image } from '@/lib/images';
 import { validateSlug } from '@/lib/slug';
 
@@ -27,9 +28,15 @@ export type Article = {
   body: Body;
   // In the order they were picked.
   tag_ids: string[];
+  // Values of the site's dynamic fields, see lib/fields.ts. In order, and the
+  // values of a field are next to each other.
+  field_values: FieldValue[];
   created_at: string;
   updated_at: string;
 };
+
+// What other documents need to know about an article, e.g. to link to it.
+export type ArticleSummary = Pick<Article, 'id' | 'title' | 'published'>;
 
 export type ArticleInput = Pick<
   Article,
@@ -42,6 +49,7 @@ export type ArticleInput = Pick<
   | 'cover_image'
   | 'body'
   | 'tag_ids'
+  | 'field_values'
 >;
 
 // Undefined if every field is empty, so a cleared button is removed. A button
