@@ -51,8 +51,8 @@ export const Article = ({
         <Divider className={{ container: 'py-4' }} />
         <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
           <div className='text-[16px]'>
-            {devYears ? <div>Utvecklat i: {devYears}</div> : null}
-            {devTool ? <div>Utvecklingsår: {devTool}</div> : null}
+            {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
+            {devTool ? <div>Utvecklat i: {devTool}</div> : null}
           </div>
           <div className='flex-1 flex items-center sm:justify-end'>
             {article.cta ? (
