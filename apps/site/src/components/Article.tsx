@@ -40,7 +40,7 @@ export const Article = ({
           />
         ) : null}
       </div>
-      <div className='px-4 sm:px-12 text-[20px]'>
+      <div className='px-4 sm:px-12 text-[18px] sm:text-[20px]'>
         <H
           className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
