@@ -9,9 +9,11 @@ import { runTrigger } from './actions';
 type Status = { ok: boolean; message: string };
 
 export function TriggerButton({
+  siteId,
   triggerId,
   input,
 }: {
+  siteId: string;
   triggerId: string;
   input?: TriggerInput;
 }) {
@@ -28,7 +30,7 @@ export function TriggerButton({
     setStatus(undefined);
     startRunning(async () => {
       try {
-        const result = await runTrigger(triggerId, input && trimmedValue);
+        const result = await runTrigger(siteId, triggerId, input && trimmedValue);
         setStatus(
           result.ok
             ? { ok: true, message: 'Klart' }

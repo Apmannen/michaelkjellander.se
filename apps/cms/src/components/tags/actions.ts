@@ -22,13 +22,14 @@ const CYCLE_ERROR =
   'En tagg kan inte ha sig själv eller någon av sina undertaggar som förälder.';
 
 // The article editors list the tags, so they're refreshed too.
-const revalidate = () => {
-  revalidatePath('/tags', 'layout');
-  revalidatePath('/articles', 'layout');
+const revalidate = (siteId: string) => {
+  revalidatePath(`/${siteId}/tags`, 'layout');
+  revalidatePath(`/${siteId}/articles`, 'layout');
 };
 
 // TODO: verify authentication here once the cms has login.
 export async function saveTag(
+  siteId: string,
   id: string | undefined,
   raw: TagInput,
 ): Promise<SaveTagResult> {
@@ -50,15 +51,15 @@ export async function saveTag(
   // Checked before saving, so the tag isn't saved without its parents. The
   // database checks it again when setting the parents.
   if (id) {
-    const descendants = findDescendantIds(await db.listTags(), id);
+    const descendants = findDescendantIds(await db.listTags(siteId), id);
     if (input.parent_ids.some((parentId) => descendants.has(parentId))) {
       return { ok: false, error: CYCLE_ERROR };
     }
   }
 
   const { data, error } = id
-    ? await db.updateTag(id, input)
-    : await db.createTag(input);
+    ? await db.updateTag(siteId, id, input)
+    : await db.createTag(siteId, input);
 
   if (error) {
     // 23505 = unique_violation
@@ -73,10 +74,10 @@ export async function saveTag(
     return { ok: false, error: 'Kunde inte spara taggen.' };
   }
 
-  revalidate();
+  revalidate(siteId);
 
   if (!id) {
-    redirect(`/tags/${data.id}`);
+    redirect(`/${siteId}/tags/${data.id}`);
   }
 
   return { ok: true, tag: data };
@@ -84,6 +85,7 @@ export async function saveTag(
 
 // TODO: verify authentication here once the cms has login.
 export async function deleteTag(
+  siteId: string,
   id: string,
 ): Promise<{ ok: false; error: string }> {
   const { error } = await db.deleteTag(id);
@@ -93,6 +95,6 @@ export async function deleteTag(
     return { ok: false, error: 'Kunde inte ta bort taggen.' };
   }
 
-  revalidate();
-  redirect('/tags');
+  revalidate(siteId);
+  redirect(`/${siteId}/tags`);
 }

@@ -1,41 +1,43 @@
+import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
-const sections = [
-  {
-    href: '/articles',
-    title: 'Artiklar',
-    description: 'Skapa och redigera artiklar.',
-  },
-  {
-    href: '/tags',
-    title: 'Taggar',
-    description: 'Skapa och redigera taggar som artiklar kan kopplas till.',
-  },
-  {
-    href: '/triggers',
-    title: 'Triggers',
-    description: 'Kör åtgärder på sajten, t.ex. rensa cache.',
-  },
-] as const;
+import { db } from '@/lib/db';
+import { SITE_COOKIE } from '@/lib/sites';
+
+// Goes straight to the last picked site, see SiteMenu. Without one, the site
+// is picked in the top menu.
+async function Start() {
+  const [cookieStore, sites] = await Promise.all([cookies(), db.listSites()]);
+  const lastSiteId = cookieStore.get(SITE_COOKIE)?.value;
+  if (lastSiteId && sites.some((site) => site.id === lastSiteId)) {
+    redirect(`/${lastSiteId}`);
+  }
+
+  return (
+    <div className='flex flex-col items-center gap-4'>
+      <p>
+        {sites.length
+          ? 'Välj en sajt i menyn eller skapa en ny.'
+          : 'Det finns inga sajter än.'}
+      </p>
+      <Link
+        href='/sites/new'
+        className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700'
+      >
+        Skapa sajt
+      </Link>
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <main className="flex-1 overflow-y-auto">
-      <ul className="mx-auto flex max-w-2xl flex-col gap-3 px-6 py-8">
-        {sections.map((section) => (
-          <li key={section.href}>
-            <Link
-              href={section.href}
-              className="flex flex-col gap-0.5 rounded-md border border-zinc-200 px-4 py-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
-            >
-              <span className="text-sm font-semibold">{section.title}</span>
-              <span className="text-xs text-zinc-500">
-                {section.description}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <main className='flex flex-1 items-center justify-center text-sm text-zinc-500'>
+      <Suspense fallback={<p>Laddar…</p>}>
+        <Start />
+      </Suspense>
     </main>
   );
 }

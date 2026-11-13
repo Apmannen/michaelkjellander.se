@@ -1,5 +1,6 @@
 'use server';
 
+import { db } from '@/lib/db';
 import { getTrigger } from '@/lib/triggers';
 
 export type RunTriggerResult = { ok: true } | { ok: false; error: string };
@@ -8,6 +9,7 @@ const logPrefix = '[runTrigger]';
 
 // TODO: verify authentication here once the cms has login.
 export async function runTrigger(
+  siteId: string,
   id: string,
   value?: string,
 ): Promise<RunTriggerResult> {
@@ -16,11 +18,15 @@ export async function runTrigger(
     return { ok: false, error: 'Okänd trigger.' };
   }
 
-  const siteUrl = process.env.SITE_URL;
-  const secret = process.env.CMS_SITE_API_SECRET;
-  if (!siteUrl || !secret) {
-    console.error('runTrigger: SITE_URL or CMS_SITE_API_SECRET is missing');
-    return { ok: false, error: 'CMS:et saknar konfiguration för sajten.' };
+  const site = await db.getSite(siteId);
+  if (!site) {
+    return { ok: false, error: 'Okänd sajt.' };
+  }
+  if (!site.url || !site.api_secret) {
+    return {
+      ok: false,
+      error: 'Ange sajtens adress och API-nyckel i sajtinställningarna.',
+    };
   }
 
   const trimmedValue = String(value ?? '').trim();
@@ -29,12 +35,12 @@ export async function runTrigger(
   }
 
   try {
-    const url = new URL(trigger.endpoint, siteUrl);
+    const url = new URL(trigger.endpoint, site.url);
     console.log(logPrefix, 'Sending request to:', url.toString());
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${secret}`,
+        Authorization: `Bearer ${site.api_secret}`,
         ...(trigger.input && { 'Content-Type': 'application/json' }),
       },
       ...(trigger.input && {

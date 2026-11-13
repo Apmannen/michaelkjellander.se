@@ -2,6 +2,7 @@
 
 import { db } from '@/lib/db';
 import { MAX_IMAGE_SIZE, detectImageFormat } from '@/lib/images';
+import { validateSiteId } from '@/lib/sites';
 
 export type UploadImageResult =
   | { ok: true; path: string }
@@ -9,8 +10,14 @@ export type UploadImageResult =
 
 // TODO: verify authentication here once the cms has login.
 export async function uploadImage(
+  siteId: string,
   formData: FormData,
 ): Promise<UploadImageResult> {
+  // The site id becomes part of the path, so it's checked first.
+  if (validateSiteId(siteId)) {
+    return { ok: false, error: 'Okänd sajt.' };
+  }
+
   const file = formData.get('file');
   if (!(file instanceof File)) {
     return { ok: false, error: 'Ingen bild vald.' };
@@ -28,7 +35,7 @@ export async function uploadImage(
     };
   }
 
-  const path = `${crypto.randomUUID()}.${format.extension}`;
+  const path = `${siteId}/${crypto.randomUUID()}.${format.extension}`;
   const { error } = await db.uploadImage(path, data, format.contentType);
 
   if (error) {

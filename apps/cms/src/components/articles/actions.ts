@@ -20,6 +20,7 @@ export type SaveArticleResult =
 
 // TODO: verify authentication here once the cms has login.
 export async function saveArticle(
+  siteId: string,
   id: string | null,
   raw: ArticleInput,
 ): Promise<SaveArticleResult> {
@@ -44,8 +45,8 @@ export async function saveArticle(
   input.published_at = new Date(input.published_at).toISOString();
 
   const { data, error } = id
-    ? await db.updateArticle(id, input)
-    : await db.createArticle(input);
+    ? await db.updateArticle(siteId, id, input)
+    : await db.createArticle(siteId, input);
 
   if (error) {
     // 23505 = unique_violation
@@ -56,10 +57,10 @@ export async function saveArticle(
     return { ok: false, error: 'Kunde inte spara artikeln.' };
   }
 
-  revalidatePath('/articles', 'layout');
+  revalidatePath(`/${siteId}/articles`, 'layout');
 
   if (!id) {
-    redirect(`/articles/${data.id}`);
+    redirect(`/${siteId}/articles/${data.id}`);
   }
 
   return { ok: true, article: data };
@@ -67,6 +68,7 @@ export async function saveArticle(
 
 // TODO: verify authentication here once the cms has login.
 export async function deleteArticle(
+  siteId: string,
   id: string,
 ): Promise<{ ok: false; error: string }> {
   const { error } = await db.deleteArticle(id);
@@ -76,6 +78,6 @@ export async function deleteArticle(
     return { ok: false, error: 'Kunde inte ta bort artikeln.' };
   }
 
-  revalidatePath('/articles', 'layout');
-  redirect('/articles');
+  revalidatePath(`/${siteId}/articles`, 'layout');
+  redirect(`/${siteId}/articles`);
 }
