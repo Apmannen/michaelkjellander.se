@@ -2,8 +2,9 @@
 
 import { useState, useSyncExternalStore, useTransition } from 'react';
 
-import type { Article, ArticleInput } from '@/lib/articles';
+import type { Article, ArticleInput, ArticleSummary } from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
+import type { FieldDefinition } from '@/lib/fields';
 import type { UploadedImage } from '@/lib/images';
 import type { Tag } from '@/lib/tags';
 
@@ -15,6 +16,7 @@ import {
 } from '../editor/EditorFooter';
 import { Field, inputClass } from '../editor/Field';
 import { SlugField } from '../editor/SlugField';
+import { ArticleFieldsField } from '../fields/ArticleFieldsField';
 import { ImagePicker } from '../images/image-picker';
 import { TagPicker } from '../tags/tag-picker';
 import { deleteArticle, saveArticle } from './actions';
@@ -37,6 +39,7 @@ const toInput = (article: Article | null): ArticleInput => ({
   cover_image: article?.cover_image,
   body: withParagraphSlots(article?.body ?? []),
   tag_ids: article?.tag_ids ?? [],
+  field_values: article?.field_values ?? [],
 });
 
 // ISO string -> value for <input type="datetime-local">, in the browser's
@@ -80,17 +83,24 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.published_at === b.published_at &&
   JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
   JSON.stringify(a.body) === JSON.stringify(b.body) &&
-  JSON.stringify(a.tag_ids) === JSON.stringify(b.tag_ids);
+  JSON.stringify(a.tag_ids) === JSON.stringify(b.tag_ids) &&
+  JSON.stringify(a.field_values) === JSON.stringify(b.field_values);
 
-// tags are all tags, which the article's tags are picked from.
+// tags are all of the site's tags, which the article's tags are picked from.
+// fieldDefinitions are the site's dynamic fields, and articles the articles
+// that link fields can link to.
 export function ArticleEditor({
   siteId,
   article,
   tags,
+  fieldDefinitions,
+  articles,
 }: {
   siteId: string;
   article: Article | null;
   tags: Tag[];
+  fieldDefinitions: FieldDefinition[];
+  articles: ArticleSummary[];
 }) {
   const [saved, setSaved] = useState<ArticleInput>(() => toInput(article));
   const [draft, setDraft] = useState<ArticleInput>(saved);
@@ -266,6 +276,21 @@ export function ArticleEditor({
               tags={tags}
               value={draft.tag_ids}
               onChange={(tag_ids) => update({ tag_ids })}
+            />
+          </Field>
+
+          <Field
+            label='Fält'
+            htmlFor='field_values'
+            description='Valfria. Sajtens dynamiska fält, t.ex. Spela även.'
+          >
+            <ArticleFieldsField
+              id='field_values'
+              definitions={fieldDefinitions}
+              articles={articles}
+              articleId={article?.id}
+              value={draft.field_values}
+              onChange={(field_values) => update({ field_values })}
             />
           </Field>
 

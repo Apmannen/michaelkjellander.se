@@ -6,8 +6,18 @@ import {
   type PostgrestSingleResponse,
 } from '@supabase/supabase-js';
 
-import type {Article, ArticleInput, CallToAction} from '@/lib/articles';
+import type {
+  Article,
+  ArticleInput,
+  ArticleSummary,
+  CallToAction,
+} from '@/lib/articles';
 import type {Body} from '@/lib/body';
+import type {
+  FieldDefinition,
+  FieldDefinitionInput,
+  FieldValue,
+} from '@/lib/fields';
 import {IMAGE_BUCKET, type Image} from '@/lib/images';
 import type {Board, Issue, IssueColumn, IssueInput} from '@/lib/issues';
 import type {NewSiteInput, Site, SiteInput} from '@/lib/sites';
@@ -32,28 +42,55 @@ type SaveResult<T> =
   | {data: undefined; error: PostgrestError};
 
 const ARTICLE_COLUMNS =
-  'id, title, slug, intro, cta, published, published_at, cover_image, body, created_at, updated_at, article_tags!article_tags_article_id_fkey(tag_id, position)';
+  'id, title, slug, intro, cta, published, published_at, cover_image, body, created_at, updated_at, article_tags!article_tags_article_id_fkey(tag_id, position), article_field_values!article_field_values_article_id_fkey(field_id, position, text, href, target_article_id)';
 
 // The database uses null where the app uses undefined.
-type ArticleRow = Omit<Article, 'cover_image' | 'cta' | 'tag_ids'> & {
+type FieldValueRow = {
+  field_id: string;
+  text: string;
+  href: string | null;
+  target_article_id: string | null;
+};
+
+const toFieldValue = ({
+  field_id,
+  text,
+  href,
+  target_article_id,
+}: FieldValueRow): FieldValue => ({
+  field_id,
+  text,
+  ...(href ? {href} : {}),
+  ...(target_article_id ? {target_article_id} : {}),
+});
+
+type ArticleRow = Omit<
+  Article,
+  'cover_image' | 'cta' | 'tag_ids' | 'field_values'
+> & {
   cover_image: Image | null;
   cta: CallToAction | null;
   article_tags: LinkRow<'tag_id'>[];
+  article_field_values: (FieldValueRow & {position: number})[];
 };
 
 const toArticle = ({
   cover_image,
   cta,
   article_tags,
+  article_field_values,
   ...row
 }: ArticleRow): Article => ({
   ...row,
   ...(cover_image ? {cover_image} : {}),
   ...(cta ? {cta} : {}),
   tag_ids: toIds(article_tags, 'tag_id'),
+  field_values: [...article_field_values]
+    .sort((a, b) => a.position - b.position)
+    .map(toFieldValue),
 });
 
-// The tags are stored separately, see setArticleTags.
+// The tags and field values are stored separately, see setArticleLinks.
 const toRow = (input: ArticleInput) => ({
   title: input.title,
   slug: input.slug,
@@ -65,24 +102,36 @@ const toRow = (input: ArticleInput) => ({
   body: input.body,
 });
 
-// Replaces the article's tags and gives the article with the tags that were
-// set, which leaves out tags that were deleted meanwhile.
-const setArticleTags = async (
+// Replaces the article's tags and field values, and gives the article with
+// the ones that were set, which leaves out e.g. tags that were deleted
+// meanwhile. Each of them is replaced in one transaction.
+const setArticleLinks = async (
   {data, error}: PostgrestSingleResponse<ArticleRow>,
-  tagIds: string[],
+  input: ArticleInput,
 ): Promise<SaveResult<Article>> => {
   if (error) {
     return {data: undefined, error};
   }
   const tags = await supabase.rpc('set_article_tags', {
     article_id: data.id,
-    tag_ids: tagIds,
+    tag_ids: input.tag_ids,
   });
   if (tags.error) {
     return {data: undefined, error: tags.error};
   }
+  const fieldValues = await supabase.rpc('set_article_field_values', {
+    article_id: data.id,
+    field_values: input.field_values,
+  });
+  if (fieldValues.error) {
+    return {data: undefined, error: fieldValues.error};
+  }
   return {
-    data: {...toArticle(data), tag_ids: tags.data as string[]},
+    data: {
+      ...toArticle(data),
+      tag_ids: tags.data as string[],
+      field_values: (fieldValues.data as FieldValueRow[]).map(toFieldValue),
+    },
     error: undefined,
   };
 };
@@ -120,14 +169,32 @@ const getArticle = async (
   return data ? toArticle(data) : undefined;
 };
 
+// The articles that link fields can link to.
+const listArticleSummaries = async (
+  siteId: string,
+): Promise<ArticleSummary[]> => {
+  const {data, error} = await supabase
+    .from('articles')
+    .select('id, title, published')
+    .eq('site_id', siteId)
+    .order('title')
+    .overrideTypes<ArticleSummary[], {merge: false}>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};
+
 const createArticle = async (siteId: string, input: ArticleInput) => {
-  return setArticleTags(
+  return setArticleLinks(
     await supabase
       .from('articles')
       .insert({...toRow(input), site_id: siteId})
       .select(ARTICLE_COLUMNS)
       .single<ArticleRow>(),
-    input.tag_ids,
+    input,
   );
 };
 
@@ -136,7 +203,7 @@ const updateArticle = async (
   id: string,
   input: ArticleInput,
 ) => {
-  return setArticleTags(
+  return setArticleLinks(
     await supabase
       .from('articles')
       .update({...toRow(input), updated_at: new Date().toISOString()})
@@ -144,7 +211,7 @@ const updateArticle = async (
       .eq('id', id)
       .select(ARTICLE_COLUMNS)
       .single<ArticleRow>(),
-    input.tag_ids,
+    input,
   );
 };
 
@@ -248,6 +315,71 @@ const updateTag = async (siteId: string, id: string, input: TagInput) => {
 // Moves the tag to the trash table, see db/004_tags.sql.
 const deleteTag = async (id: string) => {
   return supabase.rpc('trash_tag', {tag_id: id});
+};
+
+const FIELD_DEFINITION_COLUMNS =
+  'id, key, label, type, multiple, description, created_at, updated_at';
+
+const listFieldDefinitions = async (
+  siteId: string,
+): Promise<FieldDefinition[]> => {
+  const {data, error} = await supabase
+    .from('field_definitions')
+    .select(FIELD_DEFINITION_COLUMNS)
+    .eq('site_id', siteId)
+    .order('label')
+    .overrideTypes<FieldDefinition[], {merge: false}>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};
+
+const createFieldDefinition = async (
+  siteId: string,
+  input: FieldDefinitionInput,
+) => {
+  return supabase
+    .from('field_definitions')
+    .insert({
+      site_id: siteId,
+      key: input.key,
+      label: input.label,
+      type: input.type,
+      multiple: input.multiple,
+      description: input.description,
+    })
+    .select(FIELD_DEFINITION_COLUMNS)
+    .single<FieldDefinition>();
+};
+
+// The type can't be changed, so it's left out.
+const updateFieldDefinition = async (
+  siteId: string,
+  id: string,
+  input: Omit<FieldDefinitionInput, 'type'>,
+) => {
+  return supabase
+    .from('field_definitions')
+    .update({
+      key: input.key,
+      label: input.label,
+      multiple: input.multiple,
+      description: input.description,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .select(FIELD_DEFINITION_COLUMNS)
+    .single<FieldDefinition>();
+};
+
+// Moves the field definition, and its values, to the trash table, see
+// db/007_fields.sql.
+const deleteFieldDefinition = async (id: string) => {
+  return supabase.rpc('trash_field_definition', {field_id: id});
 };
 
 const SITE_COLUMNS = 'id, name, url, api_secret, created_at, updated_at';
@@ -436,6 +568,7 @@ export const db = {
   updateSite,
   listArticles,
   getArticle,
+  listArticleSummaries,
   createArticle,
   updateArticle,
   deleteArticle,
@@ -443,6 +576,10 @@ export const db = {
   createTag,
   updateTag,
   deleteTag,
+  listFieldDefinitions,
+  createFieldDefinition,
+  updateFieldDefinition,
+  deleteFieldDefinition,
   getBoard,
   getIssue,
   createIssueColumn,

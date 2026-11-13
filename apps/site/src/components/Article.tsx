@@ -16,10 +16,13 @@ export const Article = ({
 }: {
   article: Pick<
     ArticlePayload,
-    'title' | 'body' | 'cover_image' | 'intro' | 'cta'
+    'title' | 'body' | 'cover_image' | 'intro' | 'cta' | 'fields'
   >;
   isMain: boolean;
 }) => {
+  const { fields } = article;
+  const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
+  const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
   //TODO: can remove this since we won't display full articles in a feed
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
@@ -48,8 +51,8 @@ export const Article = ({
         <Divider className={{ container: 'py-4' }} />
         <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
           <div className='text-[16px]'>
-            <div>Utvecklingsår: 2021-2023</div>
-            <div>Utvecklat i: Unity</div>
+            {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
+            {devTool ? <div>Utvecklat i: {devTool}</div> : null}
           </div>
           <div className='flex-1 flex items-center sm:justify-end'>
             {article.cta ? (

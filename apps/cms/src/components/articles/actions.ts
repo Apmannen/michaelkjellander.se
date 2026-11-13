@@ -11,6 +11,7 @@ import {
 } from '@/lib/articles';
 import { parseBody } from '@/lib/body';
 import { db } from '@/lib/db';
+import { parseFieldValues, validateFieldValues } from '@/lib/fields';
 import { parseImage } from '@/lib/images';
 import { parseIds } from '@/lib/tags';
 
@@ -24,6 +25,7 @@ export async function saveArticle(
   id: string | null,
   raw: ArticleInput,
 ): Promise<SaveArticleResult> {
+  const fieldDefinitions = await db.listFieldDefinitions(siteId);
   const input: ArticleInput = {
     title: String(raw.title ?? '').trim(),
     slug: String(raw.slug ?? '').trim(),
@@ -37,10 +39,15 @@ export async function saveArticle(
     cover_image: parseImage(raw.cover_image),
     body: parseBody(raw.body),
     tag_ids: parseIds(raw.tag_ids),
+    field_values: parseFieldValues(raw.field_values, fieldDefinitions),
   };
 
-  const validationError = validateArticle(input);
-  if (validationError) return { ok: false, error: validationError };
+  const validationError =
+    validateArticle(input) ??
+    validateFieldValues(input.field_values, fieldDefinitions);
+  if (validationError) {
+    return { ok: false, error: validationError };
+  }
 
   input.published_at = new Date(input.published_at).toISOString();
 

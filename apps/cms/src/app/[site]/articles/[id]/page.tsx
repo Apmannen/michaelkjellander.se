@@ -14,9 +14,11 @@ async function Editor({
   params: PageProps<'/[site]/articles/[id]'>['params'];
 }) {
   const { site, id } = await params;
-  const [article, tags] = await Promise.all([
+  const [article, tags, fieldDefinitions, articles] = await Promise.all([
     UUID_PATTERN.test(id) ? db.getArticle(site, id) : undefined,
     db.listTags(site),
+    db.listFieldDefinitions(site),
+    db.listArticleSummaries(site),
   ]);
   if (!article) {
     notFound();
@@ -28,6 +30,8 @@ async function Editor({
       siteId={site}
       article={article}
       tags={tags}
+      fieldDefinitions={fieldDefinitions}
+      articles={articles}
     />
   );
 }

@@ -14,6 +14,91 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_field_values: {
+        Row: {
+          article_id: string
+          field_id: string
+          href: string | null
+          id: string
+          position: number
+          target_article_id: string | null
+          text: string
+        }
+        Insert: {
+          article_id: string
+          field_id: string
+          href?: string | null
+          id?: string
+          position?: number
+          target_article_id?: string | null
+          text: string
+        }
+        Update: {
+          article_id?: string
+          field_id?: string
+          href?: string | null
+          id?: string
+          position?: number
+          target_article_id?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_field_values_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_field_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "field_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_field_values_target_article_id_fkey"
+            columns: ["target_article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      article_tags: {
+        Row: {
+          article_id: string
+          position: number
+          tag_id: string
+        }
+        Insert: {
+          article_id: string
+          position?: number
+          tag_id: string
+        }
+        Update: {
+          article_id?: string
+          position?: number
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_tags_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           body: Json
@@ -24,6 +109,7 @@ export type Database = {
           intro: string
           published: boolean
           published_at: string
+          site_id: string
           slug: string
           title: string
           updated_at: string
@@ -37,6 +123,7 @@ export type Database = {
           intro?: string
           published?: boolean
           published_at?: string
+          site_id: string
           slug: string
           title: string
           updated_at?: string
@@ -50,11 +137,251 @@ export type Database = {
           intro?: string
           published?: boolean
           published_at?: string
+          site_id?: string
           slug?: string
           title?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "articles_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      field_definitions: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          key: string
+          label: string
+          multiple: boolean
+          site_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          key: string
+          label: string
+          multiple?: boolean
+          site_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          key?: string
+          label?: string
+          multiple?: boolean
+          site_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "field_definitions_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issue_columns: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          site_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          site_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_columns_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          column_id: string
+          created_at: string
+          id: string
+          number: number
+          position: number
+          site_id: string
+          text: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          column_id: string
+          created_at?: string
+          id?: string
+          number: number
+          position?: number
+          site_id: string
+          text?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          column_id?: string
+          created_at?: string
+          id?: string
+          number?: number
+          position?: number
+          site_id?: string
+          text?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "issue_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          api_secret: string
+          created_at: string
+          id: string
+          last_issue_number: number
+          name: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          api_secret?: string
+          created_at?: string
+          id: string
+          last_issue_number?: number
+          name: string
+          updated_at?: string
+          url?: string
+        }
+        Update: {
+          api_secret?: string
+          created_at?: string
+          id?: string
+          last_issue_number?: number
+          name?: string
+          updated_at?: string
+          url?: string
+        }
         Relationships: []
+      }
+      tag_parents: {
+        Row: {
+          parent_id: string
+          position: number
+          tag_id: string
+        }
+        Insert: {
+          parent_id: string
+          position?: number
+          tag_id: string
+        }
+        Update: {
+          parent_id?: string
+          position?: number
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tag_parents_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_parents_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          description: Json
+          id: string
+          name: string
+          site_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: Json
+          id?: string
+          name: string
+          site_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: Json
+          id?: string
+          name?: string
+          site_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       test_table: {
         Row: {
@@ -81,6 +408,7 @@ export type Database = {
           document_id: string
           document_type: string
           id: string
+          site_id: string | null
         }
         Insert: {
           data: Json
@@ -88,6 +416,7 @@ export type Database = {
           document_id: string
           document_type: string
           id?: string
+          site_id?: string | null
         }
         Update: {
           data?: Json
@@ -95,6 +424,7 @@ export type Database = {
           document_id?: string
           document_type?: string
           id?: string
+          site_id?: string | null
         }
         Relationships: []
       }
@@ -103,7 +433,74 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_issue: {
+        Args: {
+          column_id: string
+          site_id: string
+          text: string
+          title: string
+        }
+        Returns: {
+          column_id: string
+          created_at: string
+          id: string
+          number: number
+          position: number
+          site_id: string
+          text: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "issues"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_issue_column: {
+        Args: { name: string; site_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          site_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "issue_columns"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      delete_issue_column: { Args: { column_id: string }; Returns: boolean }
+      move_issue: {
+        Args: { column_id: string; issue_id: string; new_position: number }
+        Returns: boolean
+      }
+      move_issue_column: {
+        Args: { column_id: string; new_position: number }
+        Returns: boolean
+      }
+      renumber_issues: { Args: { column_id: string }; Returns: undefined }
+      set_article_field_values: {
+        Args: { article_id: string; field_values: Json }
+        Returns: Json
+      }
+      set_article_tags: {
+        Args: { article_id: string; tag_ids: string[] }
+        Returns: string[]
+      }
+      set_tag_parents: {
+        Args: { parent_ids: string[]; tag_id: string }
+        Returns: string[]
+      }
       trash_article: { Args: { article_id: string }; Returns: boolean }
+      trash_field_definition: { Args: { field_id: string }; Returns: boolean }
+      trash_issue: { Args: { issue_id: string }; Returns: boolean }
+      trash_tag: { Args: { tag_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
