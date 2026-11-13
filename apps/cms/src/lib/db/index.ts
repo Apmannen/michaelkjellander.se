@@ -371,7 +371,10 @@ const renameIssueColumn = async (siteId: string, id: string, name: string) => {
 
 // position is counted among the other columns.
 const moveIssueColumn = async (id: string, position: number) => {
-  return supabase.rpc('move_issue_column', {column_id: id, position});
+  return supabase.rpc('move_issue_column', {
+    column_id: id,
+    new_position: position,
+  });
 };
 
 // Fails with foreign_key_violation (23503) if the column has issues.
@@ -417,7 +420,7 @@ const moveIssue = async (id: string, columnId: string, position: number) => {
   return supabase.rpc('move_issue', {
     issue_id: id,
     column_id: columnId,
-    position,
+    new_position: position,
   });
 };
 

@@ -92,7 +92,7 @@ grant execute on function public.create_issue_column(text, text)
 -- if there was no column with that id.
 create or replace function public.move_issue_column(
   column_id uuid,
-  position int
+  new_position int
 )
 returns boolean
 language plpgsql
@@ -123,7 +123,7 @@ begin
         and issue_columns.id <> move_issue_column.column_id
   ), ordered as (
     select others.id,
-        case when others.place >= move_issue_column.position
+        case when others.place >= move_issue_column.new_position
           then others.place + 1
           else others.place
         end as position
@@ -131,7 +131,7 @@ begin
     union all
     select move_issue_column.column_id,
         least(
-          greatest(move_issue_column.position, 0),
+          greatest(move_issue_column.new_position, 0),
           (select count(*) from others)
         )
   )
@@ -273,7 +273,7 @@ grant execute on function public.renumber_issues(uuid) to service_role;
 create or replace function public.move_issue(
   issue_id uuid,
   column_id uuid,
-  position int
+  new_position int
 )
 returns boolean
 language plpgsql
@@ -318,7 +318,7 @@ begin
         and issues.id <> move_issue.issue_id
   ), ordered as (
     select others.id,
-        case when others.place >= move_issue.position
+        case when others.place >= move_issue.new_position
           then others.place + 1
           else others.place
         end as position
@@ -326,7 +326,7 @@ begin
     union all
     select move_issue.issue_id,
         least(
-          greatest(move_issue.position, 0),
+          greatest(move_issue.new_position, 0),
           (select count(*) from others)
         )
   )
