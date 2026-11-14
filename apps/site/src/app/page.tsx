@@ -3,13 +3,10 @@ import 'server-only';
 import { MainShell } from '@/components/shells/MainShell';
 import { db } from '@/lib/db';
 import { ArticleCard } from '@/components/articles/ArticleCard';
-
-//TODO: temporary?
-export const instant = false;
+import { ArticleCardListSkeleton } from '@/components/skeletons/ArticleCardSkeleton';
+import { Suspense } from 'react';
 
 export default async function Home() {
-  const articles = await db.articles({});
-
   return (
     <MainShell>
       <div className='max-w-content mx-auto'>
@@ -19,16 +16,22 @@ export default async function Home() {
         <h2 className='pt-3 text-[19px] italic text-muted'>
           Min hemsida där jag postar inlägg om lite allt möjligt
         </h2>
-        {/* <h1>Artiklar</h1> */}
         <div className='pt-8 w-full'>
-          {articles.map((article, i) => (
-            <div key={i}>
-              <ArticleCard key={i} article={article} />
-              {/* <Article article={article} isMain={false} /> */}
-            </div>
-          ))}
+          <Suspense fallback={<ArticleCardListSkeleton />}>
+            <SuspensePage />
+          </Suspense>
         </div>
       </div>
     </MainShell>
   );
 }
+
+const SuspensePage = async () => {
+  const articles = await db.articles({});
+
+  return articles.map((article, i) => (
+    <div key={i}>
+      <ArticleCard key={i} article={article} />
+    </div>
+  ));
+};
