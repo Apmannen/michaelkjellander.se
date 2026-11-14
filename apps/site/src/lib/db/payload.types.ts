@@ -13,7 +13,7 @@ export type CallToActionPayload = {
 export type TagPayload = Pick<
   Database['public']['Tables']['tags']['Insert'],
   'slug' | 'singular_name' | 'name'
->;
+> & { type?: 'game_platform' };
 
 export type BodyMarkPayload = {
   start: number;

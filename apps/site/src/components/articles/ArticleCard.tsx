@@ -60,7 +60,7 @@ export const ArticleCard = ({
             alt=''
             width={400}
             height={225}
-            className='w-full h-[225px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out '
+            className='w-full h-[225px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out'
           />
         ) : null}
       </div>

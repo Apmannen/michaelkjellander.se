@@ -7,6 +7,7 @@ import { Heading } from '../richText/Heading';
 import { List } from '../richText/List';
 import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
+import { MkLink } from '../standard/MkLink';
 
 export const Article = ({
   article,
@@ -14,13 +15,14 @@ export const Article = ({
 }: {
   article: Pick<
     ArticlePayload,
-    'title' | 'body' | 'cover_image' | 'intro' | 'cta' | 'fields'
+    'title' | 'body' | 'cover_image' | 'intro' | 'cta' | 'fields' | 'tags'
   >;
   isMain: boolean;
 }) => {
-  const { fields, cta } = article;
+  const { fields, cta, tags } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
+  const platforms = tags?.filter((t) => t.type === 'game_platform') || [];
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
 
@@ -47,12 +49,22 @@ export const Article = ({
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
         <Divider className={{ container: 'py-4' }} />
-        {devYears || devTool || cta ? (
+        {devYears || devTool || cta || platforms.length ? (
           <>
             <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
               <div className='text-[16px]'>
                 {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
                 {devTool ? <div>Utvecklat i: {devTool}</div> : null}
+                {platforms.length ? (
+                  <div>
+                    Testat på:{' '}
+                    {platforms.map((p) => (
+                      <MkLink href='#' className={{ link: 'hover:underline' }}>
+                        {p.name}
+                      </MkLink>
+                    ))}
+                  </div>
+                ) : null}
               </div>
               <div className='flex-1 flex items-center sm:justify-end'>
                 {cta ? (
