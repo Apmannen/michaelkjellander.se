@@ -57,12 +57,15 @@ export const Article = ({
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
         <Divider className={{ container: 'py-4' }} />
-        {devYears || devTool || cta || platforms.length ? (
+        {devYears || devTool || cta || platforms.length || rating != null ? (
           <>
             <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
               <div className='text-[16px]'>
                 {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
                 {devTool ? <div>Utvecklat i: {devTool}</div> : null}
+                {rating != null ? (
+                  <div className='font-bold'>Recension</div>
+                ) : null}
                 {platforms.length ? (
                   <div>
                     Testat på:{' '}
@@ -91,7 +94,7 @@ export const Article = ({
         ) : null}
 
         <div className='space-y-4'>
-          {rating ? <Rating rating10={rating} /> : null}
+          {rating != null ? <Rating rating10={rating} /> : null}
           {article.body.map((part, i) => (
             <div key={i} className=''>
               {part.type === 'heading' ? (
