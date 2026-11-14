@@ -20,12 +20,15 @@ export const Article = ({
   >;
   isMain: boolean;
 }) => {
-  const { fields } = article;
+  const { fields, cta } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
   //TODO: can remove this since we won't display full articles in a feed
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
+
+  console.log('**CTA', devYears || devTool || cta);
+
   return (
     <article className='bg-default-box mb-12 shadow-sm pt-12'>
       <div className='sm:px-12 sm:h-[400px]'>
@@ -49,24 +52,25 @@ export const Article = ({
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
         <Divider className={{ container: 'py-4' }} />
-        <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
-          <div className='text-[16px]'>
-            {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
-            {devTool ? <div>Utvecklat i: {devTool}</div> : null}
-          </div>
-          <div className='flex-1 flex items-center sm:justify-end'>
-            {article.cta ? (
-              <Button
-                href={article.cta.href}
-                target='_blank'
-                iconName={article.cta.icon}
-              >
-                {article.cta.text}
-              </Button>
-            ) : null}
-          </div>
-        </div>
-        <Divider className={{ container: 'py-4' }} />
+        {devYears || devTool || cta ? (
+          <>
+            <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
+              <div className='text-[16px]'>
+                {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
+                {devTool ? <div>Utvecklat i: {devTool}</div> : null}
+              </div>
+              <div className='flex-1 flex items-center sm:justify-end'>
+                {cta ? (
+                  <Button href={cta.href} target='_blank' iconName={cta.icon}>
+                    {cta.text}
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+            <Divider className={{ container: 'py-4' }} />
+          </>
+        ) : null}
+
         <div className='space-y-4'>
           {article.body.map((part, i) => (
             <div key={i} className=''>
