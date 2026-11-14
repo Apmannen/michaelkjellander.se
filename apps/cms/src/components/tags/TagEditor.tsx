@@ -10,6 +10,7 @@ import {
   type Tag,
   type TagInput,
   findDescendantIds,
+  listTagTypes,
 } from '@/lib/tags';
 
 import { BodyEditor } from '../body/BodyEditor';
@@ -27,6 +28,7 @@ import { TagPicker } from './tag-picker';
 const toInput = (tag?: Tag): TagInput => ({
   name: tag?.name ?? '',
   singular_name: tag?.singular_name ?? '',
+  type: tag?.type ?? '',
   slug: tag?.slug ?? '',
   description: withParagraphSlots(tag?.description ?? []),
   parent_ids: tag?.parent_ids ?? [],
@@ -36,6 +38,7 @@ const toInput = (tag?: Tag): TagInput => ({
 const isSame = (a: TagInput, b: TagInput) =>
   a.name === b.name &&
   a.singular_name === b.singular_name &&
+  a.type === b.type &&
   a.slug === b.slug &&
   JSON.stringify(a.description) === JSON.stringify(b.description) &&
   JSON.stringify(a.parent_ids) === JSON.stringify(b.parent_ids) &&
@@ -69,6 +72,11 @@ export function TagEditor({
 
   // A tag can't be its own parent, or the parent of a tag above it.
   const excludedParents = tag ? findDescendantIds(tags, tag.id) : undefined;
+
+  // The types set on other tags are suggested.
+  const typeSuggestions = listTagTypes(
+    tags.filter((other) => other.id !== tag?.id),
+  );
 
   const update = (patch: Partial<TagInput>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -146,6 +154,27 @@ export function TagEditor({
               className={inputClass}
               autoComplete='off'
             />
+          </Field>
+
+          <Field
+            label='Typ'
+            htmlFor='type'
+            description='Valfri. T.ex. Genre eller Plattform.'
+          >
+            <input
+              id='type'
+              type='text'
+              value={draft.type}
+              onChange={(event) => update({ type: event.target.value })}
+              className={inputClass}
+              list='type_suggestions'
+              autoComplete='off'
+            />
+            <datalist id='type_suggestions'>
+              {typeSuggestions.map((type) => (
+                <option key={type} value={type} />
+              ))}
+            </datalist>
           </Field>
 
           <Field

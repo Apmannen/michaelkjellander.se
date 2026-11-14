@@ -45,6 +45,9 @@ export async function saveTag(
     singular_name: String(raw.singular_name ?? '')
       .replace(/\s+/g, ' ')
       .trim(),
+    type: String(raw.type ?? '')
+      .replace(/\s+/g, ' ')
+      .trim(),
     slug: String(raw.slug ?? '').trim(),
     description: parseBody(raw.description, TAG_DESCRIPTION_FEATURES),
     parent_ids: parseIds(raw.parent_ids),

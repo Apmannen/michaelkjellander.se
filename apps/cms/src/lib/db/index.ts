@@ -231,7 +231,7 @@ const deleteArticle = async (id: string) => {
 };
 
 const TAG_COLUMNS =
-  'id, name, singular_name, slug, description, created_at, updated_at, tag_parents!tag_parents_tag_id_fkey(parent_id, position), tag_field_values!tag_field_values_tag_id_fkey(field_id, position, text, href, target_article_id)';
+  'id, name, singular_name, type, slug, description, created_at, updated_at, tag_parents!tag_parents_tag_id_fkey(parent_id, position), tag_field_values!tag_field_values_tag_id_fkey(field_id, position, text, href, target_article_id)';
 
 type TagRow = Omit<Tag, 'parent_ids' | 'field_values'> & {
   description: Body;
@@ -251,6 +251,7 @@ const toTag = ({tag_parents, tag_field_values, ...row}: TagRow): Tag => ({
 const toTagRow = (input: TagInput) => ({
   name: input.name,
   singular_name: input.singular_name,
+  type: input.type,
   slug: input.slug,
   description: input.description,
 });
