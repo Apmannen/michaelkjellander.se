@@ -10,7 +10,7 @@ const latest = async (): Promise<ArticlePayload[]> => {
   const res = await db.supabase
     .from('articles')
     .select(
-      `id, title, body, cover_image, intro, cta,
+      `id, title, body, cover_image, intro, cta, slug,
       fields:article_field_values!article_id(
         text,
         field:field_definitions(key)
