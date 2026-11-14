@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { Article } from '@/components/Article';
+import { Article } from '@/components/articles/Article';
 import { MainShell } from '@/components/shells/MainShell';
 import { db } from '@/lib/db';
 
@@ -12,6 +12,9 @@ export default async function Home() {
 
   return (
     <MainShell>
+      <h1 className='text-[48px] font-bold leading-none tracking-[-0.03em]'>
+        Senaste inläggen
+      </h1>
       {/* <h1>Artiklar</h1> */}
       {articles.map((article, i) => (
         <Article key={i} article={article} isMain={false} />
