@@ -38,7 +38,7 @@ export type ArticleBodyPartPayload = {
 
 export type ArticlePayload = Pick<
   Database['public']['Tables']['articles']['Row'],
-  'id' | 'title' | 'intro' | 'slug'
+  'id' | 'title' | 'intro' | 'slug' | 'published_at'
 > & {
   body: ArticleBodyPartPayload[];
   cover_image: { path: string } | null;

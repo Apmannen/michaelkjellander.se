@@ -9,10 +9,16 @@ export const ArticleCard = ({
 }: {
   article: Pick<
     ArticlePayload,
-    'title' | 'cover_image' | 'tags' | 'slug' | 'intro' | 'body'
+    | 'title'
+    | 'cover_image'
+    | 'tags'
+    | 'slug'
+    | 'intro'
+    | 'body'
+    | 'published_at'
   >;
 }) => {
-  const { title, cover_image, intro, body, tags } = article;
+  const { title, cover_image, intro, body, tags, published_at } = article;
 
   const paragraph = body.find((part) => part.type === 'paragraph')?.text;
   const split = paragraph?.split(' ');
@@ -52,12 +58,12 @@ export const ArticleCard = ({
             src={storage.getPublicUrl(cover_image.path)}
             alt=''
             width={400}
-            height={210}
-            className='w-full h-[210px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out '
+            height={225}
+            className='w-full h-[225px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out '
           />
         ) : null}
       </div>
-      <div className='p-5 sm:p-6 flex-1 space-y-1.5'>
+      <div className='px-5 py-5 sm:px-6 flex-1 flex gap-1.5 flex-col'>
         <p className='text-[13px] font-semibold uppercase tracking-[0.12em] text-accent-800'>
           {mainTag?.singular_name || mainTag?.name}
         </p>
@@ -66,6 +72,9 @@ export const ArticleCard = ({
         </h3>
         <h4 className='italic'>{intro}</h4>
         <p className='overflow-hidden text-muted'>{excerpt}</p>
+        <div className='flex-1 flex items-end'>
+          <p className='text-muted'>{published_at}</p>
+        </div>
       </div>
     </MkLink>
   );
