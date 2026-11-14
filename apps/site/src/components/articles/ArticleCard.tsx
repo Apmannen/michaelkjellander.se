@@ -13,7 +13,7 @@ export const ArticleCard = ({
   return (
     <MkLink
       className={{
-        all: 'bg-default-box mb-6 shadow-sm rounded-lg overflow-hidden flex',
+        all: 'bg-default-box mb-6 shadow-sm rounded-lg overflow-hidden flex group',
       }}
       href={paths.article(article)}
     >
@@ -27,7 +27,9 @@ export const ArticleCard = ({
         />
       ) : null}
       <div className='p-5 sm:p-6'>
-        <h3 className='text-[30px] font-bold leading-none'>{title}</h3>
+        <h3 className='text-[30px] font-bold leading-tight tracking-tight group-hover:text-accent-800'>
+          {title}
+        </h3>
       </div>
     </MkLink>
   );
