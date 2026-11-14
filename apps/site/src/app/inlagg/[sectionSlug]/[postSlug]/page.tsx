@@ -16,7 +16,11 @@ export default async function Page({
   const awaitedParams = await params;
 
   const articles = await dbArticles.latest();
-  const article = articles.find((a) => a.slug === awaitedParams.postSlug);
+  const article = articles.find(
+    (a) =>
+      a.tags?.at(0)?.slug === awaitedParams.sectionSlug &&
+      a.slug === awaitedParams.postSlug,
+  );
   if (!article) {
     return notFound();
   }
