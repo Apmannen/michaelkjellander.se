@@ -31,7 +31,7 @@ export const ArticleCardSkeleton = () => {
 /** A list of card placeholders, for use as a Suspense fallback. */
 export const ArticleCardListSkeleton = ({ count = 3 }: { count?: number }) => {
   return (
-    <div role='status' aria-label='Laddar inlägg' className='pt-8 w-full'>
+    <div role='status' aria-label='Laddar inlägg' className='w-full'>
       {Array.from({ length: count }, (_, i) => (
         <ArticleCardSkeleton key={i} />
       ))}
