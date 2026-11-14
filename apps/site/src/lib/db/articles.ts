@@ -12,7 +12,7 @@ const latest = async (): Promise<ArticlePayload[]> => {
     .select(
       `id, title, body, cover_image, intro, cta, slug,
       tags:article_tags!article_id(
-        tag:tags(slug)
+        ...tags(slug)
       ),
       fields:article_field_values!article_id(
         text,

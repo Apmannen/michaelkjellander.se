@@ -10,6 +10,11 @@ export type CallToActionPayload = {
   href: string;
 };
 
+export type TagPayload = Pick<
+  Database['public']['Tables']['tags']['Row'],
+  'slug'
+>;
+
 export type BodyMarkPayload = {
   start: number;
   end: number;
@@ -39,6 +44,7 @@ export type ArticlePayload = Pick<
   cover_image: { path: string } | null;
   cta: CallToActionPayload;
   fields?: DynamicFieldPayload[];
+  tags?: TagPayload[];
 };
 
 export type DynamicFieldPayload = {
