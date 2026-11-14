@@ -11,8 +11,8 @@ export type CallToActionPayload = {
 };
 
 export type TagPayload = Pick<
-  Database['public']['Tables']['tags']['Row'],
-  'slug'
+  Database['public']['Tables']['tags']['Insert'],
+  'slug' | 'singular_name' | 'name'
 >;
 
 export type BodyMarkPayload = {
@@ -38,7 +38,7 @@ export type ArticleBodyPartPayload = {
 
 export type ArticlePayload = Pick<
   Database['public']['Tables']['articles']['Row'],
-  'id' | 'title' | 'intro' | 'slug'
+  'id' | 'title' | 'intro' | 'slug' | 'published_at'
 > & {
   body: ArticleBodyPartPayload[];
   cover_image: { path: string } | null;

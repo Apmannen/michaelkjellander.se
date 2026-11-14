@@ -23,6 +23,7 @@ import { TagPicker } from './tag-picker';
 
 const toInput = (tag?: Tag): TagInput => ({
   name: tag?.name ?? '',
+  singular_name: tag?.singular_name ?? '',
   slug: tag?.slug ?? '',
   description: withParagraphSlots(tag?.description ?? []),
   parent_ids: tag?.parent_ids ?? [],
@@ -30,6 +31,7 @@ const toInput = (tag?: Tag): TagInput => ({
 
 const isSame = (a: TagInput, b: TagInput) =>
   a.name === b.name &&
+  a.singular_name === b.singular_name &&
   a.slug === b.slug &&
   JSON.stringify(a.description) === JSON.stringify(b.description) &&
   JSON.stringify(a.parent_ids) === JSON.stringify(b.parent_ids);
@@ -114,6 +116,23 @@ export function TagEditor({
               onChange={(event) => update({ name: event.target.value })}
               className={inputClass}
               autoFocus={!tag}
+              autoComplete='off'
+            />
+          </Field>
+
+          <Field
+            label='Namn i singular'
+            htmlFor='singular_name'
+            description='Valfritt. T.ex. Recension för Spelrecensioner.'
+          >
+            <input
+              id='singular_name'
+              type='text'
+              value={draft.singular_name}
+              onChange={(event) =>
+                update({ singular_name: event.target.value })
+              }
+              className={inputClass}
               autoComplete='off'
             />
           </Field>

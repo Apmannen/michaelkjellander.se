@@ -1,11 +1,11 @@
 import { ArticlePayload } from '@/lib/db/payload.types';
 import Image from 'next/image';
-import { Divider } from './standard/Divider';
-import { Quote } from './bodyParts/Quote';
-import { Paragraph } from './bodyParts/Paragraph';
-import { Heading } from './bodyParts/Heading';
-import { List } from './bodyParts/List';
-import { Button } from './standard/Button';
+import { Divider } from '../standard/Divider';
+import { Quote } from '../richText/Quote';
+import { Paragraph } from '../richText/Paragraph';
+import { Heading } from '../richText/Heading';
+import { List } from '../richText/List';
+import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
 
 //const logPrefix = '[Article]';
@@ -27,7 +27,7 @@ export const Article = ({
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
   return (
-    <article className='bg-default-box mb-12 shadow-sm max-w-[825px] pt-12'>
+    <article className='bg-default-box mb-12 shadow-sm pt-12'>
       <div className='sm:px-12 sm:h-[400px]'>
         {article.cover_image ? (
           <Image

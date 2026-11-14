@@ -231,7 +231,7 @@ const deleteArticle = async (id: string) => {
 };
 
 const TAG_COLUMNS =
-  'id, name, slug, description, created_at, updated_at, tag_parents!tag_parents_tag_id_fkey(parent_id, position)';
+  'id, name, singular_name, slug, description, created_at, updated_at, tag_parents!tag_parents_tag_id_fkey(parent_id, position)';
 
 type TagRow = Omit<Tag, 'parent_ids'> & {
   description: Body;
@@ -246,6 +246,7 @@ const toTag = ({tag_parents, ...row}: TagRow): Tag => ({
 // The parents are stored separately, see setTagParents.
 const toTagRow = (input: TagInput) => ({
   name: input.name,
+  singular_name: input.singular_name,
   slug: input.slug,
   description: input.description,
 });
