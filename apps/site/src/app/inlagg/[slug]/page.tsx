@@ -10,6 +10,9 @@ export const instant = false;
 
 export default async function Page({params}: {params: Promise<{ slug: string }>}) {
   const awaitedParams = await params;
+
+   //TODO: change
+   //TODO: include tag-slug in url
   const articles = await dbArticles.latest();
   const article = articles.find((a) => a.slug === awaitedParams.slug);
   if(!article) {
