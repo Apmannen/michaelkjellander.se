@@ -561,7 +561,23 @@ const deleteIssue = async (id: string) => {
   return supabase.rpc('trash_issue', {issue_id: id});
 };
 
+// Whether the email address may log in to the cms, see db/008_cms_users.sql.
+const isCmsUser = async (email: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('cms_users')
+    .select('email')
+    .eq('email', email.toLowerCase())
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data);
+};
+
 export const db = {
+  isCmsUser,
   listSites,
   getSite,
   createSite,

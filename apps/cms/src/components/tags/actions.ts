@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { parseBody } from '@/lib/body';
+import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
   TAG_DESCRIPTION_FEATURES,
@@ -27,12 +28,13 @@ const revalidate = (siteId: string) => {
   revalidatePath(`/${siteId}/articles`, 'layout');
 };
 
-// TODO: verify authentication here once the cms has login.
 export async function saveTag(
   siteId: string,
   id: string | undefined,
   raw: TagInput,
 ): Promise<SaveTagResult> {
+  await requireUser();
+
   const input: TagInput = {
     // The name is shown on one line, so line breaks become spaces.
     name: String(raw.name ?? '')
@@ -83,11 +85,12 @@ export async function saveTag(
   return { ok: true, tag: data };
 }
 
-// TODO: verify authentication here once the cms has login.
 export async function deleteTag(
   siteId: string,
   id: string,
 ): Promise<{ ok: false; error: string }> {
+  await requireUser();
+
   const { error } = await db.deleteTag(id);
 
   if (error) {

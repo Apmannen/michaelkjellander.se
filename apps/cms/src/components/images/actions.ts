@@ -1,5 +1,6 @@
 'use server';
 
+import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { MAX_IMAGE_SIZE, detectImageFormat } from '@/lib/images';
 import { validateSiteId } from '@/lib/sites';
@@ -8,11 +9,12 @@ export type UploadImageResult =
   | { ok: true; path: string }
   | { ok: false; error: string };
 
-// TODO: verify authentication here once the cms has login.
 export async function uploadImage(
   siteId: string,
   formData: FormData,
 ): Promise<UploadImageResult> {
+  await requireUser();
+
   // The site id becomes part of the path, so it's checked first.
   if (validateSiteId(siteId)) {
     return { ok: false, error: 'Okänd sajt.' };

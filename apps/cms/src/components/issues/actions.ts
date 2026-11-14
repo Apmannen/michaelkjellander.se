@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
   type Issue,
@@ -32,11 +33,12 @@ const parseName = (raw: unknown) =>
 const parsePosition = (raw: unknown) =>
   Number.isInteger(raw) ? (raw as number) : 0;
 
-// TODO: verify authentication here once the cms has login.
 export async function createColumn(
   siteId: string,
   rawName: string,
 ): Promise<ActionResult> {
+  await requireUser();
+
   const name = parseName(rawName);
   const validationError = validateColumnName(name);
   if (validationError) {
@@ -53,12 +55,13 @@ export async function createColumn(
   return { ok: true };
 }
 
-// TODO: verify authentication here once the cms has login.
 export async function renameColumn(
   siteId: string,
   id: string,
   rawName: string,
 ): Promise<ActionResult> {
+  await requireUser();
+
   const name = parseName(rawName);
   const validationError = validateColumnName(name);
   if (validationError) {
@@ -76,12 +79,13 @@ export async function renameColumn(
 }
 
 // position is counted among the other columns.
-// TODO: verify authentication here once the cms has login.
 export async function moveColumn(
   siteId: string,
   id: string,
   position: number,
 ): Promise<ActionResult> {
+  await requireUser();
+
   const { error } = await db.moveIssueColumn(id, parsePosition(position));
   if (error) {
     console.error('moveColumn failed', error);
@@ -92,11 +96,12 @@ export async function moveColumn(
   return { ok: true };
 }
 
-// TODO: verify authentication here once the cms has login.
 export async function deleteColumn(
   siteId: string,
   id: string,
 ): Promise<ActionResult> {
+  await requireUser();
+
   const { error } = await db.deleteIssueColumn(id);
   if (error) {
     // 23503 = foreign_key_violation, the column still has issues.
@@ -124,13 +129,14 @@ const parseIssue = (raw: IssueInput): IssueInput => ({
 });
 
 // columnId is only used for new issues, which are added last in it.
-// TODO: verify authentication here once the cms has login.
 export async function saveIssue(
   siteId: string,
   id: string | undefined,
   columnId: string,
   raw: IssueInput,
 ): Promise<SaveIssueResult> {
+  await requireUser();
+
   const input = parseIssue(raw);
 
   const validationError = validateIssue(input);
@@ -161,13 +167,14 @@ export async function saveIssue(
 }
 
 // position is counted among the column's other issues.
-// TODO: verify authentication here once the cms has login.
 export async function moveIssue(
   siteId: string,
   id: string,
   columnId: string,
   position: number,
 ): Promise<ActionResult> {
+  await requireUser();
+
   const { error } = await db.moveIssue(
     id,
     String(columnId ?? ''),
@@ -182,11 +189,12 @@ export async function moveIssue(
   return { ok: true };
 }
 
-// TODO: verify authentication here once the cms has login.
 export async function deleteIssue(
   siteId: string,
   id: string,
 ): Promise<{ ok: false; error: string }> {
+  await requireUser();
+
   const { error } = await db.deleteIssue(id);
 
   if (error) {

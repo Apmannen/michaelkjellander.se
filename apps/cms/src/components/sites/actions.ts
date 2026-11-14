@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
   type NewSiteInput,
@@ -28,10 +29,11 @@ const parseInput = (raw: SiteInput): SiteInput => ({
   api_secret: String(raw.api_secret ?? '').trim(),
 });
 
-// TODO: verify authentication here once the cms has login.
 export async function createSite(
   raw: NewSiteInput,
 ): Promise<{ ok: false; error: string }> {
+  await requireUser();
+
   const input: NewSiteInput = {
     ...parseInput(raw),
     id: String(raw.id ?? '').trim(),
@@ -58,11 +60,12 @@ export async function createSite(
   redirect(`/${input.id}`);
 }
 
-// TODO: verify authentication here once the cms has login.
 export async function updateSite(
   id: string,
   raw: SiteInput,
 ): Promise<SaveSiteResult> {
+  await requireUser();
+
   const input = parseInput(raw);
 
   const validationError = validateSite(input);

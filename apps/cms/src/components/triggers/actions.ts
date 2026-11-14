@@ -1,5 +1,6 @@
 'use server';
 
+import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { getTrigger } from '@/lib/triggers';
 
@@ -7,12 +8,13 @@ export type RunTriggerResult = { ok: true } | { ok: false; error: string };
 
 const logPrefix = '[runTrigger]';
 
-// TODO: verify authentication here once the cms has login.
 export async function runTrigger(
   siteId: string,
   id: string,
   value?: string,
 ): Promise<RunTriggerResult> {
+  await requireUser();
+
   const trigger = getTrigger(id);
   if (!trigger) {
     return { ok: false, error: 'Okänd trigger.' };
