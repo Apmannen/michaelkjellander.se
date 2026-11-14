@@ -2,7 +2,13 @@
 
 import { useState, useSyncExternalStore, useTransition } from 'react';
 
-import type { Article, ArticleInput, ArticleSummary } from '@/lib/articles';
+import {
+  type Article,
+  type ArticleInput,
+  type ArticleSummary,
+  RATING_MAX,
+  RATING_MIN,
+} from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
 import type { FieldDefinition } from '@/lib/fields';
 import type { UploadedImage } from '@/lib/images';
@@ -34,6 +40,7 @@ const toInput = (article: Article | null): ArticleInput => ({
   slug: article?.slug ?? '',
   intro: article?.intro ?? '',
   cta: article?.cta,
+  rating: article?.rating,
   published: article?.published ?? false,
   published_at: article ? new Date(article.published_at).toISOString() : now(),
   cover_image: article?.cover_image,
@@ -79,12 +86,18 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.cta?.icon === b.cta?.icon &&
   a.cta?.text === b.cta?.text &&
   a.cta?.href === b.cta?.href &&
+  a.rating === b.rating &&
   a.published === b.published &&
   a.published_at === b.published_at &&
   JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
   JSON.stringify(a.body) === JSON.stringify(b.body) &&
   JSON.stringify(a.tag_ids) === JSON.stringify(b.tag_ids) &&
   JSON.stringify(a.field_values) === JSON.stringify(b.field_values);
+
+const RATINGS = Array.from(
+  { length: RATING_MAX - RATING_MIN + 1 },
+  (_, index) => RATING_MIN + index,
+);
 
 // tags are all of the site's tags, which the article's tags are picked from.
 // fieldDefinitions are the site's dynamic fields, and articles the articles
@@ -256,6 +269,32 @@ export function ArticleEditor({
               value={draft.cta}
               onChange={(cta) => update({ cta })}
             />
+          </Field>
+
+          <Field
+            label='Betyg'
+            htmlFor='rating'
+            description={`Valfritt, från ${RATING_MIN} till ${RATING_MAX}. T.ex. för en recension.`}
+          >
+            <select
+              id='rating'
+              value={draft.rating ?? ''}
+              onChange={(event) =>
+                update({
+                  rating: event.target.value
+                    ? Number(event.target.value)
+                    : undefined,
+                })
+              }
+              className={inputClass}
+            >
+              <option value=''>Inget betyg</option>
+              {RATINGS.map((rating) => (
+                <option key={rating} value={rating}>
+                  {rating}
+                </option>
+              ))}
+            </select>
           </Field>
 
           <Field
