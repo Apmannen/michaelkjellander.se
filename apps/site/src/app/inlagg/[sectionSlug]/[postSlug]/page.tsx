@@ -13,13 +13,11 @@ export default async function Page({
 }: {
   params: Promise<{ sectionSlug: string; postSlug: string }>;
 }) {
-  const awaitedParams = await params;
+  const { sectionSlug, postSlug } = await params;
 
-  const articles = await dbArticles.latest();
+  const articles = await dbArticles.latest({ slug: postSlug });
   const article = articles.find(
-    (a) =>
-      a.tags?.at(0)?.slug === awaitedParams.sectionSlug &&
-      a.slug === awaitedParams.postSlug,
+    (a) => a.tags?.at(0)?.slug === sectionSlug && a.slug === postSlug,
   );
   if (!article) {
     return notFound();

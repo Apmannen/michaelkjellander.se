@@ -2,12 +2,16 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { db } from '.';
 import { ArticlePayload } from './payload.types';
 
-const latest = async (): Promise<ArticlePayload[]> => {
+const latest = async ({
+  slug,
+}: {
+  slug?: string;
+}): Promise<ArticlePayload[]> => {
   'use cache';
   cacheTag('articles');
   cacheLife('hours');
 
-  const res = await db.supabase
+  const query = db.supabase
     .from('articles')
     .select(
       `id, title, body, cover_image, intro, cta, slug,
@@ -21,6 +25,12 @@ const latest = async (): Promise<ArticlePayload[]> => {
     `,
     )
     .order('published_at', { ascending: false });
+
+  if (slug) {
+    query.eq('slug', slug);
+  }
+
+  const res = await query;
 
   //res.data?.at(0)?.tags.at(0).
   console.log('***D', JSON.stringify(res.data, null, 2));

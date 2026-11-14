@@ -8,7 +8,7 @@ import { MainShell } from '@/components/shells/MainShell';
 export const instant = false;
 
 export default async function Home() {
-  const articles = await dbArticles.latest();
+  const articles = await dbArticles.latest({});
 
   return (
     <MainShell>
