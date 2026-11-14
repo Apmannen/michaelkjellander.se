@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
   type FieldDefinition,
@@ -22,12 +23,13 @@ const revalidate = (siteId: string) => {
 };
 
 // The type is only used when creating the field, since it can't be changed.
-// TODO: verify authentication here once the cms has login.
 export async function saveFieldDefinition(
   siteId: string,
   id: string | undefined,
   raw: FieldDefinitionInput,
 ): Promise<SaveFieldDefinitionResult> {
+  await requireUser();
+
   const input: FieldDefinitionInput = {
     key: String(raw.key ?? '').trim(),
     // Shown on one line, so line breaks become spaces.
@@ -68,11 +70,12 @@ export async function saveFieldDefinition(
   return { ok: true, field: data };
 }
 
-// TODO: verify authentication here once the cms has login.
 export async function deleteFieldDefinition(
   siteId: string,
   id: string,
 ): Promise<{ ok: false; error: string }> {
+  await requireUser();
+
   const { error } = await db.deleteFieldDefinition(id);
 
   if (error) {

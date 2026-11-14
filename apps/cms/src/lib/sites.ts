@@ -22,7 +22,7 @@ export type NewSiteInput = SiteInput & Pick<Site, 'id'>;
 export const SITE_COOKIE = 'cms-site';
 
 // Taken by the cms's own routes, which are siblings of the sites' routes.
-const RESERVED_SITE_IDS = new Set(['sites']);
+const RESERVED_SITE_IDS = new Set(['sites', 'login', 'auth']);
 
 // Undefined if the id is valid. Same format as slugs.
 export const validateSiteId = (id: string): string | undefined => {

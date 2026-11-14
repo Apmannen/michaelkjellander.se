@@ -10,6 +10,7 @@ import {
   validateArticle,
 } from '@/lib/articles';
 import { parseBody } from '@/lib/body';
+import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { parseFieldValues, validateFieldValues } from '@/lib/fields';
 import { parseImage } from '@/lib/images';
@@ -19,12 +20,13 @@ export type SaveArticleResult =
   | { ok: true; article: Article }
   | { ok: false; error: string };
 
-// TODO: verify authentication here once the cms has login.
 export async function saveArticle(
   siteId: string,
   id: string | null,
   raw: ArticleInput,
 ): Promise<SaveArticleResult> {
+  await requireUser();
+
   const fieldDefinitions = await db.listFieldDefinitions(siteId);
   const input: ArticleInput = {
     title: String(raw.title ?? '').trim(),
@@ -73,11 +75,12 @@ export async function saveArticle(
   return { ok: true, article: data };
 }
 
-// TODO: verify authentication here once the cms has login.
 export async function deleteArticle(
   siteId: string,
   id: string,
 ): Promise<{ ok: false; error: string }> {
+  await requireUser();
+
   const { error } = await db.deleteArticle(id);
 
   if (error) {
