@@ -45,15 +45,17 @@ export const ArticleCard = ({
       }}
       href={paths.article(article)}
     >
-      {cover_image ? (
-        <Image
-          src={storage.getPublicUrl(cover_image.path)}
-          alt=''
-          width={400}
-          height={210}
-          className='w-4/10 h-[210px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out '
-        />
-      ) : null}
+      <div className='w-4/10 overflow-hidden'>
+        {cover_image ? (
+          <Image
+            src={storage.getPublicUrl(cover_image.path)}
+            alt=''
+            width={400}
+            height={210}
+            className='w-full h-[210px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out '
+          />
+        ) : null}
+      </div>
       <div className='p-5 sm:p-6 flex-1 space-y-1.5'>
         <h3 className='text-[30px] font-bold leading-none tracking-tight group-hover:text-accent-800'>
           {title}
