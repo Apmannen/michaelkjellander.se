@@ -12,7 +12,7 @@ export const ArticleCard = ({
     'title' | 'cover_image' | 'tags' | 'slug' | 'intro' | 'body'
   >;
 }) => {
-  const { title, cover_image, intro, body } = article;
+  const { title, cover_image, intro, body, tags } = article;
 
   const paragraph = body.find((part) => part.type === 'paragraph')?.text;
   const split = paragraph?.split(' ');
@@ -57,6 +57,9 @@ export const ArticleCard = ({
         ) : null}
       </div>
       <div className='p-5 sm:p-6 flex-1 space-y-1.5'>
+        <p className='text-[13px] font-semibold uppercase tracking-[0.12em] text-accent-800'>
+          {tags?.at(0)?.slug}
+        </p>
         <h3 className='text-[30px] font-bold leading-none tracking-tight group-hover:text-accent-800'>
           {title}
         </h3>
