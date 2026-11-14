@@ -8,8 +8,6 @@ import { List } from '../richText/List';
 import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
 
-//const logPrefix = '[Article]';
-
 export const Article = ({
   article,
   isMain,
@@ -23,11 +21,8 @@ export const Article = ({
   const { fields, cta } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
-  //TODO: can remove this since we won't display full articles in a feed
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
-
-  console.log('**CTA', devYears || devTool || cta);
 
   return (
     <article className='bg-default-box mb-12 shadow-sm pt-12'>

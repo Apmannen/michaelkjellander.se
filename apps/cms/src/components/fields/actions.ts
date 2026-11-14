@@ -16,10 +16,11 @@ export type SaveFieldDefinitionResult =
   | { ok: true; field: FieldDefinition }
   | { ok: false; error: string };
 
-// The article editors list the fields, so they're refreshed too.
+// The article and tag editors list the fields, so they're refreshed too.
 const revalidate = (siteId: string) => {
   revalidatePath(`/${siteId}/fields`, 'layout');
   revalidatePath(`/${siteId}/articles`, 'layout');
+  revalidatePath(`/${siteId}/tags`, 'layout');
 };
 
 // The type is only used when creating the field, since it can't be changed.

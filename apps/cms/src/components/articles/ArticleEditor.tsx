@@ -16,7 +16,7 @@ import {
 } from '../editor/EditorFooter';
 import { Field, inputClass } from '../editor/Field';
 import { SlugField } from '../editor/SlugField';
-import { ArticleFieldsField } from '../fields/ArticleFieldsField';
+import { FieldValuesField } from '../fields/FieldValuesField';
 import { ImagePicker } from '../images/image-picker';
 import { TagPicker } from '../tags/tag-picker';
 import { deleteArticle, saveArticle } from './actions';
@@ -284,7 +284,7 @@ export function ArticleEditor({
             htmlFor='field_values'
             description='Valfria. Sajtens dynamiska fält, t.ex. Spela även.'
           >
-            <ArticleFieldsField
+            <FieldValuesField
               id='field_values'
               definitions={fieldDefinitions}
               articles={articles}

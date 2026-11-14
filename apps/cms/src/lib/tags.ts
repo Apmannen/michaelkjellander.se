@@ -1,4 +1,5 @@
 import type { Body, BodyFeature } from '@/lib/body';
+import type { FieldValue } from '@/lib/fields';
 import { validateSlug } from '@/lib/slug';
 
 export type Tag = {
@@ -10,13 +11,21 @@ export type Tag = {
   description: Body;
   // In the order they were picked. Empty for a top-level tag.
   parent_ids: string[];
+  // Values of the site's dynamic fields, see lib/fields.ts. In order, and the
+  // values of a field are next to each other.
+  field_values: FieldValue[];
   created_at: string;
   updated_at: string;
 };
 
 export type TagInput = Pick<
   Tag,
-  'name' | 'singular_name' | 'slug' | 'description' | 'parent_ids'
+  | 'name'
+  | 'singular_name'
+  | 'slug'
+  | 'description'
+  | 'parent_ids'
+  | 'field_values'
 >;
 
 // What a tag's description may contain besides plain paragraphs.

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { parseBody } from '@/lib/body';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { parseFieldValues, validateFieldValues } from '@/lib/fields';
 import {
   TAG_DESCRIPTION_FEATURES,
   type Tag,
@@ -35,6 +36,7 @@ export async function saveTag(
 ): Promise<SaveTagResult> {
   await requireUser();
 
+  const fieldDefinitions = await db.listFieldDefinitions(siteId);
   const input: TagInput = {
     // The names are shown on one line, so line breaks become spaces.
     name: String(raw.name ?? '')
@@ -46,9 +48,12 @@ export async function saveTag(
     slug: String(raw.slug ?? '').trim(),
     description: parseBody(raw.description, TAG_DESCRIPTION_FEATURES),
     parent_ids: parseIds(raw.parent_ids),
+    field_values: parseFieldValues(raw.field_values, fieldDefinitions),
   };
 
-  const validationError = validateTag(input);
+  const validationError =
+    validateTag(input) ??
+    validateFieldValues(input.field_values, fieldDefinitions);
   if (validationError) {
     return { ok: false, error: validationError };
   }

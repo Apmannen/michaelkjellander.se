@@ -166,8 +166,8 @@ export function FieldDefinitionEditor({
             htmlFor='multiple'
             description={
               field && saved.multiple
-                ? 'Om du stänger av det behåller artiklar bara sitt första värde nästa gång de sparas.'
-                : 'Om en artikel kan ha fältet mer än en gång, t.ex. flera spel under Spela även.'
+                ? 'Om du stänger av det behåller artiklar och taggar bara sitt första värde nästa gång de sparas.'
+                : 'Om en artikel eller tagg kan ha fältet mer än en gång, t.ex. flera spel under Spela även.'
             }
           >
             <label className='inline-flex cursor-pointer items-center gap-2 text-sm'>
@@ -187,7 +187,7 @@ export function FieldDefinitionEditor({
           <Field
             label='Hjälptext'
             htmlFor='description'
-            description='Valfri. Visas under fältet när det fylls i på en artikel.'
+            description='Valfri. Visas under fältet när det fylls i på en artikel eller tagg.'
           >
             <input
               id='description'
@@ -219,7 +219,7 @@ export function FieldDefinitionEditor({
       {field && isConfirmingDelete && (
         <ConfirmDeleteDialog
           heading='Ta bort fält?'
-          message={`”${saved.label}” tas bort, och fältets värden försvinner från alla artiklar.`}
+          message={`”${saved.label}” tas bort, och fältets värden försvinner från alla artiklar och taggar.`}
           onConfirm={() => remove(field.id)}
           onClose={() => setIsConfirmingDelete(false)}
         />

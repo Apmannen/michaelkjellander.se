@@ -37,11 +37,11 @@ const withLinkMode = (value: FieldValue, mode: LinkMode): FieldValue => {
 const toolbarButtonClass =
   'rounded px-2 py-1 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:hover:bg-zinc-800';
 
-// The article's values of the site's dynamic fields, grouped by field. Fields
-// are added one by one, and a field with multiple values can get more than
-// one. articleId is the article being edited, which its link fields can't
-// link to.
-export function ArticleFieldsField({
+// An article's or tag's values of the site's dynamic fields, grouped by field.
+// Fields are added one by one, and a field with multiple values can get more
+// than one. articleId is the article being edited, if any, which its link
+// fields can't link to.
+export function FieldValuesField({
   id,
   definitions,
   articles,

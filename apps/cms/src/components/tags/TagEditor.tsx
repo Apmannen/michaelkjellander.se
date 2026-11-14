@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from 'react';
 
+import type { ArticleSummary } from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
+import type { FieldDefinition } from '@/lib/fields';
 import {
   TAG_DESCRIPTION_FEATURES,
   type Tag,
@@ -18,6 +20,7 @@ import {
 } from '../editor/EditorFooter';
 import { Field, inputClass } from '../editor/Field';
 import { SlugField } from '../editor/SlugField';
+import { FieldValuesField } from '../fields/FieldValuesField';
 import { deleteTag, saveTag } from './actions';
 import { TagPicker } from './tag-picker';
 
@@ -27,6 +30,7 @@ const toInput = (tag?: Tag): TagInput => ({
   slug: tag?.slug ?? '',
   description: withParagraphSlots(tag?.description ?? []),
   parent_ids: tag?.parent_ids ?? [],
+  field_values: tag?.field_values ?? [],
 });
 
 const isSame = (a: TagInput, b: TagInput) =>
@@ -34,17 +38,24 @@ const isSame = (a: TagInput, b: TagInput) =>
   a.singular_name === b.singular_name &&
   a.slug === b.slug &&
   JSON.stringify(a.description) === JSON.stringify(b.description) &&
-  JSON.stringify(a.parent_ids) === JSON.stringify(b.parent_ids);
+  JSON.stringify(a.parent_ids) === JSON.stringify(b.parent_ids) &&
+  JSON.stringify(a.field_values) === JSON.stringify(b.field_values);
 
-// tags are all tags, which the parents are picked from.
+// tags are all tags, which the parents are picked from. fieldDefinitions are
+// the site's dynamic fields, and articles the articles that link fields can
+// link to.
 export function TagEditor({
   siteId,
   tag,
   tags,
+  fieldDefinitions,
+  articles,
 }: {
   siteId: string;
   tag?: Tag;
   tags: Tag[];
+  fieldDefinitions: FieldDefinition[];
+  articles: ArticleSummary[];
 }) {
   const [saved, setSaved] = useState<TagInput>(() => toInput(tag));
   const [draft, setDraft] = useState<TagInput>(saved);
@@ -175,6 +186,20 @@ export function TagEditor({
               value={draft.parent_ids}
               onChange={(parent_ids) => update({ parent_ids })}
               excluded={excludedParents}
+            />
+          </Field>
+
+          <Field
+            label='Fält'
+            htmlFor='field_values'
+            description='Valfria. Sajtens dynamiska fält, t.ex. Spela även.'
+          >
+            <FieldValuesField
+              id='field_values'
+              definitions={fieldDefinitions}
+              articles={articles}
+              value={draft.field_values}
+              onChange={(field_values) => update({ field_values })}
             />
           </Field>
         </div>

@@ -16,6 +16,13 @@ import { parseFieldValues, validateFieldValues } from '@/lib/fields';
 import { parseImage } from '@/lib/images';
 import { parseIds } from '@/lib/tags';
 
+// The tag editors list the articles, which link fields can link to, so
+// they're refreshed too.
+const revalidate = (siteId: string) => {
+  revalidatePath(`/${siteId}/articles`, 'layout');
+  revalidatePath(`/${siteId}/tags`, 'layout');
+};
+
 export type SaveArticleResult =
   | { ok: true; article: Article }
   | { ok: false; error: string };
@@ -66,7 +73,7 @@ export async function saveArticle(
     return { ok: false, error: 'Kunde inte spara artikeln.' };
   }
 
-  revalidatePath(`/${siteId}/articles`, 'layout');
+  revalidate(siteId);
 
   if (!id) {
     redirect(`/${siteId}/articles/${data.id}`);
@@ -88,6 +95,6 @@ export async function deleteArticle(
     return { ok: false, error: 'Kunde inte ta bort artikeln.' };
   }
 
-  revalidatePath(`/${siteId}/articles`, 'layout');
+  revalidate(siteId);
   redirect(`/${siteId}/articles`);
 }
