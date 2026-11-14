@@ -16,6 +16,9 @@ export default async function Home() {
       <h1 className='text-[48px] font-bold leading-none tracking-[-0.03em]'>
         Senaste inläggen
       </h1>
+      <h2 className='pt-3 text-[19px] italic text-muted'>
+        Min hemsida där jag postar inlägg om lite allt möjligt
+      </h2>
       {/* <h1>Artiklar</h1> */}
       <div className='pt-8'>
         {articles.map((article, i) => (
