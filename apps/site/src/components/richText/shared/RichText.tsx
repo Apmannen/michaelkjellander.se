@@ -19,7 +19,7 @@ const TextPartContent = ({ textPart }: { textPart: TextPart }) => {
 
   return (
     <span
-      className={`${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('underline') ? 'underline' : ''}`}
+      className={`${markTypes.includes('bold') ? 'font-bold' : ''} ${markTypes.includes('italic') ? 'italic' : ''}`}
     >
       {lines.map((line, i) => (
         <span key={i}>
