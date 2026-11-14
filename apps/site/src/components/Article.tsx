@@ -1,5 +1,4 @@
 import { ArticlePayload } from '@/lib/db/payload.types';
-import { storage } from '@/lib/storage';
 import Image from 'next/image';
 import { Divider } from './standard/Divider';
 import { Quote } from './bodyParts/Quote';
@@ -7,6 +6,7 @@ import { Paragraph } from './bodyParts/Paragraph';
 import { Heading } from './bodyParts/Heading';
 import { List } from './bodyParts/List';
 import { Button } from './standard/Button';
+import { storage } from '@/lib/db/storage';
 
 //const logPrefix = '[Article]';
 

@@ -1,9 +1,9 @@
 import 'server-only';
 
-import { dbArticles } from '@/lib/db/articles';
 import { Article } from '@/components/Article';
 import { MainShell } from '@/components/shells/MainShell';
 import { notFound } from 'next/navigation';
+import { db } from '@/lib/db';
 
 //TODO: temporary?
 export const instant = false;
@@ -15,7 +15,7 @@ export default async function Page({
 }) {
   const { sectionSlug, postSlug } = await params;
 
-  const articles = await dbArticles.latest({ slug: postSlug });
+  const articles = await db.articles({ slug: postSlug });
   const article = articles.find(
     (a) => a.tags?.at(0)?.slug === sectionSlug && a.slug === postSlug,
   );

@@ -1,14 +1,14 @@
 import 'server-only';
 
-import { dbArticles } from '@/lib/db/articles';
 import { Article } from '@/components/Article';
 import { MainShell } from '@/components/shells/MainShell';
+import { db } from '@/lib/db';
 
 //TODO: temporary?
 export const instant = false;
 
 export default async function Home() {
-  const articles = await dbArticles.latest({});
+  const articles = await db.articles({});
 
   return (
     <MainShell>
