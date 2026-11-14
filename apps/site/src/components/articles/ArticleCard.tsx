@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { storage } from '@/lib/db/storage';
 import { MkLink } from '../standard/MkLink';
 import { paths } from '@/lib/paths';
+import { dateUtils } from '@/lib/dateUtils';
 
 export const ArticleCard = ({
   article,
@@ -73,7 +74,9 @@ export const ArticleCard = ({
         <h4 className='italic'>{intro}</h4>
         <p className='overflow-hidden text-muted'>{excerpt}</p>
         <div className='flex-1 flex items-end'>
-          <p className='text-muted'>{published_at}</p>
+          <p className='text-muted text-[14px]'>
+            {dateUtils.formatDate(published_at)}
+          </p>
         </div>
       </div>
     </MkLink>
