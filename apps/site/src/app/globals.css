@@ -30,6 +30,8 @@
 
   --color-line: #d7cbc0;
   --color-muted: #5f544c;
+
+  --container-content: 825px;
 }
 
 @media (prefers-color-scheme: dark) {

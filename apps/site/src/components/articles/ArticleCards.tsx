@@ -8,7 +8,7 @@ export const ArticleCard = ({
 }) => {
   const { title } = article;
   return (
-    <div className='bg-default-box mb-12 shadow-sm max-w-[825px]'>
+    <div className='bg-default-box mb-12 shadow-sm max-w-content'>
       <div>{title}</div>
     </div>
   );
