@@ -3,7 +3,6 @@ import 'server-only';
 import { MainShell } from '@/components/shells/MainShell';
 import { db } from '@/lib/db';
 import { ArticleCard } from '@/components/articles/ArticleCard';
-import { Article } from '@/components/articles/Article';
 
 //TODO: temporary?
 export const instant = false;

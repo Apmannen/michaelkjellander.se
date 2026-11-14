@@ -17,7 +17,7 @@ export const ArticleCard = ({
           alt=''
           width={400}
           height={210}
-          className='w-4/10 h-[210px]'
+          className='w-4/10 h-[210px] object-cover'
         />
       ) : null}
       <div className='p-5 sm:p-6'>
