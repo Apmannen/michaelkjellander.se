@@ -1,8 +1,9 @@
 import 'server-only';
 
-import { Article } from '@/components/articles/Article';
 import { MainShell } from '@/components/shells/MainShell';
 import { db } from '@/lib/db';
+import { ArticleCard } from '@/components/articles/ArticleCards';
+import { Article } from '@/components/articles/Article';
 
 //TODO: temporary?
 export const instant = false;
@@ -17,7 +18,10 @@ export default async function Home() {
       </h1>
       {/* <h1>Artiklar</h1> */}
       {articles.map((article, i) => (
-        <Article key={i} article={article} isMain={false} />
+        <div key={i}>
+          <ArticleCard key={i} article={article} />
+          <Article article={article} isMain={false} />
+        </div>
       ))}
     </MainShell>
   );
