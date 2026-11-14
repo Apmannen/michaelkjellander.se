@@ -11,6 +11,9 @@ const latest = async (): Promise<ArticlePayload[]> => {
     .from('articles')
     .select(
       `id, title, body, cover_image, intro, cta, slug,
+      tags:article_tags!article_id(
+        tag:tags(slug)
+      ),
       fields:article_field_values!article_id(
         text,
         field:field_definitions(key)
@@ -18,6 +21,9 @@ const latest = async (): Promise<ArticlePayload[]> => {
     `,
     )
     .order('published_at', { ascending: false });
+
+  //res.data?.at(0)?.tags.at(0).
+  console.log('***D', JSON.stringify(res.data, null, 2));
 
   return (res.data as ArticlePayload[]) || [];
 };

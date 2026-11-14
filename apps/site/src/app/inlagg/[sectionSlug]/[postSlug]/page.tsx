@@ -8,14 +8,16 @@ import { notFound } from 'next/navigation';
 //TODO: temporary?
 export const instant = false;
 
-export default async function Page({params}: {params: Promise<{ slug: string }>}) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ sectionSlug: string; postSlug: string }>;
+}) {
   const awaitedParams = await params;
 
-   //TODO: change
-   //TODO: include tag-slug in url
   const articles = await dbArticles.latest();
-  const article = articles.find((a) => a.slug === awaitedParams.slug);
-  if(!article) {
+  const article = articles.find((a) => a.slug === awaitedParams.postSlug);
+  if (!article) {
     return notFound();
   }
 
