@@ -17,12 +17,14 @@ export default async function Home() {
         Senaste inläggen
       </h1>
       {/* <h1>Artiklar</h1> */}
-      {articles.map((article, i) => (
-        <div key={i}>
-          <ArticleCard key={i} article={article} />
-          <Article article={article} isMain={false} />
-        </div>
-      ))}
+      <div className='pt-8'>
+        {articles.map((article, i) => (
+          <div key={i}>
+            <ArticleCard key={i} article={article} />
+            <Article article={article} isMain={false} />
+          </div>
+        ))}
+      </div>
     </MainShell>
   );
 }
