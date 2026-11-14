@@ -34,9 +34,6 @@ const articles = async ({
 
   const res = await query;
 
-  //res.data?.at(0)?.tags.at(0).
-  console.log('***D', JSON.stringify(res.data, null, 2));
-
   return (res.data as ArticlePayload[]) || [];
 };
 
