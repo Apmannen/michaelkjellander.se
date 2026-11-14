@@ -2,7 +2,7 @@ import { type Image, parseImage } from '@/lib/images';
 
 export type MarkStyle =
   | { type: 'bold' }
-  | { type: 'underline' }
+  | { type: 'italic' }
   | { type: 'link'; href: string }
   // Covers a single ICON_PLACEHOLDER. name is the name of a react-icons icon,
   // e.g. FaGithub.
@@ -91,7 +91,7 @@ export type BodyFeature = MarkType | Exclude<BodyBlock['type'], 'paragraph'>;
 export const ALL_BODY_FEATURES: readonly BodyFeature[] = [
   'heading',
   'bold',
-  'underline',
+  'italic',
   'link',
   'quote',
   'image',
@@ -272,7 +272,7 @@ const toId = (value: unknown) =>
   typeof value === 'string' && value ? value : newBlockId();
 
 const toMarkStyle = (item: Record<string, unknown>): MarkStyle | undefined => {
-  if (item.type === 'bold' || item.type === 'underline') {
+  if (item.type === 'bold' || item.type === 'italic') {
     return { type: item.type };
   }
   if (

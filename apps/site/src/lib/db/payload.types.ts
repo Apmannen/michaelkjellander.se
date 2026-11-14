@@ -21,7 +21,7 @@ export type BodyMarkPayload = {
 } & (
   | LinkPayload
   | { type: 'icon'; name: IconName }
-  | { type: 'bold' | 'underline' }
+  | { type: 'bold' | 'italic' }
 );
 export type ArticleBodyPartPayload = {
   type: 'paragraph' | 'heading' | 'quote' | 'divider' | 'list';

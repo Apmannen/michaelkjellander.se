@@ -159,7 +159,7 @@ export function BodyEditor({
   placeholder?: string;
 }) {
   const has = (feature: BodyFeature) => features.includes(feature);
-  const hasFormatting = has('bold') || has('underline') || has('link');
+  const hasFormatting = has('bold') || has('italic') || has('link');
   const hasWidgets =
     has('quote') ||
     has('image') ||
@@ -307,7 +307,7 @@ export function BodyEditor({
 
   // Removes the style if all of the selection has it, otherwise applies it to
   // all of the selection.
-  const toggleMark = (type: 'bold' | 'underline', target?: TextSelection) => {
+  const toggleMark = (type: 'bold' | 'italic', target?: TextSelection) => {
     const trimmed = trimSelection(target);
     const found = findParagraphById(trimmed?.id);
     if (!has(type) || !trimmed || !found) {
@@ -435,9 +435,9 @@ export function BodyEditor({
         }
         return;
       }
-      if (key === 'b' || key === 'u') {
+      if (key === 'b' || key === 'i') {
         event.preventDefault();
-        toggleMark(key === 'b' ? 'bold' : 'underline', target);
+        toggleMark(key === 'b' ? 'bold' : 'italic', target);
         return;
       }
     }
@@ -529,7 +529,7 @@ export function BodyEditor({
     // Marks aren't allowed in a heading.
     if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
       const key = event.key.toLowerCase();
-      if (key === 'k' || key === 'b' || key === 'u') {
+      if (key === 'k' || key === 'b' || key === 'i') {
         event.preventDefault();
         return;
       }
@@ -781,18 +781,18 @@ export function BodyEditor({
             F
           </button>
         )}
-        {has('underline') && (
+        {has('italic') && (
           <button
             type='button'
             onMouseDown={(event) => event.preventDefault()}
-            onClick={() => toggleMark('underline', selection)}
+            onClick={() => toggleMark('italic', selection)}
             disabled={!formatTarget}
-            aria-pressed={isFormatted('underline')}
-            aria-label='Understruken'
-            title='Understruken (Ctrl+U)'
-            className={`${toolbarButtonClass} w-8 underline`}
+            aria-pressed={isFormatted('italic')}
+            aria-label='Kursiv'
+            title='Kursiv (Ctrl+I)'
+            className={`${toolbarButtonClass} w-8 italic`}
           >
-            U
+            K
           </button>
         )}
         {has('link') && (
@@ -1026,9 +1026,11 @@ const headingTextClass = 'text-lg leading-snug font-semibold break-words';
 
 // font-bold would make the text wider than in the textarea and throw the
 // caret off, so bold is drawn with a stroke that keeps the glyph widths.
+// Geist has no italic face, so italic is a synthesized slant of the same
+// glyphs and keeps their widths too.
 const markClasses: Record<MarkType, string> = {
   bold: '[-webkit-text-stroke:0.035em_currentColor]',
-  underline: 'underline underline-offset-2',
+  italic: 'italic',
   link: 'text-blue-700 underline underline-offset-2 dark:text-blue-400',
   icon: 'relative',
 };
