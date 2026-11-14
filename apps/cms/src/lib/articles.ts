@@ -22,6 +22,8 @@ export type Article = {
   slug: string;
   intro: string;
   cta?: CallToAction;
+  // A whole number from RATING_MIN to RATING_MAX, e.g. for a review.
+  rating?: number;
   published: boolean;
   published_at: string;
   cover_image?: Image;
@@ -44,6 +46,7 @@ export type ArticleInput = Pick<
   | 'slug'
   | 'intro'
   | 'cta'
+  | 'rating'
   | 'published'
   | 'published_at'
   | 'cover_image'
@@ -51,6 +54,19 @@ export type ArticleInput = Pick<
   | 'tag_ids'
   | 'field_values'
 >;
+
+export const RATING_MIN = 1;
+export const RATING_MAX = 10;
+
+// Undefined if no rating is set. Anything else that isn't a whole number is
+// kept as NaN so validateArticle can point it out.
+export const parseRating = (value: unknown): number | undefined => {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  const rating = Number(value);
+  return Number.isInteger(rating) ? rating : Number.NaN;
+};
 
 // Undefined if every field is empty, so a cleared button is removed. A button
 // with missing fields is kept so validateArticle can point them out.
@@ -80,6 +96,16 @@ export const validateArticle = (input: ArticleInput): string | undefined => {
   }
   if (Number.isNaN(Date.parse(input.published_at))) {
     return 'Publiceringstid måste anges.';
+  }
+  if (
+    input.rating !== undefined &&
+    !(
+      Number.isInteger(input.rating) &&
+      input.rating >= RATING_MIN &&
+      input.rating <= RATING_MAX
+    )
+  ) {
+    return `Betyget måste vara ett heltal från ${RATING_MIN} till ${RATING_MAX}.`;
   }
   if (input.cta) {
     if (!input.cta.text) {

@@ -10,8 +10,19 @@ async function Editor({
   params: PageProps<'/[site]/tags/new'>['params'];
 }) {
   const { site } = await params;
-  const tags = await db.listTags(site);
-  return <TagEditor siteId={site} tags={tags} />;
+  const [tags, fieldDefinitions, articles] = await Promise.all([
+    db.listTags(site),
+    db.listFieldDefinitions(site),
+    db.listArticleSummaries(site),
+  ]);
+  return (
+    <TagEditor
+      siteId={site}
+      tags={tags}
+      fieldDefinitions={fieldDefinitions}
+      articles={articles}
+    />
+  );
 }
 
 export default function NewTagPage({ params }: PageProps<'/[site]/tags/new'>) {

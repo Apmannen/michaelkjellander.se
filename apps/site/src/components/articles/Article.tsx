@@ -7,8 +7,8 @@ import { Heading } from '../richText/Heading';
 import { List } from '../richText/List';
 import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
-
-//const logPrefix = '[Article]';
+import { MkLink } from '../standard/MkLink';
+import { Rating } from './Rating';
 
 export const Article = ({
   article,
@@ -16,16 +16,24 @@ export const Article = ({
 }: {
   article: Pick<
     ArticlePayload,
-    'title' | 'body' | 'cover_image' | 'intro' | 'cta' | 'fields'
+    | 'title'
+    | 'body'
+    | 'cover_image'
+    | 'intro'
+    | 'cta'
+    | 'fields'
+    | 'tags'
+    | 'rating'
   >;
   isMain: boolean;
 }) => {
-  const { fields } = article;
+  const { fields, cta, tags, rating } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
-  //TODO: can remove this since we won't display full articles in a feed
+  const platforms = tags?.filter((t) => t.type === 'game_platform') || [];
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
+
   return (
     <article className='bg-default-box mb-12 shadow-sm pt-12'>
       <div className='sm:px-12 sm:h-[400px]'>
@@ -49,25 +57,44 @@ export const Article = ({
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
         <Divider className={{ container: 'py-4' }} />
-        <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
-          <div className='text-[16px]'>
-            {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
-            {devTool ? <div>Utvecklat i: {devTool}</div> : null}
-          </div>
-          <div className='flex-1 flex items-center sm:justify-end'>
-            {article.cta ? (
-              <Button
-                href={article.cta.href}
-                target='_blank'
-                iconName={article.cta.icon}
-              >
-                {article.cta.text}
-              </Button>
-            ) : null}
-          </div>
-        </div>
-        <Divider className={{ container: 'py-4' }} />
+        {devYears || devTool || cta || platforms.length || rating != null ? (
+          <>
+            <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
+              <div className='text-[16px]'>
+                {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
+                {devTool ? <div>Utvecklat i: {devTool}</div> : null}
+                {rating != null ? (
+                  <div className='font-bold'>Recension</div>
+                ) : null}
+                {platforms.length ? (
+                  <div>
+                    Testat på:{' '}
+                    {platforms.map((p, i) => (
+                      <MkLink
+                        key={i}
+                        href='#'
+                        className={{ link: 'hover:underline' }}
+                      >
+                        {p.name}
+                      </MkLink>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <div className='flex-1 flex items-center sm:justify-end'>
+                {cta ? (
+                  <Button href={cta.href} target='_blank' iconName={cta.icon}>
+                    {cta.text}
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+            <Divider className={{ container: 'py-4' }} />
+          </>
+        ) : null}
+
         <div className='space-y-4'>
+          {rating != null ? <Rating rating10={rating} /> : null}
           {article.body.map((part, i) => (
             <div key={i} className=''>
               {part.type === 'heading' ? (

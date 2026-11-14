@@ -12,13 +12,26 @@ async function Editor({
 }) {
   const { site, id } = await params;
   // All tags are needed anyway, for picking parents.
-  const tags = await db.listTags(site);
+  const [tags, fieldDefinitions, articles] = await Promise.all([
+    db.listTags(site),
+    db.listFieldDefinitions(site),
+    db.listArticleSummaries(site),
+  ]);
   const tag = tags.find((other) => other.id === id);
   if (!tag) {
     notFound();
   }
 
-  return <TagEditor key={tag.id} siteId={site} tag={tag} tags={tags} />;
+  return (
+    <TagEditor
+      key={tag.id}
+      siteId={site}
+      tag={tag}
+      tags={tags}
+      fieldDefinitions={fieldDefinitions}
+      articles={articles}
+    />
+  );
 }
 
 export default function TagPage({ params }: PageProps<'/[site]/tags/[id]'>) {

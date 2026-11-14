@@ -1,4 +1,5 @@
 import type { Body, BodyFeature } from '@/lib/body';
+import type { FieldValue } from '@/lib/fields';
 import { validateSlug } from '@/lib/slug';
 
 export type Tag = {
@@ -6,17 +7,28 @@ export type Tag = {
   name: string;
   // E.g. "Recension" for "Spelrecensioner". Empty means none.
   singular_name: string;
+  // Free text, e.g. "Genre" or "Plattform". Empty means none.
+  type: string;
   slug: string;
   description: Body;
   // In the order they were picked. Empty for a top-level tag.
   parent_ids: string[];
+  // Values of the site's dynamic fields, see lib/fields.ts. In order, and the
+  // values of a field are next to each other.
+  field_values: FieldValue[];
   created_at: string;
   updated_at: string;
 };
 
 export type TagInput = Pick<
   Tag,
-  'name' | 'singular_name' | 'slug' | 'description' | 'parent_ids'
+  | 'name'
+  | 'singular_name'
+  | 'type'
+  | 'slug'
+  | 'description'
+  | 'parent_ids'
+  | 'field_values'
 >;
 
 // What a tag's description may contain besides plain paragraphs.
@@ -24,6 +36,13 @@ export const TAG_DESCRIPTION_FEATURES: readonly BodyFeature[] = [
   'link',
   'list',
 ];
+
+// The types set on the tags, without duplicates, for suggesting when setting
+// a tag's type.
+export const listTagTypes = (tags: Tag[]): string[] =>
+  [...new Set(tags.map((tag) => tag.type).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, 'sv'),
+  );
 
 // Keeps the first of each id and drops anything that isn't a string.
 export const parseIds = (value: unknown): string[] =>

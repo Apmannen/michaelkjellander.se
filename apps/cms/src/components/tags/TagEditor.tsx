@@ -2,12 +2,15 @@
 
 import { useState, useTransition } from 'react';
 
+import type { ArticleSummary } from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
+import type { FieldDefinition } from '@/lib/fields';
 import {
   TAG_DESCRIPTION_FEATURES,
   type Tag,
   type TagInput,
   findDescendantIds,
+  listTagTypes,
 } from '@/lib/tags';
 
 import { BodyEditor } from '../body/BodyEditor';
@@ -18,33 +21,44 @@ import {
 } from '../editor/EditorFooter';
 import { Field, inputClass } from '../editor/Field';
 import { SlugField } from '../editor/SlugField';
+import { FieldValuesField } from '../fields/FieldValuesField';
 import { deleteTag, saveTag } from './actions';
 import { TagPicker } from './tag-picker';
 
 const toInput = (tag?: Tag): TagInput => ({
   name: tag?.name ?? '',
   singular_name: tag?.singular_name ?? '',
+  type: tag?.type ?? '',
   slug: tag?.slug ?? '',
   description: withParagraphSlots(tag?.description ?? []),
   parent_ids: tag?.parent_ids ?? [],
+  field_values: tag?.field_values ?? [],
 });
 
 const isSame = (a: TagInput, b: TagInput) =>
   a.name === b.name &&
   a.singular_name === b.singular_name &&
+  a.type === b.type &&
   a.slug === b.slug &&
   JSON.stringify(a.description) === JSON.stringify(b.description) &&
-  JSON.stringify(a.parent_ids) === JSON.stringify(b.parent_ids);
+  JSON.stringify(a.parent_ids) === JSON.stringify(b.parent_ids) &&
+  JSON.stringify(a.field_values) === JSON.stringify(b.field_values);
 
-// tags are all tags, which the parents are picked from.
+// tags are all tags, which the parents are picked from. fieldDefinitions are
+// the site's dynamic fields, and articles the articles that link fields can
+// link to.
 export function TagEditor({
   siteId,
   tag,
   tags,
+  fieldDefinitions,
+  articles,
 }: {
   siteId: string;
   tag?: Tag;
   tags: Tag[];
+  fieldDefinitions: FieldDefinition[];
+  articles: ArticleSummary[];
 }) {
   const [saved, setSaved] = useState<TagInput>(() => toInput(tag));
   const [draft, setDraft] = useState<TagInput>(saved);
@@ -58,6 +72,11 @@ export function TagEditor({
 
   // A tag can't be its own parent, or the parent of a tag above it.
   const excludedParents = tag ? findDescendantIds(tags, tag.id) : undefined;
+
+  // The types set on other tags are suggested.
+  const typeSuggestions = listTagTypes(
+    tags.filter((other) => other.id !== tag?.id),
+  );
 
   const update = (patch: Partial<TagInput>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -138,6 +157,27 @@ export function TagEditor({
           </Field>
 
           <Field
+            label='Typ'
+            htmlFor='type'
+            description='Valfri. T.ex. Genre eller Plattform.'
+          >
+            <input
+              id='type'
+              type='text'
+              value={draft.type}
+              onChange={(event) => update({ type: event.target.value })}
+              className={inputClass}
+              list='type_suggestions'
+              autoComplete='off'
+            />
+            <datalist id='type_suggestions'>
+              {typeSuggestions.map((type) => (
+                <option key={type} value={type} />
+              ))}
+            </datalist>
+          </Field>
+
+          <Field
             label='Slug'
             htmlFor='slug'
             description='Används i taggens adress.'
@@ -175,6 +215,20 @@ export function TagEditor({
               value={draft.parent_ids}
               onChange={(parent_ids) => update({ parent_ids })}
               excluded={excludedParents}
+            />
+          </Field>
+
+          <Field
+            label='Fält'
+            htmlFor='field_values'
+            description='Valfria. Sajtens dynamiska fält, t.ex. Spela även.'
+          >
+            <FieldValuesField
+              id='field_values'
+              definitions={fieldDefinitions}
+              articles={articles}
+              value={draft.field_values}
+              onChange={(field_values) => update({ field_values })}
             />
           </Field>
         </div>

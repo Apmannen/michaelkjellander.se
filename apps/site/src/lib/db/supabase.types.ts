@@ -109,6 +109,7 @@ export type Database = {
           intro: string
           published: boolean
           published_at: string
+          rating: number | null
           site_id: string
           slug: string
           title: string
@@ -123,6 +124,7 @@ export type Database = {
           intro?: string
           published?: boolean
           published_at?: string
+          rating?: number | null
           site_id: string
           slug: string
           title: string
@@ -137,6 +139,7 @@ export type Database = {
           intro?: string
           published?: boolean
           published_at?: string
+          rating?: number | null
           site_id?: string
           slug?: string
           title?: string
@@ -327,6 +330,58 @@ export type Database = {
         }
         Relationships: []
       }
+      tag_field_values: {
+        Row: {
+          field_id: string
+          href: string | null
+          id: string
+          position: number
+          tag_id: string
+          target_article_id: string | null
+          text: string
+        }
+        Insert: {
+          field_id: string
+          href?: string | null
+          id?: string
+          position?: number
+          tag_id: string
+          target_article_id?: string | null
+          text: string
+        }
+        Update: {
+          field_id?: string
+          href?: string | null
+          id?: string
+          position?: number
+          tag_id?: string
+          target_article_id?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tag_field_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "field_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_field_values_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_field_values_target_article_id_fkey"
+            columns: ["target_article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tag_parents: {
         Row: {
           parent_id: string
@@ -369,6 +424,7 @@ export type Database = {
           singular_name: string
           site_id: string
           slug: string
+          type: string
           updated_at: string
         }
         Insert: {
@@ -379,6 +435,7 @@ export type Database = {
           singular_name?: string
           site_id: string
           slug: string
+          type?: string
           updated_at?: string
         }
         Update: {
@@ -389,6 +446,7 @@ export type Database = {
           singular_name?: string
           site_id?: string
           slug?: string
+          type?: string
           updated_at?: string
         }
         Relationships: [
@@ -511,6 +569,10 @@ export type Database = {
       set_article_tags: {
         Args: { article_id: string; tag_ids: string[] }
         Returns: string[]
+      }
+      set_tag_field_values: {
+        Args: { field_values: Json; tag_id: string }
+        Returns: Json
       }
       set_tag_parents: {
         Args: { parent_ids: string[]; tag_id: string }
