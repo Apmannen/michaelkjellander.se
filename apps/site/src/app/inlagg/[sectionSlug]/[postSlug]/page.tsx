@@ -25,7 +25,9 @@ export default async function Page({
 
   return (
     <MainShell>
-      <Article article={article} isMain={false} />
+      <div className='max-w-content mx-auto'>
+        <Article article={article} isMain={false} />
+      </div>
     </MainShell>
   );
 }
