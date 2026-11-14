@@ -18,7 +18,7 @@ const articles = async ({
     .select(
       `id, title, body, cover_image, intro, cta, slug,
       tags:article_tags!article_id(
-        ...tags(slug)
+        ...tags(slug, singular_name, name)
       ),
       fields:article_field_values!article_id(
         text,

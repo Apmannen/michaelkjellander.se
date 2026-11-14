@@ -152,6 +152,21 @@ export type Database = {
           },
         ]
       }
+      cms_users: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
+      }
       field_definitions: {
         Row: {
           created_at: string
@@ -351,6 +366,7 @@ export type Database = {
           description: Json
           id: string
           name: string
+          singular_name: string
           site_id: string
           slug: string
           updated_at: string
@@ -360,6 +376,7 @@ export type Database = {
           description?: Json
           id?: string
           name: string
+          singular_name?: string
           site_id: string
           slug: string
           updated_at?: string
@@ -369,6 +386,7 @@ export type Database = {
           description?: Json
           id?: string
           name?: string
+          singular_name?: string
           site_id?: string
           slug?: string
           updated_at?: string
@@ -433,6 +451,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cms_before_user_created: { Args: { event: Json }; Returns: Json }
       create_issue: {
         Args: {
           column_id: string

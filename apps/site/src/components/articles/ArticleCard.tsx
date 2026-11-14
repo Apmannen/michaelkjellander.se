@@ -37,6 +37,7 @@ export const ArticleCard = ({
       }
     }
   }
+  const mainTag = tags?.at(0);
 
   return (
     <MkLink
@@ -58,7 +59,7 @@ export const ArticleCard = ({
       </div>
       <div className='p-5 sm:p-6 flex-1 space-y-1.5'>
         <p className='text-[13px] font-semibold uppercase tracking-[0.12em] text-accent-800'>
-          {tags?.at(0)?.slug}
+          {mainTag?.singular_name || mainTag?.name}
         </p>
         <h3 className='text-[30px] font-bold leading-none tracking-tight group-hover:text-accent-800'>
           {title}
