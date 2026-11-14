@@ -8,6 +8,7 @@ import { List } from '../richText/List';
 import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
 import { MkLink } from '../standard/MkLink';
+import { Rating } from './Rating';
 
 export const Article = ({
   article,
@@ -15,11 +16,18 @@ export const Article = ({
 }: {
   article: Pick<
     ArticlePayload,
-    'title' | 'body' | 'cover_image' | 'intro' | 'cta' | 'fields' | 'tags'
+    | 'title'
+    | 'body'
+    | 'cover_image'
+    | 'intro'
+    | 'cta'
+    | 'fields'
+    | 'tags'
+    | 'rating'
   >;
   isMain: boolean;
 }) => {
-  const { fields, cta, tags } = article;
+  const { fields, cta, tags, rating } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
   const platforms = tags?.filter((t) => t.type === 'game_platform') || [];
@@ -58,8 +66,12 @@ export const Article = ({
                 {platforms.length ? (
                   <div>
                     Testat på:{' '}
-                    {platforms.map((p) => (
-                      <MkLink href='#' className={{ link: 'hover:underline' }}>
+                    {platforms.map((p, i) => (
+                      <MkLink
+                        key={i}
+                        href='#'
+                        className={{ link: 'hover:underline' }}
+                      >
                         {p.name}
                       </MkLink>
                     ))}
@@ -79,6 +91,7 @@ export const Article = ({
         ) : null}
 
         <div className='space-y-4'>
+          {rating ? <Rating rating10={rating} /> : null}
           {article.body.map((part, i) => (
             <div key={i} className=''>
               {part.type === 'heading' ? (
