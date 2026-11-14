@@ -4,6 +4,8 @@ import { validateSlug } from '@/lib/slug';
 export type Tag = {
   id: string;
   name: string;
+  // E.g. "Recension" for "Spelrecensioner". Empty means none.
+  singular_name: string;
   slug: string;
   description: Body;
   // In the order they were picked. Empty for a top-level tag.
@@ -12,7 +14,10 @@ export type Tag = {
   updated_at: string;
 };
 
-export type TagInput = Pick<Tag, 'name' | 'slug' | 'description' | 'parent_ids'>;
+export type TagInput = Pick<
+  Tag,
+  'name' | 'singular_name' | 'slug' | 'description' | 'parent_ids'
+>;
 
 // What a tag's description may contain besides plain paragraphs.
 export const TAG_DESCRIPTION_FEATURES: readonly BodyFeature[] = [

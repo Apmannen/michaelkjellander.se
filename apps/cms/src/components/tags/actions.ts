@@ -36,8 +36,11 @@ export async function saveTag(
   await requireUser();
 
   const input: TagInput = {
-    // The name is shown on one line, so line breaks become spaces.
+    // The names are shown on one line, so line breaks become spaces.
     name: String(raw.name ?? '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+    singular_name: String(raw.singular_name ?? '')
       .replace(/\s+/g, ' ')
       .trim(),
     slug: String(raw.slug ?? '').trim(),
