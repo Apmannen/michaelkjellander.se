@@ -7,9 +7,12 @@ import { paths } from '@/lib/paths';
 export const ArticleCard = ({
   article,
 }: {
-  article: Pick<ArticlePayload, 'title' | 'cover_image' | 'tags' | 'slug'>;
+  article: Pick<
+    ArticlePayload,
+    'title' | 'cover_image' | 'tags' | 'slug' | 'intro'
+  >;
 }) => {
-  const { title, cover_image } = article;
+  const { title, cover_image, intro } = article;
   return (
     <MkLink
       className={{
@@ -30,6 +33,7 @@ export const ArticleCard = ({
         <h3 className='text-[30px] font-bold leading-tight tracking-tight group-hover:text-accent-800'>
           {title}
         </h3>
+        <h4 className='italic'>{intro}</h4>
       </div>
     </MkLink>
   );
