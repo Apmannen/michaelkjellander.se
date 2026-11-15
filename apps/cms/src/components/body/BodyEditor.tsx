@@ -23,9 +23,12 @@ import {
   type Mark,
   type MarkType,
   type HeadingBlock,
+  type HeadingLevel,
   type ParagraphBlock,
   type QuoteBlock,
   type TextBlock,
+  DEFAULT_HEADING_LEVEL,
+  HEADING_LEVELS,
   ICON_PLACEHOLDER,
   addMark,
   adjustMarks,
@@ -235,7 +238,7 @@ export function BodyEditor({
     caret: number,
   ) => {
     if (block.type === 'heading') {
-      onChange(splice(index, 1, heading(text, block.id)));
+      onChange(splice(index, 1, heading(text, block.level, block.id)));
       return;
     }
     const { from, oldEnd, newEnd } = findEdit(block.text, text, caret);
@@ -325,27 +328,47 @@ export function BodyEditor({
     });
   };
 
-  const isHeading = (blockId?: string) =>
-    findTextBlockById(blockId)?.block.type === 'heading';
+  // Undefined unless the block is a heading.
+  const headingLevelOf = (blockId?: string) => {
+    const block = findTextBlockById(blockId)?.block;
+    return block?.type === 'heading' ? block.level : undefined;
+  };
 
-  // Turns the paragraph with the selection into a heading, which drops its
-  // marks and icons, or a heading back into a paragraph. The selection is
-  // kept as far as the text allows.
-  const toggleHeading = (target?: TextSelection) => {
+  const isHeading = (blockId?: string) => !!headingLevelOf(blockId);
+
+  // Turns the text block with the selection into a heading of the given
+  // level, or into a paragraph without a level. A paragraph that becomes a
+  // heading drops its marks and icons. The selection is kept as far as the
+  // text allows.
+  const setTextStyle = (
+    target: TextSelection | undefined,
+    level: HeadingLevel | undefined,
+  ) => {
     const found = findTextBlockById(target?.id);
     if (!has('heading') || !target || !found) {
       return;
     }
     const { index, block } = found;
-    const next =
-      block.type === 'heading'
-        ? paragraph(block.text, [], block.id)
-        : heading(block.text, block.id);
+    if (block.type === 'paragraph' && !level) {
+      return;
+    }
+    const next = level
+      ? heading(block.text, level, block.id)
+      : paragraph(block.text, [], block.id);
     commit(splice(index, 1, next), {
       id: block.id,
       offset: Math.min(target.start, next.text.length),
       end: Math.min(target.end, next.text.length),
     });
+  };
+
+  // A heading of the given level becomes a paragraph again, anything else a
+  // heading of that level. Without a level, a heading becomes a paragraph
+  // and a paragraph a heading of the default level.
+  const toggleHeading = (target?: TextSelection, level?: HeadingLevel) => {
+    const current = headingLevelOf(target?.id);
+    const wanted = level ?? current ?? DEFAULT_HEADING_LEVEL;
+    setTextStyle(target, current === wanted ? undefined : wanted);
   };
 
   const onKeyDown = (
@@ -364,6 +387,22 @@ export function BodyEditor({
     ) {
       event.preventDefault();
       toggleHeading({ id: block.id, start, end });
+      return;
+    }
+
+    // Ctrl+Shift+1/2/3 picks a heading level. The physical key is checked,
+    // since Shift changes what a digit key types on many layouts. Ctrl+Alt
+    // isn't used, since on Windows it's AltGr, which types e.g. @ and £.
+    const digit = /^Digit(\d)$/.exec(event.code)?.[1];
+    const level = digit ? HEADING_LEVELS[Number(digit) - 1] : undefined;
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.shiftKey &&
+      !event.altKey &&
+      level
+    ) {
+      event.preventDefault();
+      toggleHeading({ id: block.id, start, end }, level);
       return;
     }
 
@@ -456,7 +495,7 @@ export function BodyEditor({
           splice(
             index - 1,
             2,
-            heading(previous.text + block.text, previous.id),
+            heading(previous.text + block.text, previous.level, previous.id),
           ),
           { id: previous.id, offset: previous.text.length },
         );
@@ -520,8 +559,12 @@ export function BodyEditor({
         return;
       }
       const rest = block.text.slice(end);
-      const next = rest ? heading(rest) : paragraph();
-      const current = heading(block.text.slice(0, start), block.id);
+      const next = rest ? heading(rest, block.level) : paragraph();
+      const current = heading(
+        block.text.slice(0, start),
+        block.level,
+        block.id,
+      );
       commit(splice(index, 1, current, next), { id: next.id, offset: 0 });
       return;
     }
@@ -551,10 +594,14 @@ export function BodyEditor({
         if (next.type === 'paragraph' && next.marks) {
           return;
         }
-        commit(splice(index, 2, heading(block.text + next.text, block.id)), {
-          id: block.id,
-          offset: block.text.length,
-        });
+        commit(
+          splice(
+            index,
+            2,
+            heading(block.text + next.text, block.level, block.id),
+          ),
+          { id: block.id, offset: block.text.length },
+        );
       }
     }
   };
@@ -609,8 +656,8 @@ export function BodyEditor({
     if (block.type === 'heading') {
       // An empty heading isn't left behind before the widget, and the text
       // after it is body text unless there's more of the heading.
-      const next = after ? heading(after) : paragraph();
-      const current = before ? [heading(before, block.id)] : [];
+      const next = after ? heading(after, block.level) : paragraph();
+      const current = before ? [heading(before, block.level, block.id)] : [];
       commit(splice(index, 1, ...current, widget, next), {
         id: next.id,
         offset: 0,
@@ -752,17 +799,35 @@ export function BodyEditor({
       <div className='flex items-center gap-1 border-b border-zinc-200 px-2 py-1.5 dark:border-zinc-800'>
         {/* preventDefault on mousedown keeps the text selection visible. */}
         {has('heading') && (
-          <button
-            type='button'
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => toggleHeading(selection)}
-            disabled={!findTextBlockById(selection?.id)}
-            aria-pressed={isHeading(selection?.id)}
-            title='Gör stycket där markören står till en rubrik (Ctrl+Shift+H)'
-            className={`${toolbarButtonClass} font-semibold`}
-          >
-            Rubrik
-          </button>
+          <>
+            <button
+              type='button'
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setTextStyle(selection, undefined)}
+              disabled={!findTextBlockById(selection?.id)}
+              aria-pressed={
+                !!findTextBlockById(selection?.id) && !isHeading(selection?.id)
+              }
+              title='Gör rubriken där markören står till ett vanligt stycke'
+              className={toolbarButtonClass}
+            >
+              Stycke
+            </button>
+            {HEADING_LEVELS.map((level, i) => (
+              <button
+                key={level}
+                type='button'
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => setTextStyle(selection, level)}
+                disabled={!findTextBlockById(selection?.id)}
+                aria-pressed={headingLevelOf(selection?.id) === level}
+                title={`Gör stycket där markören står till ${headingLabel(level).toLowerCase()} (Ctrl+Shift+${i + 1})`}
+                className={`${toolbarButtonClass} font-semibold`}
+              >
+                {headingLabel(level)}
+              </button>
+            ))}
+          </>
         )}
 
         {has('heading') && hasFormatting && <ToolbarSeparator />}
@@ -899,8 +964,8 @@ export function BodyEditor({
               <textarea
                 key={block.id}
                 {...textInputProps(index, block)}
-                placeholder='Rubrik'
-                className={`${headingTextClass} mt-2 block w-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-zinc-400`}
+                placeholder={headingLabel(block.level)}
+                className={`${headingTextClasses[block.level]} mt-2 block w-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-zinc-400`}
               />
             );
           }
@@ -1022,7 +1087,15 @@ const toolbarButtonClass =
 const paragraphTextClass =
   'text-sm leading-relaxed whitespace-pre-wrap break-words';
 
-const headingTextClass = 'text-lg leading-snug font-semibold break-words';
+const headingTextClasses: Record<HeadingLevel, string> = {
+  2: 'text-xl leading-snug font-semibold break-words',
+  3: 'text-lg leading-snug font-semibold break-words',
+  4: 'text-base leading-snug font-semibold break-words',
+};
+
+// The levels are shown numbered from 1, since the h1 is never in the body.
+const headingLabel = (level: HeadingLevel) =>
+  `Rubrik ${HEADING_LEVELS.indexOf(level) + 1}`;
 
 // font-bold would make the text wider than in the textarea and throw the
 // caret off, so bold is drawn with a stroke that keeps the glyph widths.
