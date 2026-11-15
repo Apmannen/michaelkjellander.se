@@ -49,22 +49,22 @@ export const ArticleCard = ({
   return (
     <MkLink
       className={{
-        all: 'bg-default-box shadow-sm rounded-lg overflow-hidden flex group hover:outline-2 outline-accent-800',
+        all: 'bg-default-box shadow-sm rounded-lg overflow-hidden flex flex-col sm:flex-row group hover:outline-2 outline-accent-800',
       }}
       href={paths.article(article)}
     >
-      <div className='w-4/10 overflow-hidden'>
+      <div className='sm:w-4/10 overflow-hidden'>
         {cover_image ? (
           <Image
             src={storage.getPublicUrl(cover_image.path)}
             alt=''
             width={400}
-            height={225}
-            className='w-full h-[225px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out'
+            height={235}
+            className='w-full h-[235px] object-cover group-hover:scale-110 transition-transform duration-200 ease-out'
           />
         ) : null}
       </div>
-      <div className='px-5 py-5 sm:px-6 flex-1 flex gap-1.5 flex-col'>
+      <div className='px-5 py-4 flex-1 flex gap-1.5 flex-col'>
         <p className='text-[13px] font-semibold uppercase tracking-[0.12em] text-accent-800'>
           {mainTag?.singular_name || mainTag?.name}
         </p>

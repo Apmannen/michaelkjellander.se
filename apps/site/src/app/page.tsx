@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 export default async function Home() {
   return (
     <MainShell>
-      <div className='max-w-content mx-auto'>
+      <div className='max-w-content mx-auto px-4 lg:px-0 mb-12'>
         <h1 className='text-[48px] font-bold leading-none tracking-[-0.03em]'>
           Senaste inläggen
         </h1>
