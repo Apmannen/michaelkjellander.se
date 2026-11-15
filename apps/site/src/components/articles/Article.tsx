@@ -132,7 +132,6 @@ export const Article = ({
         ) : null}
 
         <div className='space-y-4'>
-          {rating != null ? <Rating rating10={rating} /> : null}
           {article.body.map((part, i) => (
             <div key={i} className=''>
               {part.type === 'heading' ? (
@@ -148,6 +147,7 @@ export const Article = ({
               ) : null}
             </div>
           ))}
+          {rating != null ? <div className='pt-2'><Rating rating10={rating} /></div> : null}
         </div>
         <div className='h-12'></div>
         {/* <Divider className={{ container: 'py-8' }} /> */}
