@@ -11,7 +11,7 @@ export type CallToActionPayload = {
 };
 
 export type TagPayload = Pick<
-  Database['public']['Tables']['tags']['Insert'],
+  Database['public']['Tables']['tags']['Row'],
   'slug' | 'singular_name' | 'name' | 'id'
 > & { type?: 'game_platform'; tag_parents?: Omit<TagPayload, 'tag_parents'>[] };
 

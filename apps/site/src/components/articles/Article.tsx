@@ -12,6 +12,7 @@ import { Rating } from './Rating';
 import { LuArrowLeft, LuCalendar, LuTag } from 'react-icons/lu';
 import { paths } from '@/lib/paths';
 import { dateUtils } from '@/lib/dateUtils';
+import { collectionUtils } from '@/lib/collectionUtils';
 
 export const Article = ({
   article,
@@ -44,7 +45,7 @@ export const Article = ({
   const mainTagParent = mainTag.tag_parents?.at(0);
 
   const allParentTags = tags.map((t) => t.tag_parents || []).flat();
-  const allTags = [...tags, ...allParentTags];
+  const allTags = collectionUtils.uniqueArrayOnProp([...tags, ...allParentTags], (t) => t.id);
 
   return (
     <article className='bg-default-box sm:mb-12 sm:shadow-sm'>
