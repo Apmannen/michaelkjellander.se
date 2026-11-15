@@ -73,23 +73,25 @@ export const Rating = ({
         <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
       </div>
       {playAlso ? (
-        <div className='border-t border-accent-200 mt-4 pt-2'>
+        <div className='border-t border-accent-200 mt-4 pt-2 text-[16px] sm:text-[18px]'>
           <MkLink
             href={'#'}
-            className={{ all: 'group flex items-center gap-4' }}
+            className={{ all: 'group flex items-center gap-2' }}
           >
             <>
               <LuGamepad2
                 aria-hidden
-                className='shrink-0 text-[26px] text-accent-800'
+                className='shrink-0 text-accent-800 text-[22px] sm:text-[24px]'
               />
-              <span className='flex-1 text-[24px]'>
-                <span className='font-bold text-accent-800'>Spela även: </span>
-                <span className='italic'>{playAlso}</span>
+              <span className='flex-1'>
+                <span className='font-bold text-accent-800 pr-[2px]'>
+                  Spela även:{' '}
+                </span>
+                <span className=''>{playAlso}</span>
               </span>
               <LuArrowRight
                 aria-hidden
-                className='text-[26px] text-accent-800 transition-transform group-hover:translate-x-1'
+                className='text-accent-800 transition-transform group-hover:translate-x-1'
               />
             </>
           </MkLink>
