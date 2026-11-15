@@ -36,6 +36,9 @@ export const Article = ({
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
 
+  const mainTag = tags?.at(0);
+  const mainTagParent = mainTag?.tag_parents?.at(0);
+
   return (
     <article className='bg-default-box mb-12 shadow-sm'>
       <nav
@@ -48,14 +51,25 @@ export const Article = ({
         >
           <LuArrowLeft aria-hidden /> Inlägg
         </MkLink>
-        {tags?.at(0) ? (
+        {mainTagParent ? (
           <>
             <span className='text-muted'>/</span>
             <MkLink
-              href={paths.tag(tags[0])}
+              href={paths.tag(mainTagParent)}
               className={{ all: 'hover:text-accent-800' }}
             >
-              {tags[0].name}
+              {mainTagParent.name}
+            </MkLink>
+          </>
+        ) : null}
+        {mainTag ? (
+          <>
+            <span className='text-muted'>/</span>
+            <MkLink
+              href={paths.tag(mainTag)}
+              className={{ all: 'hover:text-accent-800' }}
+            >
+              {mainTag.name}
             </MkLink>
           </>
         ) : null}
