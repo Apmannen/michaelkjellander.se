@@ -45,7 +45,10 @@ export const Article = ({
   const mainTagParent = mainTag.tag_parents?.at(0);
 
   const allParentTags = tags.map((t) => t.tag_parents || []).flat();
-  const allTags = collectionUtils.uniqueArrayOnProp([...tags, ...allParentTags], (t) => t.id);
+  const allTags = collectionUtils.uniqueArrayOnProp(
+    [...tags, ...allParentTags],
+    (t) => t.id,
+  );
 
   return (
     <article className='bg-default-box sm:mb-12 sm:shadow-sm'>
@@ -175,16 +178,19 @@ export const Article = ({
           </p>
           <div className='flex items-center gap-3'>
             <span className='sr-only'>Taggar:</span>
-            <ul className='flex flex-wrap gap-1'>
+            <div className='flex flex-wrap gap-1'>
               {allTags.map((tag, i) => (
-                <li
+                <MkLink
                   key={i}
-                  className='rounded-lg border border-accent-800 bg-accent-100 px-2 py-0.5 text-[14px] text-accent-800'
+                  className={{
+                    all: 'rounded-lg border border-accent-300 bg-accent-100 px-2 py-0.5 text-[14px] text-accent-800 hover:bg-accent-800 hover:border-accent-800 hover:text-white',
+                  }}
+                  href={paths.tag(tag)}
                 >
                   {tag.name}
-                </li>
+                </MkLink>
               ))}
-            </ul>
+            </div>
           </div>
         </footer>
       </div>
