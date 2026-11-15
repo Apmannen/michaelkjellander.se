@@ -51,16 +51,8 @@ export type DynamicFieldPayload = {
   //href: string | null;
   text: string;
   field: { key: 'dev_tool' | 'dev_years' | 'play_also' | 'play_rather' };
-  target_article: {
+  target_article?: {
     slug: string;
     tags: Pick<TagPayload, 'slug'>[];
   };
 };
-
-/* {
-    href: null,
-    text: 'Unity',
-    field: { key: 'dev_tool', type: 'text', label: 'Utvecklat i' },
-    target: null,
-    position: 1
-  } */

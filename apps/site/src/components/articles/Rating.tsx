@@ -1,6 +1,5 @@
 import { mathUtils } from '@/lib/mathUtils';
 import { FaRegStar, FaStar, FaStarHalfStroke } from 'react-icons/fa6';
-import { Divider } from '../standard/Divider';
 import { MkLink } from '../standard/MkLink';
 import { LuArrowRight, LuGamepad2 } from 'react-icons/lu';
 
@@ -32,10 +31,14 @@ export const Stars = ({
 
 export const Rating = ({
   rating10,
-  playAlso = 'Luddes Äventyr',
+  playAlsoRather,
 }: {
   rating10: number;
-  playAlso?: string;
+  playAlsoRather?: {
+    href?: string;
+    game: string;
+    type: 'play_also' | 'play_rather';
+  };
 }) => {
   rating10 = mathUtils.clamp(rating10, 1, 10);
 
@@ -72,10 +75,10 @@ export const Rating = ({
         <span className='h-8 w-px bg-accent-300' />
         <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
       </div>
-      {playAlso ? (
+      {playAlsoRather ? (
         <div className='border-t border-accent-300 mt-5 pt-3 text-[16px] sm:text-[18px]'>
           <MkLink
-            href={'#'}
+            href={playAlsoRather.href}
             className={{ all: 'group flex items-center gap-2' }}
           >
             <>
@@ -87,7 +90,7 @@ export const Rating = ({
                 <span className='font-semibold text-accent-800 pr-[2px]'>
                   Spela även:{' '}
                 </span>
-                <span className=''>{playAlso}</span>
+                <span className=''>{playAlsoRather.game}</span>
               </span>
               <LuArrowRight
                 aria-hidden

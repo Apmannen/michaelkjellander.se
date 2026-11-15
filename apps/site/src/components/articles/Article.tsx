@@ -32,7 +32,7 @@ export const Article = ({
   const { fields, cta, tags, rating } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
-  //const playAlso = fields?.find((f) => f.field.key === '')
+  const playAlso = fields?.find((f) => f.field.key === 'play_also');
   const platforms = tags?.filter((t) => t.type === 'game_platform') || [];
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
@@ -148,7 +148,22 @@ export const Article = ({
               ) : null}
             </div>
           ))}
-          {rating != null ? <div className='pt-2'><Rating rating10={rating} /></div> : null}
+          {rating != null ? (
+            <div className='pt-2'>
+              <Rating
+                rating10={rating}
+                playAlsoRather={
+                  playAlso
+                    ? {
+                        game: playAlso.text,
+                        type: 'play_also',
+                        href: playAlso.target_article ? paths.article(playAlso.target_article) : undefined,
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          ) : null}
         </div>
         <div className='h-12'></div>
         {/* <Divider className={{ container: 'py-8' }} /> */}
