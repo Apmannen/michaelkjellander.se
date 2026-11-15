@@ -22,7 +22,7 @@ export const Button = ({
     >
       {iconName ? <NamedIcon iconName={iconName} size={20} /> : null}
       {children}
-      <GoArrowUpRight size={20} />
+      {target === '_blank' ? <GoArrowUpRight size={20} /> : null}
     </Link>
   );
 };
