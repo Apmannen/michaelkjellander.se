@@ -37,10 +37,10 @@ export const Article = ({
   const SecondaryH = isMain ? 'h2' : 'h3';
 
   return (
-    <article className='bg-default-box mb-12 shadow-sm pt-12'>
+    <article className='bg-default-box mb-12 shadow-sm'>
       <nav
         aria-label='Brödsmulor'
-        className='flex items-center gap-3 text-[16px] px-default-box'
+        className='flex items-center gap-3 text-[16px] px-default-box pt-6 pb-4'
       >
         <MkLink
           href='/'
