@@ -1,5 +1,8 @@
 import { mathUtils } from '@/lib/mathUtils';
 import { FaRegStar, FaStar, FaStarHalfStroke } from 'react-icons/fa6';
+import { Divider } from '../standard/Divider';
+import { MkLink } from '../standard/MkLink';
+import { LuArrowRight, LuGamepad2 } from 'react-icons/lu';
 
 export const Stars = ({
   rating5,
@@ -27,7 +30,13 @@ export const Stars = ({
   );
 };
 
-export const Rating = ({ rating10 }: { rating10: number }) => {
+export const Rating = ({
+  rating10,
+  playAlso = 'Luddes Äventyr',
+}: {
+  rating10: number;
+  playAlso?: string;
+}) => {
   rating10 = mathUtils.clamp(rating10, 1, 10);
 
   let verdict = (() => {
@@ -57,10 +66,35 @@ export const Rating = ({ rating10 }: { rating10: number }) => {
   })();
 
   return (
-    <div className='flex items-center rounded-md bg-accent-100 gap-6 px-4 sm:px-6 py-2 sm:py-3 border border-accent-200'>
-      <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
-      <span className='h-8 w-px bg-accent-300' />
-      <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
+    <div className='rounded-md bg-accent-100  px-4 sm:px-6 py-2 sm:py-3 border border-accent-200'>
+      <div className='flex items-center gap-6'>
+        <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
+        <span className='h-8 w-px bg-accent-200' />
+        <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
+      </div>
+      {playAlso ? (
+        <div className='border-t border-accent-200 mt-4 pt-2'>
+          <MkLink
+            href={'#'}
+            className={{ all: 'group flex items-center gap-4' }}
+          >
+            <>
+              <LuGamepad2
+                aria-hidden
+                className='shrink-0 text-[26px] text-accent-800'
+              />
+              <span className='flex-1 text-[24px]'>
+                <span className='font-bold text-accent-800'>Spela även: </span>
+                <span className='italic'>{playAlso}</span>
+              </span>
+              <LuArrowRight
+                aria-hidden
+                className='text-[26px] text-accent-800 transition-transform group-hover:translate-x-1'
+              />
+            </>
+          </MkLink>
+        </div>
+      ) : null}
     </div>
   );
 };
