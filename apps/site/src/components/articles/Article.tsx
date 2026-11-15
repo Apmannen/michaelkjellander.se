@@ -9,8 +9,9 @@ import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
 import { MkLink } from '../standard/MkLink';
 import { Rating } from './Rating';
-import { LuArrowLeft } from 'react-icons/lu';
+import { LuArrowLeft, LuCalendar } from 'react-icons/lu';
 import { paths } from '@/lib/paths';
+import { dateUtils } from '@/lib/dateUtils';
 
 export const Article = ({
   article,
@@ -26,10 +27,12 @@ export const Article = ({
     | 'fields'
     | 'tags'
     | 'rating'
+    | 'published_at'
   >;
   isMain: boolean;
 }) => {
-  const { fields, cta, tags, rating } = article;
+  const { fields, cta, tags, rating, body, cover_image, title, published_at } =
+    article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
   const playAlso = fields?.find((f) => f.field.key === 'play_also');
@@ -37,11 +40,11 @@ export const Article = ({
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
 
-  const mainTag = tags.at(0);
-  const mainTagParent = mainTag?.tag_parents?.at(0);
+  const mainTag = tags[0];
+  const mainTagParent = mainTag.tag_parents?.at(0);
 
   return (
-    <article className='bg-default-box mb-12 shadow-sm'>
+    <article className='bg-default-box sm:mb-12 sm:shadow-sm'>
       <nav
         aria-label='Brödsmulor'
         className='flex items-center gap-3 text-[16px] px-default-box pt-6 pb-4'
@@ -63,22 +66,18 @@ export const Article = ({
             </MkLink>
           </>
         ) : null}
-        {mainTag ? (
-          <>
-            <span className='text-muted'>/</span>
-            <MkLink
-              href={paths.tag(mainTag)}
-              className={{ all: 'hover:text-accent-800' }}
-            >
-              {mainTag.name}
-            </MkLink>
-          </>
-        ) : null}
+        <span className='text-muted'>/</span>
+        <MkLink
+          href={paths.tag(mainTag)}
+          className={{ all: 'hover:text-accent-800' }}
+        >
+          {mainTag.name}
+        </MkLink>
       </nav>
       <div className='sm:px-12 sm:h-[400px]'>
-        {article.cover_image ? (
+        {cover_image ? (
           <Image
-            src={storage.getPublicUrl(article.cover_image?.path)}
+            src={storage.getPublicUrl(cover_image?.path)}
             alt=''
             width={729}
             height={400}
@@ -92,7 +91,7 @@ export const Article = ({
           className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
         >
-          {article.title}
+          {title}
         </H>
         <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
         <Divider className={{ container: 'py-4' }} />
@@ -133,7 +132,7 @@ export const Article = ({
         ) : null}
 
         <div className='space-y-4'>
-          {article.body.map((part, i) => (
+          {body.map((part, i) => (
             <div key={i} className=''>
               {part.type === 'heading' ? (
                 <Heading part={part} />
@@ -165,20 +164,13 @@ export const Article = ({
             </div>
           ) : null}
         </div>
-        <div className='h-12'></div>
-        {/* <Divider className={{ container: 'py-8' }} /> */}
+        <footer className='border-t border-line mt-12 pt-5 pb-8'>
+          <div className='text-muted flex items-center gap-1 text-[16px]'>
+            <LuCalendar aria-hidden />
+            {dateUtils.formatDate(published_at)}
+          </div>
+        </footer>
       </div>
-      {/* <div className='px-12 flex justify-start pb-12  text-muted'>
-        Publicerad 2026-01-03
-      </div> */}
-      {/* <footer className='mt-8 border-t border-[#E8DBCF] py-6'>
-        <div className='px-12 text-muted'>2026-01-03</div>
-      </footer> */}
-      {/* <footer className='mt-0 py-12'>
-        <div className='h-' />
-        <div className='px-12 flex justify-start'>Publicerad 2026-01-03</div>
-        <div className='h' />
-      </footer>  */}
     </article>
   );
 };
