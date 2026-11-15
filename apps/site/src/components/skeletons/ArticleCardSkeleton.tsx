@@ -3,7 +3,7 @@ import { Bone } from './Bone';
 /** Placeholder matching the layout of ArticleCard. */
 export const ArticleCardSkeleton = () => {
   return (
-    <div className='bg-default-box mb-6 shadow-sm rounded-lg overflow-hidden flex'>
+    <div className='bg-default-box mb-4 shadow-sm rounded-lg overflow-hidden flex'>
       <div className='w-4/10'>
         <Bone className='w-full h-[225px] rounded-none' />
       </div>

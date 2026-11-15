@@ -29,9 +29,13 @@ export default async function Home() {
 const SuspensePage = async () => {
   const articles = await db.articles({});
 
-  return articles.map((article, i) => (
-    <div key={i}>
-      <ArticleCard key={i} article={article} />
+  return (
+    <div className='space-y-4'>
+      {articles.map((article, i) => (
+        <div key={i}>
+          <ArticleCard key={i} article={article} />
+        </div>
+      ))}
     </div>
-  ));
+  );
 };

@@ -49,7 +49,7 @@ export const ArticleCard = ({
   return (
     <MkLink
       className={{
-        all: 'bg-default-box mb-6 shadow-sm rounded-lg overflow-hidden flex group hover:outline-2 outline-accent-800',
+        all: 'bg-default-box shadow-sm rounded-lg overflow-hidden flex group hover:outline-2 outline-accent-800',
       }}
       href={paths.article(article)}
     >
