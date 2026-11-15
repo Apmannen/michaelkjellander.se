@@ -16,11 +16,11 @@ export const ArticleSkeleton = () => {
       className='bg-default-box mb-12 shadow-sm pt-12'
     >
       {/* Cover image */}
-      <div className='sm:px-12 h-[220px] sm:h-[400px]'>
+      <div className='sm:px-default-box h-[220px] sm:h-[400px]'>
         <Bone className='w-full h-full rounded-none sm:rounded-lg' />
       </div>
 
-      <div className='px-4 sm:px-12'>
+      <div className='px-4 sm:px-default-box'>
         {/* Title */}
         <div className='pt-4 pb-2'>
           <Bone

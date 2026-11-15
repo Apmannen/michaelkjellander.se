@@ -74,7 +74,7 @@ export const Article = ({
           {mainTag.name}
         </MkLink>
       </nav>
-      <div className='sm:px-12 sm:h-[400px]'>
+      <div className='sm:px-default-box sm:h-[400px]'>
         {cover_image ? (
           <Image
             src={storage.getPublicUrl(cover_image?.path)}
