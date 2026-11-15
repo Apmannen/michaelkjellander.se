@@ -90,7 +90,11 @@ export const Rating = ({
                 <span className='font-semibold text-accent-800 pr-[2px]'>
                   Spela även:{' '}
                 </span>
-                <span className=''>{playAlsoRather.game}</span>
+                <span
+                  className={`${playAlsoRather.href ? 'group-hover:underline' : ''}`}
+                >
+                  {playAlsoRather.game}
+                </span>
               </span>
               <LuArrowRight
                 aria-hidden
