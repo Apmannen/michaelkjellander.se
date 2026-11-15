@@ -4,15 +4,26 @@ import { Article } from '@/components/articles/Article';
 import { MainShell } from '@/components/shells/MainShell';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
+import { ArticleSkeleton } from '@/components/skeletons/ArticleSkeleton';
+import { Suspense } from 'react';
 
-//TODO: temporary?
-export const instant = false;
-
-export default async function Page({
-  params,
-}: {
+type Props = {
   params: Promise<{ sectionSlug: string; postSlug: string }>;
-}) {
+};
+
+export default async function Page({ params }: Props) {
+  return (
+    <MainShell>
+      <div className='max-w-content mx-auto'>
+        <Suspense fallback={<ArticleSkeleton />}>
+          <SuspensePage params={params} />
+        </Suspense>
+      </div>
+    </MainShell>
+  );
+}
+
+const SuspensePage = async ({ params }: Props) => {
   const { sectionSlug, postSlug } = await params;
 
   const articles = await db.articles({ slug: postSlug });
@@ -23,11 +34,5 @@ export default async function Page({
     return notFound();
   }
 
-  return (
-    <MainShell>
-      <div className='max-w-content mx-auto'>
-        <Article article={article} isMain={false} />
-      </div>
-    </MainShell>
-  );
-}
+  return <Article article={article} isMain={false} />;
+};
