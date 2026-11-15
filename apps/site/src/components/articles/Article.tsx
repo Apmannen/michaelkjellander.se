@@ -43,6 +43,9 @@ export const Article = ({
   const mainTag = tags[0];
   const mainTagParent = mainTag.tag_parents?.at(0);
 
+  const allParentTags = tags.map((t) => t.tag_parents || []).flat();
+  const allTags = [...tags, ...allParentTags];
+
   return (
     <article className='bg-default-box sm:mb-12 sm:shadow-sm'>
       <nav
@@ -170,13 +173,12 @@ export const Article = ({
             <span>{dateUtils.formatDate(published_at)}</span>
           </p>
           <div className='flex items-center gap-3'>
-            {/* <LuTag aria-hidden className='text-muted' /> */}
             <span className='sr-only'>Taggar:</span>
-            <ul className='flex flex-wrap gap-2'>
-              {tags.map((tag, i) => (
+            <ul className='flex flex-wrap gap-1'>
+              {allTags.map((tag, i) => (
                 <li
                   key={i}
-                  className='rounded-full border border-accent-800 bg-accent-100 px-3 py-0.5 text-[14px] text-accent-800'
+                  className='rounded-lg border border-accent-800 bg-accent-100 px-2 py-0.5 text-[14px] text-accent-800'
                 >
                   {tag.name}
                 </li>
@@ -184,26 +186,6 @@ export const Article = ({
             </ul>
           </div>
         </footer>
-        {/* <footer className='border-t border-line mt-12 pt-5 pb-12 flex'>
-          <div className='text-muted flex items-center gap-1 text-[16px]'>
-            <LuCalendar aria-hidden />
-            {dateUtils.formatDate(published_at)}
-          </div>
-          <div className='flex items-center gap-3'>
-            <LuTag aria-hidden className='text-muted' />
-            <span className='sr-only'>Taggar:</span>
-            <ul className='flex flex-wrap gap-2 flex-1'>
-              {tags.map((tag, i) => (
-                <li
-                  key={i}
-                  className='rounded-full border border-accent-200 bg-accent-100 px-3 py-0.5 text-[14px] text-accent-900'
-                >
-                  {tag.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </footer> */}
       </div>
     </article>
   );
