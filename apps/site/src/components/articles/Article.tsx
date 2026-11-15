@@ -9,6 +9,8 @@ import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
 import { MkLink } from '../standard/MkLink';
 import { Rating } from './Rating';
+import { LuArrowLeft } from 'react-icons/lu';
+import { paths } from '@/lib/paths';
 
 export const Article = ({
   article,
@@ -36,6 +38,28 @@ export const Article = ({
 
   return (
     <article className='bg-default-box mb-12 shadow-sm pt-12'>
+      <nav
+        aria-label='Brödsmulor'
+        className='flex items-center gap-3 text-[16px]'
+      >
+        <MkLink
+          href='/'
+          className={{ all: 'flex items-center gap-2 hover:text-accent-800' }}
+        >
+          <LuArrowLeft aria-hidden /> Inlägg
+        </MkLink>
+        {tags?.at(0) ? (
+          <>
+            <span className='text-muted'>/</span>
+            <MkLink
+              href={paths.tag(tags[0])}
+              className={{ all: 'hover:text-accent-800' }}
+            >
+              {tags[0].name}
+            </MkLink>
+          </>
+        ) : null}
+      </nav>
       <div className='sm:px-12 sm:h-[400px]'>
         {article.cover_image ? (
           <Image
