@@ -157,7 +157,7 @@ export const Article = ({
                     ? {
                         game: playAlso.text,
                         type: 'play_also',
-                        href: playAlso.target_article ? paths.article(playAlso.target_article) : undefined,
+                        href: paths.field(playAlso),
                       }
                     : undefined
                 }

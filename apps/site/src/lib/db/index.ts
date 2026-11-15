@@ -37,6 +37,7 @@ const articles = async ({
       ),
       fields:article_field_values!article_id(
         text,
+        href,
         target_article:articles!target_article_id(
           slug,
           tags(
