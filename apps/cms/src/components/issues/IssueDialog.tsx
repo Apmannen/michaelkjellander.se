@@ -134,7 +134,7 @@ export function IssueDialog({
           <h1 className='min-w-0 flex-1 truncate text-sm font-medium'>
             {key ? (
               <>
-                <span className='text-zinc-500'>{key}</span>{' '}
+                <span className='text-zinc-500'>[{key}]</span>{' '}
                 {saved.title}
               </>
             ) : (
