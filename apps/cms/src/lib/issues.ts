@@ -9,6 +9,15 @@ export type IssueColumn = {
   updated_at: string;
 };
 
+// A checkbox of an issue, shown above its text.
+export type ChecklistItem = {
+  // Made by the cms when the checkbox is added, so it can be told apart from
+  // the others while they're edited and moved.
+  id: string;
+  text: string;
+  checked: boolean;
+};
+
 export type Issue = {
   id: string;
   // Counted per site. Shown with the site's id as prefix, see formatIssueKey.
@@ -19,11 +28,13 @@ export type Issue = {
   title: string;
   // Plain text, may contain line breaks.
   text: string;
+  // In the order they're shown.
+  checklist: ChecklistItem[];
   created_at: string;
   updated_at: string;
 };
 
-export type IssueInput = Pick<Issue, 'title' | 'text'>;
+export type IssueInput = Pick<Issue, 'title' | 'text' | 'checklist'>;
 
 // The site's columns and issues, both in position order.
 export type Board = {
@@ -56,6 +67,9 @@ export const parseIssueKey = (
 export const validateIssue = (input: IssueInput): string | undefined => {
   if (!input.title.trim()) {
     return 'Rubrik måste anges.';
+  }
+  if (input.checklist.some(({ text }) => !text.trim())) {
+    return 'Alla checkboxar måste ha en text.';
   }
   return undefined;
 };

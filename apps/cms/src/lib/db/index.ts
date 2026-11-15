@@ -459,7 +459,8 @@ const updateSite = async (id: string, input: SiteInput) => {
 const ISSUE_COLUMN_COLUMNS = 'id, name, position, created_at, updated_at';
 
 const ISSUE_COLUMNS =
-  'id, number, column_id, position, title, text, created_at, updated_at';
+  'id, number, column_id, position, title, text, checklist, created_at, ' +
+  'updated_at';
 
 const getBoard = async (siteId: string): Promise<Board> => {
   const [columns, issues] = await Promise.all([
@@ -548,6 +549,7 @@ const createIssue = async (
       column_id: columnId,
       title: input.title,
       text: input.text,
+      checklist: input.checklist,
     })
     .single<Issue>();
 };
@@ -558,6 +560,7 @@ const updateIssue = async (siteId: string, id: string, input: IssueInput) => {
     .update({
       title: input.title,
       text: input.text,
+      checklist: input.checklist,
       updated_at: new Date().toISOString(),
     })
     .eq('site_id', siteId)

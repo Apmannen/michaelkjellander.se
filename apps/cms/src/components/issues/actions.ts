@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
+  type ChecklistItem,
   type Issue,
   type IssueInput,
   formatIssueKey,
@@ -119,6 +120,29 @@ export async function deleteColumn(
   return { ok: true };
 }
 
+// Keeps only well-formed checkboxes, in the given order, with unique ids.
+const parseChecklist = (raw: unknown): ChecklistItem[] => {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const ids = new Set<string>();
+  const items: ChecklistItem[] = [];
+  for (const item of raw) {
+    const id = String(item?.id ?? '').trim();
+    if (!id || ids.has(id)) {
+      continue;
+    }
+    ids.add(id);
+    items.push({
+      id,
+      // Shown on one line, like the title.
+      text: parseName(item?.text),
+      checked: item?.checked === true,
+    });
+  }
+  return items;
+};
+
 const parseIssue = (raw: IssueInput): IssueInput => ({
   // The title is shown on one line, so line breaks become spaces.
   title: parseName(raw.title),
@@ -126,6 +150,7 @@ const parseIssue = (raw: IssueInput): IssueInput => ({
   text: String(raw.text ?? '')
     .replace(/\r\n?/g, '\n')
     .trimEnd(),
+  checklist: parseChecklist(raw.checklist),
 });
 
 // columnId is only used for new issues, which are added last in it.
