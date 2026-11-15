@@ -1,5 +1,7 @@
 import { mathUtils } from '@/lib/mathUtils';
 import { FaRegStar, FaStar, FaStarHalfStroke } from 'react-icons/fa6';
+import { MkLink } from '../standard/MkLink';
+import { LuArrowRight, LuGamepad2 } from 'react-icons/lu';
 
 export const Stars = ({
   rating5,
@@ -27,7 +29,17 @@ export const Stars = ({
   );
 };
 
-export const Rating = ({ rating10 }: { rating10: number }) => {
+export const Rating = ({
+  rating10,
+  playAlsoRather,
+}: {
+  rating10: number;
+  playAlsoRather?: {
+    href?: string;
+    game: string;
+    type: 'play_also' | 'play_rather';
+  };
+}) => {
   rating10 = mathUtils.clamp(rating10, 1, 10);
 
   let verdict = (() => {
@@ -57,10 +69,37 @@ export const Rating = ({ rating10 }: { rating10: number }) => {
   })();
 
   return (
-    <div className='flex items-center rounded-md bg-accent-100 gap-6 px-4 sm:px-6 py-2 sm:py-3 border border-accent-200'>
-      <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
-      <span className='h-8 w-px bg-accent-300' />
-      <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
+    <div className='rounded-md bg-accent-100  px-4 sm:px-6 py-3 sm:py-4 border border-accent-300'>
+      <div className='flex items-center gap-6'>
+        <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
+        <span className='h-8 w-px bg-accent-300' />
+        <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
+      </div>
+      {playAlsoRather ? (
+        <div className='border-t border-accent-300 mt-5 pt-3 text-[16px] sm:text-[18px]'>
+          <MkLink
+            href={playAlsoRather.href}
+            className={{ all: 'group flex items-center gap-2' }}
+          >
+            <>
+              <LuGamepad2
+                aria-hidden
+                className='shrink-0 text-accent-800 text-[22px] sm:text-[24px]'
+              />
+              <span className='flex-1'>
+                <span className='font-semibold text-accent-800 pr-[2px]'>
+                  Spela även:{' '}
+                </span>
+                <span className=''>{playAlsoRather.game}</span>
+              </span>
+              <LuArrowRight
+                aria-hidden
+                className='text-accent-800 transition-transform group-hover:translate-x-1'
+              />
+            </>
+          </MkLink>
+        </div>
+      ) : null}
     </div>
   );
 };

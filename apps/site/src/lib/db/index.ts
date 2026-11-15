@@ -37,6 +37,13 @@ const articles = async ({
       ),
       fields:article_field_values!article_id(
         text,
+        href,
+        target_article:articles!target_article_id(
+          slug,
+          tags(
+            slug
+          )
+        ),
         field:field_definitions(key)
       )
     `,
@@ -49,6 +56,8 @@ const articles = async ({
   }
 
   const res = await query;
+
+  //console.log('**D', JSON.stringify(res.data, null, 2));
 
   return (res.data as ArticlePayload[]) || [];
 };

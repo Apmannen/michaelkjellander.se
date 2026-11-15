@@ -44,19 +44,15 @@ export type ArticlePayload = Pick<
   cover_image: { path: string } | null;
   cta: CallToActionPayload;
   fields?: DynamicFieldPayload[];
-  tags?: TagPayload[];
+  tags: TagPayload[];
 };
 
 export type DynamicFieldPayload = {
-  //href: string | null;
+  href: string | null;
   text: string;
-  field: { key: 'dev_tool' | 'dev_years' };
+  field: { key: 'dev_tool' | 'dev_years' | 'play_also' | 'play_rather' };
+  target_article?: {
+    slug: string;
+    tags: Pick<TagPayload, 'slug'>[];
+  };
 };
-
-/* {
-    href: null,
-    text: 'Unity',
-    field: { key: 'dev_tool', type: 'text', label: 'Utvecklat i' },
-    target: null,
-    position: 1
-  } */

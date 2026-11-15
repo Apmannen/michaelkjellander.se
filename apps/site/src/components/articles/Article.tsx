@@ -32,11 +32,12 @@ export const Article = ({
   const { fields, cta, tags, rating } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
-  const platforms = tags?.filter((t) => t.type === 'game_platform') || [];
+  const playAlso = fields?.find((f) => f.field.key === 'play_also');
+  const platforms = tags.filter((t) => t.type === 'game_platform') || [];
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
 
-  const mainTag = tags?.at(0);
+  const mainTag = tags.at(0);
   const mainTagParent = mainTag?.tag_parents?.at(0);
 
   return (
@@ -132,7 +133,6 @@ export const Article = ({
         ) : null}
 
         <div className='space-y-4'>
-          {rating != null ? <Rating rating10={rating} /> : null}
           {article.body.map((part, i) => (
             <div key={i} className=''>
               {part.type === 'heading' ? (
@@ -148,6 +148,22 @@ export const Article = ({
               ) : null}
             </div>
           ))}
+          {rating != null ? (
+            <div className='pt-2'>
+              <Rating
+                rating10={rating}
+                playAlsoRather={
+                  playAlso
+                    ? {
+                        game: playAlso.text,
+                        type: 'play_also',
+                        href: paths.field(playAlso),
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          ) : null}
         </div>
         <div className='h-12'></div>
         {/* <Divider className={{ container: 'py-8' }} /> */}

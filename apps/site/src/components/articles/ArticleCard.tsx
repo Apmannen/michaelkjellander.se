@@ -44,7 +44,7 @@ export const ArticleCard = ({
       }
     }
   }
-  const mainTag = tags?.at(0);
+  const mainTag = tags[0];
 
   return (
     <MkLink
