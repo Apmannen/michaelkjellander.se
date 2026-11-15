@@ -96,7 +96,7 @@ export const Article = ({
       <div className='px-default-box text-[18px] sm:text-[20px]'>
         <H
           className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
-          style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}
+          style={{ fontSize: 'clamp(52px,7.5vw,70px)' }}
         >
           {title}
         </H>
