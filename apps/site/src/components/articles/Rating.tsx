@@ -66,14 +66,14 @@ export const Rating = ({
   })();
 
   return (
-    <div className='rounded-md bg-accent-100  px-4 sm:px-6 py-2 sm:py-3 border border-accent-200'>
+    <div className='rounded-md bg-accent-100  px-4 sm:px-6 py-2 sm:py-4 border border-accent-200'>
       <div className='flex items-center gap-6'>
         <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
         <span className='h-8 w-px bg-accent-200' />
         <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
       </div>
       {playAlso ? (
-        <div className='border-t border-accent-200 mt-4 pt-2 text-[16px] sm:text-[18px]'>
+        <div className='border-t border-accent-200 mt-5 pt-3 text-[16px] sm:text-[18px]'>
           <MkLink
             href={'#'}
             className={{ all: 'group flex items-center gap-2' }}
@@ -84,7 +84,7 @@ export const Rating = ({
                 className='shrink-0 text-accent-800 text-[22px] sm:text-[24px]'
               />
               <span className='flex-1'>
-                <span className='font-bold text-accent-800 pr-[2px]'>
+                <span className='font-semibold text-accent-800 pr-[2px]'>
                   Spela även:{' '}
                 </span>
                 <span className=''>{playAlso}</span>
