@@ -44,7 +44,7 @@ export type ArticlePayload = Pick<
   cover_image: { path: string } | null;
   cta: CallToActionPayload;
   fields?: DynamicFieldPayload[];
-  tags?: TagPayload[];
+  tags: TagPayload[];
 };
 
 export type DynamicFieldPayload = {
