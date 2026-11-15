@@ -57,7 +57,7 @@ export const Rating = ({ rating10 }: { rating10: number }) => {
   })();
 
   return (
-    <div className='flex items-center gap-6 rounded-md bg-accent-100 px-6 py-3 border border-accent-200'>
+    <div className='flex items-center rounded-md bg-accent-100 gap-6 px-4 sm:px-6 py-2 sm:py-3 border border-accent-200'>
       <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
       <span className='h-8 w-px bg-accent-300' />
       <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
