@@ -26,14 +26,13 @@ export type ParagraphBlock = {
   marks?: Mark[];
 };
 
-// The semantic level of an inner heading. The article's title is the h1, so
-// the body's headings start at 2. How large each level is shown is up to
-// whatever renders the body.
-export type HeadingLevel = 2 | 3 | 4;
+// The level of an inner heading, where 1 is the largest. How large each level
+// is shown is up to whatever renders the body.
+export type HeadingLevel = 1 | 2;
 
-export const HEADING_LEVELS: readonly HeadingLevel[] = [2, 3, 4];
+export const HEADING_LEVELS: readonly HeadingLevel[] = [1, 2];
 
-export const DEFAULT_HEADING_LEVEL: HeadingLevel = 2;
+export const DEFAULT_HEADING_LEVEL: HeadingLevel = 1;
 
 export const isHeadingLevel = (value: unknown): value is HeadingLevel =>
   HEADING_LEVELS.includes(value as HeadingLevel);

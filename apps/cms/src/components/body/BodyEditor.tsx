@@ -362,13 +362,13 @@ export function BodyEditor({
     });
   };
 
-  // A heading of the given level becomes a paragraph again, anything else a
-  // heading of that level. Without a level, a heading becomes a paragraph
-  // and a paragraph a heading of the default level.
-  const toggleHeading = (target?: TextSelection, level?: HeadingLevel) => {
-    const current = headingLevelOf(target?.id);
-    const wanted = level ?? current ?? DEFAULT_HEADING_LEVEL;
-    setTextStyle(target, current === wanted ? undefined : wanted);
+  // A heading becomes a paragraph, and a paragraph a heading of the default
+  // level.
+  const toggleHeading = (target?: TextSelection) => {
+    setTextStyle(
+      target,
+      isHeading(target?.id) ? undefined : DEFAULT_HEADING_LEVEL,
+    );
   };
 
   const onKeyDown = (
@@ -387,22 +387,6 @@ export function BodyEditor({
     ) {
       event.preventDefault();
       toggleHeading({ id: block.id, start, end });
-      return;
-    }
-
-    // Ctrl+Shift+1/2/3 picks a heading level. The physical key is checked,
-    // since Shift changes what a digit key types on many layouts. Ctrl+Alt
-    // isn't used, since on Windows it's AltGr, which types e.g. @ and £.
-    const digit = /^Digit(\d)$/.exec(event.code)?.[1];
-    const level = digit ? HEADING_LEVELS[Number(digit) - 1] : undefined;
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      event.shiftKey &&
-      !event.altKey &&
-      level
-    ) {
-      event.preventDefault();
-      toggleHeading({ id: block.id, start, end }, level);
       return;
     }
 
@@ -796,7 +780,7 @@ export function BodyEditor({
 
   return (
     <div className='rounded-md border border-zinc-300 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900'>
-      <div className='flex items-center gap-1 border-b border-zinc-200 px-2 py-1.5 dark:border-zinc-800'>
+      <div className='flex flex-wrap items-center gap-1 border-b border-zinc-200 px-2 py-1.5 dark:border-zinc-800'>
         {/* preventDefault on mousedown keeps the text selection visible. */}
         {has('heading') && (
           <>
@@ -813,7 +797,7 @@ export function BodyEditor({
             >
               Stycke
             </button>
-            {HEADING_LEVELS.map((level, i) => (
+            {HEADING_LEVELS.map((level) => (
               <button
                 key={level}
                 type='button'
@@ -821,7 +805,7 @@ export function BodyEditor({
                 onClick={() => setTextStyle(selection, level)}
                 disabled={!findTextBlockById(selection?.id)}
                 aria-pressed={headingLevelOf(selection?.id) === level}
-                title={`Gör stycket där markören står till ${headingLabel(level).toLowerCase()} (Ctrl+Shift+${i + 1})`}
+                title={`Gör stycket där markören står till ${headingLabel(level).toLowerCase()}`}
                 className={`${toolbarButtonClass} font-semibold`}
               >
                 {headingLabel(level)}
@@ -1088,14 +1072,11 @@ const paragraphTextClass =
   'text-sm leading-relaxed whitespace-pre-wrap break-words';
 
 const headingTextClasses: Record<HeadingLevel, string> = {
-  2: 'text-xl leading-snug font-semibold break-words',
-  3: 'text-lg leading-snug font-semibold break-words',
-  4: 'text-base leading-snug font-semibold break-words',
+  1: 'text-xl leading-snug font-semibold break-words',
+  2: 'text-lg leading-snug font-semibold break-words',
 };
 
-// The levels are shown numbered from 1, since the h1 is never in the body.
-const headingLabel = (level: HeadingLevel) =>
-  `Rubrik ${HEADING_LEVELS.indexOf(level) + 1}`;
+const headingLabel = (level: HeadingLevel) => `Rubrik ${level}`;
 
 // font-bold would make the text wider than in the textarea and throw the
 // caret off, so bold is drawn with a stroke that keeps the glyph widths.
