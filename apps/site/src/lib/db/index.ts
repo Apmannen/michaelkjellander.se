@@ -25,7 +25,6 @@ const articles = async ({
           type,
           id,
           tag_parents!tag_id(
-            position,
             ...tags!parent_id(
               slug, 
               singular_name, 
@@ -50,8 +49,6 @@ const articles = async ({
   }
 
   const res = await query;
-
-  console.log('**R', JSON.stringify(res.data?.at(0)?.tags.at(0), null, 2));
 
   return (res.data as ArticlePayload[]) || [];
 };
