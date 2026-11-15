@@ -164,7 +164,7 @@ export const Article = ({
             </div>
           ) : null}
         </div>
-        <footer className='border-t border-line mt-12 pt-5 pb-8'>
+        <footer className='border-t border-line mt-12 pt-5 pb-12'>
           <div className='text-muted flex items-center gap-1 text-[16px]'>
             <LuCalendar aria-hidden />
             {dateUtils.formatDate(published_at)}
