@@ -26,10 +26,22 @@ export type ParagraphBlock = {
   marks?: Mark[];
 };
 
+// The level of an inner heading, where 1 is the largest. How large each level
+// is shown is up to whatever renders the body.
+export type HeadingLevel = 1 | 2;
+
+export const HEADING_LEVELS: readonly HeadingLevel[] = [1, 2];
+
+export const DEFAULT_HEADING_LEVEL: HeadingLevel = 1;
+
+export const isHeadingLevel = (value: unknown): value is HeadingLevel =>
+  HEADING_LEVELS.includes(value as HeadingLevel);
+
 // An inner heading of the body. Plain text without marks or line breaks.
 export type HeadingBlock = {
   id: string;
   type: 'heading';
+  level: HeadingLevel;
   text: string;
 };
 
@@ -151,9 +163,14 @@ export const paragraph = (
 
 // Line breaks become spaces and icon placeholders are removed, since a
 // heading has neither.
-export const heading = (text = '', id = newBlockId()): HeadingBlock => ({
+export const heading = (
+  text = '',
+  level: HeadingLevel = DEFAULT_HEADING_LEVEL,
+  id = newBlockId(),
+): HeadingBlock => ({
   id,
   type: 'heading',
+  level,
   text: text.replace(/\r\n?|\n/g, ' ').replaceAll(ICON_PLACEHOLDER, ''),
 });
 
@@ -468,10 +485,14 @@ export const parseBody = (
       return parseParagraph(item, id, features);
     }
 
+    // Headings saved before there were levels have none and get the default.
     if (item.type === 'heading') {
       const raw = typeof item.text === 'string' ? item.text : '';
       const text = heading(raw).text.trim();
-      return text ? [heading(text, id)] : [];
+      const level = isHeadingLevel(item.level)
+        ? item.level
+        : DEFAULT_HEADING_LEVEL;
+      return text ? [heading(text, level, id)] : [];
     }
 
     if (item.type === 'list') {

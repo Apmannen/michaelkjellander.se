@@ -29,6 +29,7 @@ export type ArticleBodyPartPayload = {
   author?: string;
   marks?: BodyMarkPayload[];
   href?: string;
+  level?: number;
   items?: {
     icon?: IconName;
     text: string;

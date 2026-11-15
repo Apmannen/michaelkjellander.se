@@ -16,7 +16,6 @@ import { collectionUtils } from '@/lib/collectionUtils';
 
 export const Article = ({
   article,
-  isMain,
 }: {
   article: Pick<
     ArticlePayload,
@@ -30,7 +29,6 @@ export const Article = ({
     | 'rating'
     | 'published_at'
   >;
-  isMain: boolean;
 }) => {
   const { fields, cta, tags, rating, body, cover_image, title, published_at } =
     article;
@@ -38,8 +36,6 @@ export const Article = ({
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
   const playAlso = fields?.find((f) => f.field.key === 'play_also');
   const platforms = tags.filter((t) => t.type === 'game_platform') || [];
-  const H = isMain ? 'h1' : 'h2';
-  const SecondaryH = isMain ? 'h2' : 'h3';
 
   const mainTag = tags[0];
   const mainTagParent = mainTag.tag_parents?.at(0);
@@ -94,13 +90,13 @@ export const Article = ({
         ) : null}
       </div>
       <div className='px-default-box text-[18px] sm:text-[20px]'>
-        <H
+        <h1
           className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
           style={{ fontSize: 'clamp(52px,7.5vw,70px)' }}
         >
           {title}
-        </H>
-        <SecondaryH className='text-[24px] italic'>{article.intro}</SecondaryH>
+        </h1>
+        <h2 className='text-[24px] italic'>{article.intro}</h2>
         <Divider className={{ container: 'py-4' }} />
         {devYears || devTool || cta || platforms.length || rating != null ? (
           <>

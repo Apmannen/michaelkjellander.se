@@ -34,5 +34,5 @@ const SuspensePage = async ({ params }: Props) => {
     return notFound();
   }
 
-  return <Article article={article} isMain={false} />;
+  return <Article article={article} />;
 };
