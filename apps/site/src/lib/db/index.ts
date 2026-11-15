@@ -26,7 +26,8 @@ const articles = async ({
       )
     `,
     )
-    .order('published_at', { ascending: false });
+    .order('published_at', { ascending: false })
+    .order('position', { referencedTable: 'tags' });
 
   if (slug) {
     query.eq('slug', slug);
