@@ -32,6 +32,7 @@ export const Article = ({
   const { fields, cta, tags, rating } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
+  //const playAlso = fields?.find((f) => f.field.key === '')
   const platforms = tags?.filter((t) => t.type === 'game_platform') || [];
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
