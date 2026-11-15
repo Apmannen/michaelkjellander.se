@@ -13,14 +13,30 @@ import {
 } from '../editor/EditorFooter';
 import { Field, inputClass } from '../editor/Field';
 import { deleteIssue, saveIssue } from './actions';
+import { Checklist } from './Checklist';
 
 const toInput = (issue?: Issue): IssueInput => ({
   title: issue?.title ?? '',
   text: issue?.text ?? '',
+  checklist: issue?.checklist ?? [],
 });
 
+const isSameChecklist = (
+  a: IssueInput['checklist'],
+  b: IssueInput['checklist'],
+) =>
+  a.length === b.length &&
+  a.every(
+    (item, index) =>
+      item.id === b[index].id &&
+      item.text === b[index].text &&
+      item.checked === b[index].checked,
+  );
+
 const isSame = (a: IssueInput, b: IssueInput) =>
-  a.title === b.title && a.text === b.text;
+  a.title === b.title &&
+  a.text === b.text &&
+  isSameChecklist(a.checklist, b.checklist);
 
 const DISCARD_MESSAGE = 'Du har osparade ändringar. Vill du stänga ändå?';
 
@@ -118,7 +134,7 @@ export function IssueDialog({
           <h1 className='min-w-0 flex-1 truncate text-sm font-medium'>
             {key ? (
               <>
-                <span className='text-zinc-500'>{key}</span>{' '}
+                <span className='text-zinc-500'>[{key}]</span>{' '}
                 {saved.title}
               </>
             ) : (
@@ -152,6 +168,11 @@ export function IssueDialog({
               autoComplete='off'
             />
           </Field>
+
+          <Checklist
+            items={draft.checklist}
+            onChange={(checklist) => update({ checklist })}
+          />
 
           <Field label='Text' htmlFor='text' description='Valfri.'>
             <textarea

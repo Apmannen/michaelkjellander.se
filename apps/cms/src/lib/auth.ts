@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { connection } from 'next/server';
 import { redirect } from 'next/navigation';
 
 import { db } from '@/lib/db';
@@ -52,6 +53,10 @@ export const createAuthClient = async () => {
 // The logged in user, or undefined if nobody is logged in or the email
 // address isn't in cms_users (see db/008_cms_users.sql).
 export const getCurrentUser = async (): Promise<User | undefined> => {
+  // getClaims checks the token's expiry with Date.now(), which Next.js doesn't
+  // allow while prerendering (cookies are available then too, since
+  // partialPrefetching is on). Wait for the actual request instead.
+  await connection();
   const supabase = await createAuthClient();
   const { data, error } = await supabase.auth.getClaims();
   const email = data?.claims.email;

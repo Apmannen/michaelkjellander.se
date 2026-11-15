@@ -9,6 +9,8 @@ import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
 import { MkLink } from '../standard/MkLink';
 import { Rating } from './Rating';
+import { LuArrowLeft } from 'react-icons/lu';
+import { paths } from '@/lib/paths';
 
 export const Article = ({
   article,
@@ -34,8 +36,44 @@ export const Article = ({
   const H = isMain ? 'h1' : 'h2';
   const SecondaryH = isMain ? 'h2' : 'h3';
 
+  const mainTag = tags?.at(0);
+  const mainTagParent = mainTag?.tag_parents?.at(0);
+
   return (
-    <article className='bg-default-box mb-12 shadow-sm pt-12'>
+    <article className='bg-default-box mb-12 shadow-sm'>
+      <nav
+        aria-label='Brödsmulor'
+        className='flex items-center gap-3 text-[16px] px-default-box pt-6 pb-4'
+      >
+        <MkLink
+          href='/'
+          className={{ all: 'flex items-center gap-2 hover:text-accent-800' }}
+        >
+          <LuArrowLeft aria-hidden /> Inlägg
+        </MkLink>
+        {mainTagParent ? (
+          <>
+            <span className='text-muted'>/</span>
+            <MkLink
+              href={paths.tag(mainTagParent)}
+              className={{ all: 'hover:text-accent-800' }}
+            >
+              {mainTagParent.name}
+            </MkLink>
+          </>
+        ) : null}
+        {mainTag ? (
+          <>
+            <span className='text-muted'>/</span>
+            <MkLink
+              href={paths.tag(mainTag)}
+              className={{ all: 'hover:text-accent-800' }}
+            >
+              {mainTag.name}
+            </MkLink>
+          </>
+        ) : null}
+      </nav>
       <div className='sm:px-12 sm:h-[400px]'>
         {article.cover_image ? (
           <Image
@@ -48,7 +86,7 @@ export const Article = ({
           />
         ) : null}
       </div>
-      <div className='px-4 sm:px-12 text-[18px] sm:text-[20px]'>
+      <div className='px-default-box text-[18px] sm:text-[20px]'>
         <H
           className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
           style={{ fontSize: 'clamp(52px,7.5vw,90px)' }}

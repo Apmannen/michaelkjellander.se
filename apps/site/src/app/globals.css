@@ -1,19 +1,23 @@
 @import 'tailwindcss';
 
 :root {
-  /*   --background: #ffffff;
-  --foreground: #171717; */
+  --default-box-spacing: calc(var(--spacing) * 4);
+}
+/* sm */
+@media (width >= 640px) {
+  :root {
+    --default-box-spacing: calc(var(--spacing) * 12);
+  }
 }
 
 @theme inline {
-  /*   --color-background: var(--background);
-  --color-foreground: var(--foreground); */
-  --font-noto-serif: 'Noto Serif', serif;
-  --font-georgia: Georgia, 'Times New Roman', serif;
-  --font-source-serif: var(--font-source-serif-single), Georgia, 'Times New Roman', serif;
+  /*   --font-noto-serif: 'Noto Serif', serif;
+  --font-georgia: Georgia, 'Times New Roman', serif; */
+  --font-source-serif:
+    var(--font-source-serif-single), Georgia, 'Times New Roman', serif;
   --font-nunito: var(--font-nunito-single), Arial, serif;
 
-  --color-default-main: #F3EEE8;
+  --color-default-main: #f3eee8;
   --color-default-box: #fcf6f0;
 
   --color-accent-50: #fdf8f4;
@@ -32,16 +36,6 @@
   --color-muted: #5f544c;
 
   --container-content: 825px;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /*     --background: #0a0a0a;
-    --foreground: #ededed; */
-  }
-}
-
-body {
-  /*   background: var(--background);
-  color: var(--foreground); */
+  --spacing-default-box: var(--default-box-spacing);
 }

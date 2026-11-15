@@ -12,8 +12,8 @@ export type CallToActionPayload = {
 
 export type TagPayload = Pick<
   Database['public']['Tables']['tags']['Insert'],
-  'slug' | 'singular_name' | 'name'
-> & { type?: 'game_platform' };
+  'slug' | 'singular_name' | 'name' | 'id'
+> & { type?: 'game_platform'; tag_parents?: Omit<TagPayload, 'tag_parents'>[] };
 
 export type BodyMarkPayload = {
   start: number;
