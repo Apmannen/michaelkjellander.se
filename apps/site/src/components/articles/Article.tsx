@@ -9,7 +9,7 @@ import { Button } from '../standard/Button';
 import { storage } from '@/lib/db/storage';
 import { MkLink } from '../standard/MkLink';
 import { Rating } from './Rating';
-import { LuArrowLeft, LuCalendar } from 'react-icons/lu';
+import { LuArrowLeft, LuCalendar, LuTag } from 'react-icons/lu';
 import { paths } from '@/lib/paths';
 import { dateUtils } from '@/lib/dateUtils';
 
@@ -164,12 +164,46 @@ export const Article = ({
             </div>
           ) : null}
         </div>
-        <footer className='border-t border-line mt-12 pt-5 pb-12'>
+        <footer className='mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-[16px] pb-12'>
+          <p className='flex items-center gap-2 text-muted'>
+            <LuCalendar aria-hidden />
+            <span>{dateUtils.formatDate(published_at)}</span>
+          </p>
+          <div className='flex items-center gap-3'>
+            {/* <LuTag aria-hidden className='text-muted' /> */}
+            <span className='sr-only'>Taggar:</span>
+            <ul className='flex flex-wrap gap-2'>
+              {tags.map((tag, i) => (
+                <li
+                  key={i}
+                  className='rounded-full border border-accent-800 bg-accent-100 px-3 py-0.5 text-[14px] text-accent-800'
+                >
+                  {tag.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </footer>
+        {/* <footer className='border-t border-line mt-12 pt-5 pb-12 flex'>
           <div className='text-muted flex items-center gap-1 text-[16px]'>
             <LuCalendar aria-hidden />
             {dateUtils.formatDate(published_at)}
           </div>
-        </footer>
+          <div className='flex items-center gap-3'>
+            <LuTag aria-hidden className='text-muted' />
+            <span className='sr-only'>Taggar:</span>
+            <ul className='flex flex-wrap gap-2 flex-1'>
+              {tags.map((tag, i) => (
+                <li
+                  key={i}
+                  className='rounded-full border border-accent-200 bg-accent-100 px-3 py-0.5 text-[14px] text-accent-900'
+                >
+                  {tag.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </footer> */}
       </div>
     </article>
   );
