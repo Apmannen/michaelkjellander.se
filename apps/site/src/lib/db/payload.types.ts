@@ -33,7 +33,7 @@ export type ArticleBodyPartPayload = {
   items?: {
     icon?: IconName;
     text: string;
-    marks: (BodyMarkPayload & { type: 'link' })[];
+    marks?: (BodyMarkPayload & { type: 'link' })[];
   }[];
 };
 

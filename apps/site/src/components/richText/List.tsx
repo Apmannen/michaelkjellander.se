@@ -19,7 +19,7 @@ export const List = ({
               <NamedIcon className='text-accent-800' iconName={item.icon} />
             ) : null}
           </span>
-          <RichText text={item.text} marks={item.marks} />
+          <RichText text={item.text} marks={item.marks || []} />
         </li>
       ))}
     </ul>
