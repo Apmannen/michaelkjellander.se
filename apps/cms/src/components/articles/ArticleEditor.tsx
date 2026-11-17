@@ -194,7 +194,7 @@ export function ArticleEditor({
         </span>
       </header>
 
-      <div className='flex-1 overflow-y-auto'>
+      <div className='relative flex-1 overflow-y-auto'>
         <div className='mx-auto flex max-w-2xl flex-col gap-8 px-6 py-8'>
           <Field label='Rubrik' htmlFor='title'>
             <input
@@ -346,7 +346,7 @@ export function ArticleEditor({
           </Field>
 
           <Field label='Publicerad' htmlFor='published'>
-            <label className='inline-flex cursor-pointer items-center gap-3'>
+            <label className='relative inline-flex cursor-pointer items-center gap-3'>
               <input
                 id='published'
                 type='checkbox'
