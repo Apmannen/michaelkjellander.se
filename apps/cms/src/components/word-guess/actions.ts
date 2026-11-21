@@ -11,6 +11,7 @@ import {
   type WordGuessLevelInput,
   type WordGuessQuestion,
   type WordGuessQuestionInput,
+  findTakenQuestionIds,
   toLine,
   validateWordGuessLevel,
   validateWordGuessQuestion,
@@ -23,6 +24,8 @@ export type SaveWordGuessQuestionResult =
 export type SaveWordGuessLevelResult =
   | { ok: true; level: WordGuessLevel }
   | { ok: false; error: string };
+
+const TAKEN_ERROR = 'En eller flera av frågorna används redan i en annan nivå.';
 
 // The level editors list the questions, so both are refreshed.
 const revalidate = (siteId: string) => {
@@ -100,11 +103,22 @@ export async function saveWordGuessLevel(
     return { ok: false, error: validationError };
   }
 
+  // Checked again here, since another level may have taken a question since
+  // the editor was opened.
+  const taken = findTakenQuestionIds(await db.listWordGuessLevels(siteId), id);
+  if (input.question_ids.some((questionId) => taken.has(questionId))) {
+    return { ok: false, error: TAKEN_ERROR };
+  }
+
   const { data, error } = id
     ? await db.updateWordGuessLevel(siteId, id, input)
     : await db.createWordGuessLevel(siteId, input);
 
   if (error) {
+    // 23505 = unique_violation, if two levels take the same question at once.
+    if (error.code === '23505') {
+      return { ok: false, error: TAKEN_ERROR };
+    }
     console.error('saveWordGuessLevel failed', error);
     return { ok: false, error: 'Kunde inte spara nivån.' };
   }

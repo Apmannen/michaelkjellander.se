@@ -51,6 +51,19 @@ export const validateWordGuessQuestion = (
   return undefined;
 };
 
+// The ids of the questions used by other levels than the one with levelId,
+// which therefore can't be picked for it. A question may only be in one
+// level.
+export const findTakenQuestionIds = (
+  levels: WordGuessLevel[],
+  levelId?: string,
+): Set<string> =>
+  new Set(
+    levels
+      .filter((level) => level.id !== levelId)
+      .flatMap((level) => level.question_ids),
+  );
+
 export const validateWordGuessLevel = (
   input: WordGuessLevelInput,
 ): string | undefined => {

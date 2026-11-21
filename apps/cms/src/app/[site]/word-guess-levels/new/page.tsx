@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
+import { findTakenQuestionIds } from '@/lib/word-guess';
 
 import { LevelEditor } from '@/components/word-guess/LevelEditor';
 
@@ -10,8 +11,17 @@ async function Editor({
   params: PageProps<'/[site]/word-guess-levels/new'>['params'];
 }) {
   const { site } = await params;
-  const questions = await db.listWordGuessQuestions(site);
-  return <LevelEditor siteId={site} questions={questions} />;
+  const [levels, questions] = await Promise.all([
+    db.listWordGuessLevels(site),
+    db.listWordGuessQuestions(site),
+  ]);
+  return (
+    <LevelEditor
+      siteId={site}
+      questions={questions}
+      takenQuestionIds={findTakenQuestionIds(levels)}
+    />
+  );
 }
 
 export default function NewWordGuessLevelPage({

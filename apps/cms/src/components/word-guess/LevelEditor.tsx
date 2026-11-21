@@ -73,15 +73,18 @@ const createPreviewData = (
 };
 
 // questions are all of the site's questions, which the level's are picked
-// from.
+// from. takenQuestionIds are the ones used by other levels, which can't be
+// picked.
 export function LevelEditor({
   siteId,
   level,
   questions,
+  takenQuestionIds,
 }: {
   siteId: string;
   level?: WordGuessLevel;
   questions: WordGuessQuestion[];
+  takenQuestionIds: Set<string>;
 }) {
   const [saved, setSaved] = useState<WordGuessLevelInput>(() => toInput(level));
   const [draft, setDraft] = useState<WordGuessLevelInput>(saved);
@@ -207,6 +210,7 @@ export function LevelEditor({
                 questions={questions}
                 value={draft.question_ids}
                 onChange={(question_ids) => update({ question_ids })}
+                excluded={takenQuestionIds}
               />
             </Field>
           </div>

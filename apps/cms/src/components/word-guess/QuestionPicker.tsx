@@ -15,7 +15,8 @@ const normalize = (value: string) =>
 const iconButtonClass =
   'flex size-7 items-center justify-center rounded text-xs text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-zinc-700 dark:hover:text-zinc-100';
 
-// Picks any number of questions, in an order that can be changed. Ids of
+// Picks any number of questions, in an order that can be changed. Questions
+// in excluded can't be picked, e.g. ones used by other levels. Ids of
 // questions that no longer exist are kept but not shown, and dropped when
 // saving.
 export function QuestionPicker({
@@ -23,11 +24,13 @@ export function QuestionPicker({
   questions,
   value,
   onChange,
+  excluded,
 }: {
   id: string;
   questions: WordGuessQuestion[];
   value: string[];
   onChange: (value: string[]) => void;
+  excluded?: Set<string>;
 }) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -43,8 +46,12 @@ export function QuestionPicker({
   const options = questions.filter(
     (question) =>
       !value.includes(question.id) &&
+      !excluded?.has(question.id) &&
       (normalize(question.answer).includes(search) ||
         normalize(question.clue).includes(search)),
+  );
+  const isAllTaken = questions.every(
+    (question) => value.includes(question.id) || excluded?.has(question.id),
   );
   const listId = `${id}-options`;
   const isListShown = isOpen && options.length > 0;
@@ -168,11 +175,13 @@ export function QuestionPicker({
           onBlur={() => setIsOpen(false)}
           onKeyDown={onKeyDown}
           placeholder={
-            questions.length
-              ? 'Sök och lägg till fråga…'
-              : 'Det finns inga frågor än.'
+            !questions.length
+              ? 'Det finns inga frågor än.'
+              : isAllTaken
+                ? 'Alla frågor används redan.'
+                : 'Sök och lägg till fråga…'
           }
-          disabled={!questions.length}
+          disabled={isAllTaken}
           autoComplete='off'
           className={inputClass}
         />
