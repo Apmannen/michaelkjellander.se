@@ -23,13 +23,34 @@ const isSame = (a: WordGuessLevelInput, b: WordGuessLevelInput) =>
   a.sentence === b.sentence &&
   JSON.stringify(a.question_ids) === JSON.stringify(b.question_ids);
 
-const createPreviewData = (sentence: string) => {
+const createPreviewData = (
+  { question_ids, sentence }: WordGuessLevelInput,
+  questions: WordGuessQuestion[],
+) => {
+  const connectedQuestions = questions.filter((q) =>
+    question_ids.includes(q.id),
+  );
+  const questionLetters = Array.from(
+    new Set(
+      connectedQuestions
+        .map((q) => {
+          let qLetters: string[] = [];
+          for (let i = 0; i < q.answer.length; i++) {
+            qLetters.push(q.answer[i]);
+          }
+          return qLetters;
+        })
+        .flat(),
+    ),
+  );
+
   let num = 1;
-  const letterDatas: { letter: string; number: number }[] = [];
+  const letterDatas: { letter: string; number: number; isCovered: boolean }[] =
+    [];
   const sentenceArr: string[] = [];
   for (let i = 0; i < sentence.length; i++) {
     sentenceArr.push(sentence[i]);
-    const aLetter = sentence[i].toUpperCase();
+    const aLetter = sentence[i].toLowerCase();
     if (
       !aLetter ||
       aLetter === ' ' ||
@@ -37,10 +58,14 @@ const createPreviewData = (sentence: string) => {
     ) {
       continue;
     }
-    letterDatas.push({ letter: aLetter, number: num++ });
+    letterDatas.push({
+      letter: aLetter,
+      number: num++,
+      isCovered: questionLetters.includes(aLetter),
+    });
   }
 
-  return {letterDatas, sentenceArr};
+  return { letterDatas, sentenceArr };
 };
 
 // questions are all of the site's questions, which the level's are picked
@@ -90,23 +115,31 @@ export function LevelEditor({
     });
   };
 
-  const { sentenceArr, letterDatas } = createPreviewData(draft.sentence);
+  const { sentenceArr, letterDatas } = createPreviewData(draft, questions);
 
   return (
     <>
       <div className='mx-auto flex max-w-2xl flex-col px-6 py-8'>
         <div className='flex'>
-          {sentenceArr.map((letter, i) => (
-            <span key={i} className='w-6 text-center'>
-              {letter}
-            </span>
-          ))}
+          {sentenceArr.map((letter, i) => {
+            const letterObj = letterDatas.find(
+              (ld) => ld.letter === letter.toLowerCase(),
+            );
+            return (
+              <span
+                key={i}
+                className={`w-6 font-bold text-center ${letterObj?.isCovered ? 'text-green-600' : 'text-red-600'}`}
+              >
+                {letter}
+              </span>
+            );
+          })}
         </div>
         <div className='flex'>
           {sentenceArr.map((letter, i) => (
             <span key={i} className='w-6 text-center'>
               {
-                letterDatas.find((l) => l.letter === letter.toUpperCase())
+                letterDatas.find((l) => l.letter === letter.toLowerCase())
                   ?.number
               }
             </span>
