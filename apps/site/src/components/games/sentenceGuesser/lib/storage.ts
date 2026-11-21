@@ -1,6 +1,6 @@
 const KEY = 'sggdata_v1';
 
-type SavedGameData = { level: number; isDone: boolean; letters: string[] };
+export type SavedGameData = { level: number; isDone: boolean; letters: string[] };
 
 const save = (levelData: SavedGameData) => {
   const datas = get().filter((obj) => obj.level !== levelData.level);

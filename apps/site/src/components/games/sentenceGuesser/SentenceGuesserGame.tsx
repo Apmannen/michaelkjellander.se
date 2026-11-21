@@ -4,6 +4,8 @@ import { MkLink } from '@/components/standard/MkLink';
 import { SentenceGuesserLevelPayload } from '@/lib/db/payload.types';
 import { SentenceGuesserLevel } from './SentenceGuesserLevel';
 import { buildPuzzle } from './lib/puzzle';
+import { useEffect, useState } from 'react';
+import { gameStorage, SavedGameData } from './lib/storage';
 
 export const SentenceGuesserGame = ({
   level,
@@ -12,6 +14,16 @@ export const SentenceGuesserGame = ({
   level: SentenceGuesserLevelPayload;
   maxLevelNumber: number;
 }) => {
+  const [savedDatas, setSavedDatas] = useState<SavedGameData[] | undefined>(
+    undefined,
+  );
+  useEffect(() => {
+    setSavedDatas(gameStorage.get());
+  }, []);
+  const savedLevelData = savedDatas?.find(
+    (data) => data.level === level.number,
+  );
+
   return (
     <div className='flex flex-col gap-6 py-8'>
       <header className='flex flex-col items-center gap-2'>
@@ -48,22 +60,24 @@ export const SentenceGuesserGame = ({
           </MkLink>
         </nav>
       </header>
-      <SentenceGuesserLevel
-        hasNext={false}
-        onNext={() => {}}
-        puzzle={buildPuzzle({
-          id: level.number,
-          quote: level.sentence,
-          revealed: [],
-          clues: level.questions.map((q) => {
-            return {
-              answer: q.answer,
-              clue: q.clue,
-              emoji: q.emoji,
-            };
-          }),
-        })}
-      />
+      {savedDatas !== undefined ? (
+        <SentenceGuesserLevel
+          hasNext={false}
+          onNext={() => {}}
+          puzzle={buildPuzzle({
+            id: level.number,
+            quote: level.sentence,
+            revealed: savedLevelData?.letters || [],
+            clues: level.questions.map((q) => {
+              return {
+                answer: q.answer,
+                clue: q.clue,
+                emoji: q.emoji,
+              };
+            }),
+          })}
+        />
+      ) : null}
     </div>
   );
 };
