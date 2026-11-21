@@ -14,6 +14,7 @@ import {
 } from '../editor/EditorFooter';
 import { Field, inputClass } from '../editor/Field';
 import { deleteWordGuessQuestion, saveWordGuessQuestion } from './actions';
+import { EmojiField } from './EmojiField';
 
 const toInput = (question?: WordGuessQuestion): WordGuessQuestionInput => ({
   emoji: question?.emoji ?? '',
@@ -95,14 +96,11 @@ export function QuestionEditor({
       <div className='flex-1 overflow-y-auto'>
         <div className='mx-auto flex max-w-2xl flex-col gap-8 px-6 py-8'>
           <Field label='Emoji' htmlFor='emoji' description='T.ex. ☀️.'>
-            <input
+            <EmojiField
               id='emoji'
-              type='text'
               value={draft.emoji}
-              onChange={(event) => update({ emoji: event.target.value })}
-              className={inputClass}
+              onChange={(emoji) => update({ emoji })}
               autoFocus={!question}
-              autoComplete='off'
             />
           </Field>
 
