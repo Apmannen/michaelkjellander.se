@@ -62,14 +62,29 @@ const articles = async ({
   return (res.data as ArticlePayload[]) || [];
 };
 
-const sentenceGuesserLevels = async () => {
+const sentenceGuesserLevels = async ({ level }: { level: number }) => {
   'use cache';
   cacheTag('games');
   cacheLife('hours');
 
   const query = supabase
     .from('game_word_guess_levels')
-    .select('number,sentence');
+    .select(
+      `
+      number,sentence,
+      questions:game_word_guess_level_questions!level_id(
+        position,
+        ...game_word_guess_questions!id(
+          clue,
+          emoji,
+          answer
+        )
+      )
+    `,
+    )
+    .eq('number', level)
+    .order('number', { ascending: true })
+    .order('position', { referencedTable: 'game_word_guess_level_questions' });
   const res = await query;
 
   return res.data as SentenceGuesserLevel[];
@@ -77,4 +92,5 @@ const sentenceGuesserLevels = async () => {
 
 export const db = {
   articles,
+  sentenceGuesserLevels,
 };
