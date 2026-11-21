@@ -175,7 +175,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
                   {row.clue}
                 </span>
               </button>
-              <div className='flex gap-1'>{row.cells.map(renderCell)}</div>
+              <div className='flex gap-1 mt-2'>{row.cells.map(renderCell)}</div>
             </div>
           );
         })}
