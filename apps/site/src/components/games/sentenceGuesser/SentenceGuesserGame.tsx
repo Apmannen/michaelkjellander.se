@@ -2,7 +2,10 @@
 
 import { MkLink } from '@/components/standard/MkLink';
 import { SentenceGuesserLevelPayload } from '@/lib/db/payload.types';
-import { SentenceGuesserLevel } from './SentenceGuesserLevel';
+import {
+  GAME_COMPLETED_EVENT,
+  SentenceGuesserLevel,
+} from './SentenceGuesserLevel';
 import { buildPuzzle } from './lib/puzzle';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,7 +23,14 @@ export const SentenceGuesserGame = ({
     undefined,
   );
   useEffect(() => {
-    setSavedDatas(gameStorage.get());
+    const updateSavedDatas = () => {
+      setSavedDatas(gameStorage.get());
+    };
+    updateSavedDatas();
+
+    window.addEventListener(GAME_COMPLETED_EVENT, () => {
+      updateSavedDatas();
+    });
   }, []);
   const savedLevelData = savedDatas?.find(
     (data) => data.level === level.number,

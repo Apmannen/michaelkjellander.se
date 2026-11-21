@@ -19,6 +19,8 @@ type WrongGuess = {
 
 const WRONG_FLASH_MS = 600;
 
+export const GAME_COMPLETED_EVENT = 'sensence-guesser-game:completed';
+
 /** Letar upp nästa ruta (i riktningen `step`) vars nummer ännu inte är löst. */
 function findUnsolved(
   cells: Cell[],
@@ -145,6 +147,10 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
       level: puzzle.id,
     });
   }, [solved, puzzle.cells, isComplete]);
+  useEffect(() => {
+    const event = new Event(GAME_COMPLETED_EVENT);
+    window.dispatchEvent(event);
+  }, [isComplete]);
 
   const renderCell = (cell: Cell) => (
     <LetterCell
