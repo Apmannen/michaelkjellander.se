@@ -93,6 +93,19 @@ export function LevelEditor({
   const [isDeleting, startDeleting] = useTransition();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
+  const filteredQuestions = questions.filter((aQuestion) => {
+    for(let i = 0; i < aQuestion.answer.length; i++) {
+      const letter = aQuestion.answer[i].toLowerCase().replace(' ', '');
+      if(!letter) {
+        continue;
+      }
+      if(!draft.sentence.includes(letter)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   const isDirty = !isSame(draft, saved);
   useUnsavedChangesWarning(isDirty);
 
@@ -207,7 +220,7 @@ export function LevelEditor({
             >
               <QuestionPicker
                 id='question_ids'
-                questions={questions}
+                questions={filteredQuestions}
                 value={draft.question_ids}
                 onChange={(question_ids) => update({ question_ids })}
                 excluded={takenQuestionIds}
