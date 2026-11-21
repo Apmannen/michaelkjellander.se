@@ -35,5 +35,9 @@ const SuspensePage = async ({ params }: Props) => {
     return notFound();
   }
 
-  return <SentenceGuesserGame level={level} maxLevelNumber={maxLevel} />;
+  return (
+    <div className='mx-auto max-w-[640px] px-4 sm:px-8'>
+      <SentenceGuesserGame level={level} maxLevelNumber={maxLevel} />
+    </div>
+  );
 };

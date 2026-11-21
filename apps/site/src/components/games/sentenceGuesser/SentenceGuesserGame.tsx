@@ -48,13 +48,11 @@ export const SentenceGuesserGame = ({
           </MkLink>
         </nav>
       </header>
-      <div>
-        <SentenceGuesserLevel
-          hasNext={false}
-          onNext={() => {}}
-          puzzle={puzzles[level.number]}
-        />
-      </div>
+      <SentenceGuesserLevel
+        hasNext={false}
+        onNext={() => {}}
+        puzzle={puzzles[level.number]}
+      />
     </div>
   );
 };
