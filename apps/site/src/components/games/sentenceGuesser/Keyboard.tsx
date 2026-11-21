@@ -3,10 +3,9 @@ const ROWS = ['QWERTYUIOPÅ', 'ASDFGHJKLÖÄ', 'ZXCVBNM'];
 type Props = {
   disabled: boolean;
   onLetter: (letter: string) => void;
-  onHint: () => void;
 };
 
-export function Keyboard({ disabled, onLetter, onHint }: Props) {
+export function Keyboard({ disabled, onLetter }: Props) {
   return (
     <div className='flex flex-col gap-1.5'>
       {ROWS.map((row, rowIndex) => (
@@ -22,16 +21,6 @@ export function Keyboard({ disabled, onLetter, onHint }: Props) {
               {letter}
             </button>
           ))}
-          {rowIndex === ROWS.length - 1 && (
-            <button
-              type='button'
-              disabled={disabled}
-              onClick={onHint}
-              className='h-11 flex-[2.5] max-w-28 rounded-md bg-accent-700 px-2 text-sm font-semibold text-white shadow-sm active:bg-accent-800 disabled:opacity-40 sm:h-12'
-            >
-              💡 Ledtråd
-            </button>
-          )}
         </div>
       ))}
     </div>

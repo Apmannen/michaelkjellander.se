@@ -45,7 +45,6 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
   );
   const [wrong, setWrong] = useState<WrongGuess | undefined>(undefined);
   const [mistakes, setMistakes] = useState(0);
-  const [hintsUsed, setHintsUsed] = useState(0);
   const wrongTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -85,14 +84,6 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
       () => setWrong(undefined),
       WRONG_FLASH_MS,
     );
-  };
-
-  const revealHint = () => {
-    if (!selectedCell || isComplete) {
-      return;
-    }
-    setHintsUsed((count) => count + 1);
-    solveSelected();
   };
 
   const moveSelection = (step: 1 | -1) => {
@@ -197,9 +188,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
         <span>
           Löst {solved.size} av {puzzle.numberCount} bokstäver
         </span>
-        <span>
-          Fel: {mistakes} · Ledtrådar: {hintsUsed}
-        </span>
+        <span>Fel: {mistakes}</span>
       </div>
 
       {isComplete ? (
@@ -207,9 +196,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
           <p className='text-2xl font-bold'>Snyggt! 🎉</p>
           <p className='mt-2 text-lg text-accent-800'>”{puzzle.quote}”</p>
           <p className='mt-2 text-sm text-muted'>
-            {mistakes === 0 && hintsUsed === 0
-              ? 'Helt felfritt, utan ledtrådar!'
-              : `Du gjorde ${mistakes} fel och använde ${hintsUsed} ledtrådar.`}
+            {mistakes === 0 ? 'Helt felfritt!' : `Du gjorde ${mistakes} fel.`}
           </p>
           {hasNext && (
             <button
@@ -223,11 +210,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
         </div>
       ) : (
         <div className='sticky bottom-0 -mx-4 bg-page/95 px-2 pt-2 pb-4 backdrop-blur sm:mx-0 sm:px-0'>
-          <Keyboard
-            disabled={!selectedCell}
-            onLetter={enterLetter}
-            onHint={revealHint}
-          />
+          <Keyboard disabled={!selectedCell} onLetter={enterLetter} />
         </div>
       )}
     </div>
