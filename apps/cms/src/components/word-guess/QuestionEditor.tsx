@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from 'react';
 
-import type {
-  WordGuessQuestion,
-  WordGuessQuestionInput,
+import {
+  type WordGuessLevel,
+  type WordGuessQuestion,
+  type WordGuessQuestionInput,
+  describeQuestionInUse,
 } from '@/lib/word-guess';
 
 import { ConfirmDeleteDialog } from '../editor/ConfirmDeleteDialog';
@@ -25,12 +27,15 @@ const toInput = (question?: WordGuessQuestion): WordGuessQuestionInput => ({
 const isSame = (a: WordGuessQuestionInput, b: WordGuessQuestionInput) =>
   a.emoji === b.emoji && a.clue === b.clue && a.answer === b.answer;
 
+// levels are the ones that use the question, which then can't be deleted.
 export function QuestionEditor({
   siteId,
   question,
+  levels = [],
 }: {
   siteId: string;
   question?: WordGuessQuestion;
+  levels?: WordGuessLevel[];
 }) {
   const [saved, setSaved] = useState<WordGuessQuestionInput>(() =>
     toInput(question),
@@ -142,13 +147,19 @@ export function QuestionEditor({
           setDraft(saved);
           setError(undefined);
         }}
-        onDelete={() => setIsConfirmingDelete(true)}
+        onDelete={() => {
+          if (levels.length > 0) {
+            setError(describeQuestionInUse(levels));
+            return;
+          }
+          setIsConfirmingDelete(true);
+        }}
       />
 
       {question && isConfirmingDelete && (
         <ConfirmDeleteDialog
           heading='Ta bort fråga?'
-          message={`”${saved.answer}” tas bort och kopplas bort från alla nivåer.`}
+          message={`”${saved.answer}” tas bort.`}
           onConfirm={() => remove(question.id)}
           onClose={() => setIsConfirmingDelete(false)}
         />

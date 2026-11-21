@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Cell, isLetter, Puzzle } from './lib/puzzle';
 import { LetterCell } from './LetterCell';
 import { Keyboard } from './Keyboard';
+import { gameStorage } from './lib/storage';
 
 type Props = {
   puzzle: Puzzle;
@@ -17,6 +18,8 @@ type WrongGuess = {
 };
 
 const WRONG_FLASH_MS = 600;
+
+export const GAME_COMPLETED_EVENT = 'sensence-guesser-game:completed';
 
 /** Letar upp nästa ruta (i riktningen `step`) vars nummer ännu inte är löst. */
 function findUnsolved(
@@ -128,6 +131,26 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  useEffect(() => {
+    const letters = new Set<string>();
+    solved.forEach((number) => {
+      puzzle.cells.forEach((cell) => {
+        if (cell.number === number) {
+          letters.add(cell.letter);
+        }
+      });
+    });
+    gameStorage.save({
+      isDone: isComplete,
+      letters: Array.from(letters),
+      level: puzzle.id,
+    });
+  }, [solved, puzzle.cells, isComplete]);
+  useEffect(() => {
+    const event = new Event(GAME_COMPLETED_EVENT);
+    window.dispatchEvent(event);
+  }, [isComplete]);
 
   const renderCell = (cell: Cell) => (
     <LetterCell

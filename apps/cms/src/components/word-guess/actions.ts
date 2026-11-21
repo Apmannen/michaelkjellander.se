@@ -11,6 +11,8 @@ import {
   type WordGuessLevelInput,
   type WordGuessQuestion,
   type WordGuessQuestionInput,
+  describeQuestionInUse,
+  findLevelsWithQuestion,
   findTakenQuestionIds,
   parseLevelNumber,
   toLine,
@@ -77,6 +79,16 @@ export async function deleteWordGuessQuestion(
   id: string,
 ): Promise<{ ok: false; error: string }> {
   await requireUser();
+
+  // Checked again here, since a level may have taken the question since the
+  // editor was opened.
+  const levels = findLevelsWithQuestion(
+    await db.listWordGuessLevels(siteId),
+    id,
+  );
+  if (levels.length > 0) {
+    return { ok: false, error: describeQuestionInUse(levels) };
+  }
 
   const { error } = await db.deleteWordGuessQuestion(id);
 
