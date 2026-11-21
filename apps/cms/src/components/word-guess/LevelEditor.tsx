@@ -14,6 +14,8 @@ import { Field, inputClass } from '../editor/Field';
 import { deleteWordGuessLevel, saveWordGuessLevel } from './actions';
 import { QuestionPicker } from './QuestionPicker';
 
+const REPLACE_CHARS = /[ _]/g;
+
 const toInput = (level?: WordGuessLevel): WordGuessLevelInput => ({
   sentence: level?.sentence ?? '',
   question_ids: level?.question_ids ?? [],
@@ -50,12 +52,8 @@ const createPreviewData = (
   const sentenceArr: string[] = [];
   for (let i = 0; i < sentence.length; i++) {
     sentenceArr.push(sentence[i]);
-    const aLetter = sentence[i].toLowerCase();
-    if (
-      !aLetter ||
-      aLetter === ' ' ||
-      letterDatas.some((obj) => obj.letter === aLetter)
-    ) {
+    const aLetter = sentence[i].toLowerCase().replaceAll(REPLACE_CHARS, '');
+    if (!aLetter || letterDatas.some((obj) => obj.letter === aLetter)) {
       continue;
     }
     letterDatas.push({
@@ -94,12 +92,14 @@ export function LevelEditor({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const filteredQuestions = questions.filter((aQuestion) => {
-    for(let i = 0; i < aQuestion.answer.length; i++) {
-      const letter = aQuestion.answer[i].toLowerCase().replace(' ', '');
-      if(!letter) {
+    for (let i = 0; i < aQuestion.answer.length; i++) {
+      const letter = aQuestion.answer[i]
+        .toLowerCase()
+        .replaceAll(REPLACE_CHARS, '');
+      if (!letter) {
         continue;
       }
-      if(!draft.sentence.includes(letter)) {
+      if (!draft.sentence.includes(letter)) {
         return false;
       }
     }
