@@ -74,7 +74,7 @@ const sentenceGuesserLevels = async ({ level }: { level: number }) => {
       number,sentence,
       questions:game_word_guess_level_questions!level_id(
         position,
-        ...game_word_guess_questions!id(
+        ...game_word_guess_questions!question_id(
           clue,
           emoji,
           answer
