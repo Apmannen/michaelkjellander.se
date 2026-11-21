@@ -57,3 +57,11 @@ export type DynamicFieldPayload = {
     tags: Pick<TagPayload, 'slug'>[];
   };
 };
+
+//
+// Games
+//
+export type SentenceGuesserLevel = Pick<
+  Database['public']['Tables']['game_word_guess_levels']['Row'],
+  'number' | 'sentence'
+>;

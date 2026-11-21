@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { cacheLife, cacheTag } from 'next/cache';
-import { ArticlePayload } from './payload.types';
+import { ArticlePayload, SentenceGuesserLevel } from './payload.types';
 import { supabase } from './supabase';
 
 const articles = async ({
@@ -62,7 +62,7 @@ const articles = async ({
   return (res.data as ArticlePayload[]) || [];
 };
 
-const sentenceGuesserLevels = () => {
+const sentenceGuesserLevels = async () => {
   'use cache';
   cacheTag('games');
   cacheLife('hours');
@@ -70,6 +70,9 @@ const sentenceGuesserLevels = () => {
   const query = supabase
     .from('game_word_guess_levels')
     .select('number,sentence');
+  const res = await query;
+
+  return res.data as SentenceGuesserLevel[];
 };
 
 export const db = {

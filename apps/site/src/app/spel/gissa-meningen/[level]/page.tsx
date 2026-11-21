@@ -21,6 +21,7 @@ export default async function Page({ params }: Props) {
 
 const SuspensePage = async ({ params }: Props) => {
   const { level } = await params;
+  
 
   return <div>nivå: {level}</div>;
 };
