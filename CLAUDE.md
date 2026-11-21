@@ -24,3 +24,4 @@
   ```
 
 - Prefer `undefined` over `null`.
+- Code comments must always be written in English.
