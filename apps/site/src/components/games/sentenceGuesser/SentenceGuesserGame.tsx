@@ -67,19 +67,19 @@ export const SentenceGuesserGame = ({
             value={level.number}
           >
             {Array.from({ length: maxLevelNumber }, (_, i) => i + 1).map(
-              (number) => (
-                <option
-                  key={number}
-                  value={number}
-                  className={
-                    savedDatas?.find((d) => d.level === number)?.isDone
-                      ? 'text-green-700'
-                      : 'text-muted'
-                  }
-                >
-                  Nivå {number}
-                </option>
-              ),
+              (number) => {
+                const isDone =
+                  savedDatas?.find((d) => d.level === number)?.isDone === true;
+                return (
+                  <option
+                    key={number}
+                    value={number}
+                    className={isDone ? 'text-green-700' : 'text-muted'}
+                  >
+                    Nivå {number} {isDone ? '✔' : null}
+                  </option>
+                );
+              },
             )}
           </select>
           <MkLink
