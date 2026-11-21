@@ -1,4 +1,12 @@
-export const SentenceGuesserGame = () => {
+import { SentenceGuesserLevel } from '@/lib/db/payload.types';
+
+export const SentenceGuesserGame = ({
+  level,
+  maxLevelNumber,
+}: {
+  level: SentenceGuesserLevel;
+  maxLevelNumber: number;
+}) => {
   return (
     <div className='flex flex-col gap-6'>
       <header className='flex flex-col items-center gap-2 pt-8'>
@@ -13,13 +21,15 @@ export const SentenceGuesserGame = () => {
           <button
             type='button'
             className='rounded px-2 py-1 cursor-pointer text-accent-800 disabled:opacity-30'
+            disabled={level.number <= 1}
           >
             ← Föregående
           </button>
-          <span className='tabular-nums text-muted'>Nivå</span>
+          <span className='tabular-nums text-muted'>Nivå {level.number}</span>
           <button
             type='button'
             className='rounded px-2 py-1 cursor-pointer text-accent-800 disabled:opacity-30'
+            disabled={level.number >= maxLevelNumber}
           >
             Nästa →
           </button>

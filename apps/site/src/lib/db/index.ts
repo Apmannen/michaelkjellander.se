@@ -87,7 +87,7 @@ const sentenceGuesserLevels = async ({ level }: { level: number }) => {
     .order('position', { referencedTable: 'game_word_guess_level_questions' });
   const res = await query;
 
-  return res.data as SentenceGuesserLevel[];
+  return res.data?.at(0) as SentenceGuesserLevel | undefined;
 };
 
 export const db = {

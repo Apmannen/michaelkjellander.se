@@ -30,8 +30,10 @@ const SuspensePage = async ({ params }: Props) => {
 
   const maxLevel = 10; //TODO: get from DB
 
-  const levels = await db.sentenceGuesserLevels({ level: levelNumber });
-  console.log('***LEVELS', JSON.stringify(levels, null, 2));
+  const level = await db.sentenceGuesserLevels({ level: levelNumber });
+  if (!level) {
+    return notFound();
+  }
 
-  return <div>nivå: {levelNumber}</div>;
+  return <SentenceGuesserGame level={level} maxLevelNumber={maxLevel} />;
 };
