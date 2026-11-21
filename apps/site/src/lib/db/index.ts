@@ -62,6 +62,16 @@ const articles = async ({
   return (res.data as ArticlePayload[]) || [];
 };
 
+const sentenceGuesserLevels = () => {
+  'use cache';
+  cacheTag('games');
+  cacheLife('hours');
+
+  const query = supabase
+    .from('game_word_guess_levels')
+    .select('number,sentence');
+};
+
 export const db = {
   articles,
 };
