@@ -38,7 +38,7 @@ const createPreviewData = (
         .map((q) => {
           let qLetters: string[] = [];
           for (let i = 0; i < q.answer.length; i++) {
-            qLetters.push(q.answer[i]);
+            qLetters.push(q.answer[i].toLowerCase());
           }
           return qLetters;
         })
@@ -64,7 +64,7 @@ const createPreviewData = (
   }
 
   const unusedLetters: string[] = questionLetters.filter(
-    (ql) => !sentenceArr.includes(ql),
+    (ql) => !sentenceArr.some((l) => l.toLowerCase() === ql),
   );
 
   return { letterDatas, sentenceArr, unusedLetters };
@@ -99,7 +99,7 @@ export function LevelEditor({
       if (!letter) {
         continue;
       }
-      if (!draft.sentence.includes(letter)) {
+      if (!draft.sentence.toLowerCase().includes(letter)) {
         return false;
       }
     }
