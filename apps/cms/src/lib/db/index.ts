@@ -22,6 +22,12 @@ import {IMAGE_BUCKET, type Image} from '@/lib/images';
 import type {Board, Issue, IssueColumn, IssueInput} from '@/lib/issues';
 import type {NewSiteInput, Site, SiteInput} from '@/lib/sites';
 import type {Tag, TagInput} from '@/lib/tags';
+import type {
+  WordGuessLevel,
+  WordGuessLevelInput,
+  WordGuessQuestion,
+  WordGuessQuestionInput,
+} from '@/lib/word-guess';
 
 // Service role key bypasses RLS, so this client must never reach the browser.
 const supabase = createClient(
@@ -585,6 +591,176 @@ const deleteIssue = async (id: string) => {
   return supabase.rpc('trash_issue', {issue_id: id});
 };
 
+const WORD_GUESS_QUESTION_COLUMNS =
+  'id, emoji, clue, answer, created_at, updated_at';
+
+const listWordGuessQuestions = async (
+  siteId: string,
+): Promise<WordGuessQuestion[]> => {
+  const {data, error} = await supabase
+    .from('game_word_guess_questions')
+    .select(WORD_GUESS_QUESTION_COLUMNS)
+    .eq('site_id', siteId)
+    .order('answer')
+    .overrideTypes<WordGuessQuestion[], {merge: false}>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};
+
+const createWordGuessQuestion = async (
+  siteId: string,
+  input: WordGuessQuestionInput,
+) => {
+  return supabase
+    .from('game_word_guess_questions')
+    .insert({...input, site_id: siteId})
+    .select(WORD_GUESS_QUESTION_COLUMNS)
+    .single<WordGuessQuestion>();
+};
+
+const updateWordGuessQuestion = async (
+  siteId: string,
+  id: string,
+  input: WordGuessQuestionInput,
+) => {
+  return supabase
+    .from('game_word_guess_questions')
+    .update({...input, updated_at: new Date().toISOString()})
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .select(WORD_GUESS_QUESTION_COLUMNS)
+    .single<WordGuessQuestion>();
+};
+
+// Moves the question to the trash table, see db/014_game_word_guess.sql.
+const deleteWordGuessQuestion = async (id: string) => {
+  return supabase.rpc('trash_game_word_guess_question', {question_id: id});
+};
+
+const WORD_GUESS_LEVEL_COLUMNS =
+  'id, number, sentence, created_at, updated_at, game_word_guess_level_questions!game_word_guess_level_questions_level_id_fkey(question_id, position)';
+
+type WordGuessLevelRow = Omit<WordGuessLevel, 'question_ids'> & {
+  game_word_guess_level_questions: LinkRow<'question_id'>[];
+};
+
+const toWordGuessLevel = ({
+  game_word_guess_level_questions,
+  ...row
+}: WordGuessLevelRow): WordGuessLevel => ({
+  ...row,
+  question_ids: toIds(game_word_guess_level_questions, 'question_id'),
+});
+
+// Replaces the level's questions in one transaction, and gives the level with
+// the ones that were set, which leaves out e.g. questions deleted meanwhile.
+const setWordGuessLevelQuestions = async (
+  {data, error}: PostgrestSingleResponse<WordGuessLevelRow>,
+  input: WordGuessLevelInput,
+): Promise<SaveResult<WordGuessLevel>> => {
+  if (error) {
+    return {data: undefined, error};
+  }
+  const questions = await supabase.rpc('set_game_word_guess_level_questions', {
+    level_id: data.id,
+    question_ids: input.question_ids,
+  });
+  if (questions.error) {
+    return {data: undefined, error: questions.error};
+  }
+  return {
+    data: {
+      ...toWordGuessLevel(data),
+      question_ids: questions.data as string[],
+    },
+    error: undefined,
+  };
+};
+
+const listWordGuessLevels = async (
+  siteId: string,
+): Promise<WordGuessLevel[]> => {
+  const {data, error} = await supabase
+    .from('game_word_guess_levels')
+    .select(WORD_GUESS_LEVEL_COLUMNS)
+    .eq('site_id', siteId)
+    .order('number')
+    .overrideTypes<WordGuessLevelRow[], {merge: false}>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.map(toWordGuessLevel);
+};
+
+const getWordGuessLevel = async (
+  siteId: string,
+  id: string,
+): Promise<WordGuessLevel | undefined> => {
+  const {data, error} = await supabase
+    .from('game_word_guess_levels')
+    .select(WORD_GUESS_LEVEL_COLUMNS)
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .maybeSingle<WordGuessLevelRow>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ? toWordGuessLevel(data) : undefined;
+};
+
+// The questions are stored separately, see setWordGuessLevelQuestions.
+const createWordGuessLevel = async (
+  siteId: string,
+  input: WordGuessLevelInput,
+) => {
+  return setWordGuessLevelQuestions(
+    await supabase
+      .from('game_word_guess_levels')
+      .insert({
+        number: input.number,
+        sentence: input.sentence,
+        site_id: siteId,
+      })
+      .select(WORD_GUESS_LEVEL_COLUMNS)
+      .single<WordGuessLevelRow>(),
+    input,
+  );
+};
+
+const updateWordGuessLevel = async (
+  siteId: string,
+  id: string,
+  input: WordGuessLevelInput,
+) => {
+  return setWordGuessLevelQuestions(
+    await supabase
+      .from('game_word_guess_levels')
+      .update({
+        number: input.number,
+        sentence: input.sentence,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('site_id', siteId)
+      .eq('id', id)
+      .select(WORD_GUESS_LEVEL_COLUMNS)
+      .single<WordGuessLevelRow>(),
+    input,
+  );
+};
+
+// Moves the level to the trash table, see db/014_game_word_guess.sql.
+const deleteWordGuessLevel = async (id: string) => {
+  return supabase.rpc('trash_game_word_guess_level', {level_id: id});
+};
+
 // Whether the email address may log in to the cms, see db/008_cms_users.sql.
 const isCmsUser = async (email: string): Promise<boolean> => {
   const { data, error } = await supabase
@@ -630,5 +806,14 @@ export const db = {
   updateIssue,
   moveIssue,
   deleteIssue,
+  listWordGuessQuestions,
+  createWordGuessQuestion,
+  updateWordGuessQuestion,
+  deleteWordGuessQuestion,
+  listWordGuessLevels,
+  getWordGuessLevel,
+  createWordGuessLevel,
+  updateWordGuessLevel,
+  deleteWordGuessLevel,
   uploadImage,
 };

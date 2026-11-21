@@ -80,6 +80,16 @@ export const SITE_SECTIONS = [
     description: 'Anslagstavla med ärenden i kolumner.',
   },
   {
+    path: 'word-guess-questions',
+    title: 'Ordspelsfrågor',
+    description: 'Frågor till ordspelet, med emoji, ledtråd och svar.',
+  },
+  {
+    path: 'word-guess-levels',
+    title: 'Ordspelsnivåer',
+    description: 'Nivåer i ordspelet, med en mening och flera frågor.',
+  },
+  {
     path: 'triggers',
     title: 'Triggers',
     description: 'Kör åtgärder på sajten, t.ex. rensa cache.',

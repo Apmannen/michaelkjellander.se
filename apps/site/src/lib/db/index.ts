@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { cacheLife, cacheTag } from 'next/cache';
-import { ArticlePayload } from './payload.types';
+import { ArticlePayload, SentenceGuesserLevelPayload } from './payload.types';
 import { supabase } from './supabase';
 
 const articles = async ({
@@ -62,6 +62,35 @@ const articles = async ({
   return (res.data as ArticlePayload[]) || [];
 };
 
+const sentenceGuesserLevels = async ({ level }: { level: number }) => {
+  'use cache';
+  cacheTag('games');
+  cacheLife('hours');
+
+  const query = supabase
+    .from('game_word_guess_levels')
+    .select(
+      `
+      number,sentence,
+      questions:game_word_guess_level_questions!level_id(
+        position,
+        ...game_word_guess_questions!question_id(
+          clue,
+          emoji,
+          answer
+        )
+      )
+    `,
+    )
+    .eq('number', level)
+    .order('number', { ascending: true })
+    .order('position', { referencedTable: 'game_word_guess_level_questions' });
+  const res = await query;
+
+  return res.data?.at(0) as SentenceGuesserLevelPayload | undefined;
+};
+
 export const db = {
   articles,
+  sentenceGuesserLevels,
 };
