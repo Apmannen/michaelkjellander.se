@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
+import { findLevelsWithQuestion } from '@/lib/word-guess';
 
 import { QuestionEditor } from '@/components/word-guess/QuestionEditor';
 
@@ -11,14 +12,22 @@ async function Editor({
   params: PageProps<'/[site]/word-guess-questions/[id]'>['params'];
 }) {
   const { site, id } = await params;
-  const questions = await db.listWordGuessQuestions(site);
+  const [questions, levels] = await Promise.all([
+    db.listWordGuessQuestions(site),
+    db.listWordGuessLevels(site),
+  ]);
   const question = questions.find((other) => other.id === id);
   if (!question) {
     notFound();
   }
 
   return (
-    <QuestionEditor key={question.id} siteId={site} question={question} />
+    <QuestionEditor
+      key={question.id}
+      siteId={site}
+      question={question}
+      levels={findLevelsWithQuestion(levels, question.id)}
+    />
   );
 }
 

@@ -66,6 +66,18 @@ export const findTakenQuestionIds = (
       .flatMap((level) => level.question_ids),
   );
 
+// The levels that use the question, which then can't be deleted.
+export const findLevelsWithQuestion = (
+  levels: WordGuessLevel[],
+  questionId: string,
+): WordGuessLevel[] =>
+  levels.filter((level) => level.question_ids.includes(questionId));
+
+export const describeQuestionInUse = (levels: WordGuessLevel[]): string => {
+  const numbers = levels.map((level) => level.number).join(', ');
+  return `Frågan används i ${levels.length === 1 ? 'nivå' : 'nivåerna'} ${numbers} och kan inte tas bort.`;
+};
+
 // Anything that isn't a whole number is kept as NaN so validateWordGuessLevel
 // can point it out.
 export const parseLevelNumber = (value: unknown): number => {
