@@ -9,10 +9,7 @@ import type {
 } from '@/lib/word-guess';
 
 import { ConfirmDeleteDialog } from '../editor/ConfirmDeleteDialog';
-import {
-  EditorFooter,
-  useUnsavedChangesWarning,
-} from '../editor/EditorFooter';
+import { EditorFooter, useUnsavedChangesWarning } from '../editor/EditorFooter';
 import { Field, inputClass } from '../editor/Field';
 import { deleteWordGuessLevel, saveWordGuessLevel } from './actions';
 import { QuestionPicker } from './QuestionPicker';
@@ -37,9 +34,7 @@ export function LevelEditor({
   level?: WordGuessLevel;
   questions: WordGuessQuestion[];
 }) {
-  const [saved, setSaved] = useState<WordGuessLevelInput>(() =>
-    toInput(level),
-  );
+  const [saved, setSaved] = useState<WordGuessLevelInput>(() => toInput(level));
   const [draft, setDraft] = useState<WordGuessLevelInput>(saved);
   const [error, setError] = useState<string | undefined>(undefined);
   const [isSaving, startSaving] = useTransition();
@@ -75,81 +70,94 @@ export function LevelEditor({
     });
   };
 
+  let num = 1;
+  const letters: { letter: string; number: number }[] = [];
+  for (let i = 0; i < draft.sentence.length; i++) {
+    const aLetter = draft.sentence[i].toUpperCase();
+    if (letters.some((obj) => obj.letter === aLetter)) {
+      continue;
+    }
+    letters.push({ letter: aLetter, number: num++ });
+  }
+
   return (
-    <form
-      className='flex h-full flex-col'
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (isDirty) {
-          save();
-        }
-      }}
-    >
-      <header className='flex items-center justify-between gap-4 border-b border-zinc-200 px-6 py-3 dark:border-zinc-800'>
-        <h1 className='truncate text-sm font-medium'>
-          {draft.sentence.trim() || 'Ny nivå'}
-        </h1>
-        {!level && (
-          <span className='shrink-0 rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'>
-            Ej sparad
-          </span>
-        )}
-      </header>
-
-      <div className='flex-1 overflow-y-auto'>
-        <div className='mx-auto flex max-w-2xl flex-col gap-8 px-6 py-8'>
-          <Field
-            label='Mening'
-            htmlFor='sentence'
-            description='T.ex. Morgonstund har guld i mund.'
-          >
-            <input
-              id='sentence'
-              type='text'
-              value={draft.sentence}
-              onChange={(event) => update({ sentence: event.target.value })}
-              className={inputClass}
-              autoFocus={!level}
-              autoComplete='off'
-            />
-          </Field>
-
-          <Field
-            label='Frågor'
-            htmlFor='question_ids'
-            description='I den ordning de visas i spelet.'
-          >
-            <QuestionPicker
-              id='question_ids'
-              questions={questions}
-              value={draft.question_ids}
-              onChange={(question_ids) => update({ question_ids })}
-            />
-          </Field>
-        </div>
-      </div>
-
-      <EditorFooter
-        error={error}
-        isDirty={isDirty}
-        isSaved={!!level}
-        isSaving={isSaving}
-        isDeleting={isDeleting}
-        onUndo={() => {
-          setDraft(saved);
-          setError(undefined);
+    <>
+      <div>LETTER: {JSON.stringify(letters)}</div>
+      <form
+        className='flex h-full flex-col'
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (isDirty) {
+            save();
+          }
         }}
-        onDelete={() => setIsConfirmingDelete(true)}
-      />
+      >
+        <header className='flex items-center justify-between gap-4 border-b border-zinc-200 px-6 py-3 dark:border-zinc-800'>
+          <h1 className='truncate text-sm font-medium'>
+            {draft.sentence.trim() || 'Ny nivå'}
+          </h1>
+          {!level && (
+            <span className='shrink-0 rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'>
+              Ej sparad
+            </span>
+          )}
+        </header>
 
-      {level && isConfirmingDelete && (
-        <ConfirmDeleteDialog
-          heading='Ta bort nivå?'
-          message={`”${saved.sentence}” tas bort. Frågorna finns kvar.`}
-          onConfirm={() => remove(level.id)}
-          onClose={() => setIsConfirmingDelete(false)}
+        <div className='flex-1 overflow-y-auto'>
+          <div className='mx-auto flex max-w-2xl flex-col gap-8 px-6 py-8'>
+            <Field
+              label='Mening'
+              htmlFor='sentence'
+              description='T.ex. Morgonstund har guld i mund.'
+            >
+              <input
+                id='sentence'
+                type='text'
+                value={draft.sentence}
+                onChange={(event) => update({ sentence: event.target.value })}
+                className={inputClass}
+                autoFocus={!level}
+                autoComplete='off'
+              />
+            </Field>
+
+            <Field
+              label='Frågor'
+              htmlFor='question_ids'
+              description='I den ordning de visas i spelet.'
+            >
+              <QuestionPicker
+                id='question_ids'
+                questions={questions}
+                value={draft.question_ids}
+                onChange={(question_ids) => update({ question_ids })}
+              />
+            </Field>
+          </div>
+        </div>
+
+        <EditorFooter
+          error={error}
+          isDirty={isDirty}
+          isSaved={!!level}
+          isSaving={isSaving}
+          isDeleting={isDeleting}
+          onUndo={() => {
+            setDraft(saved);
+            setError(undefined);
+          }}
+          onDelete={() => setIsConfirmingDelete(true)}
         />
-      )}
-    </form>
+
+        {level && isConfirmingDelete && (
+          <ConfirmDeleteDialog
+            heading='Ta bort nivå?'
+            message={`”${saved.sentence}” tas bort. Frågorna finns kvar.`}
+            onConfirm={() => remove(level.id)}
+            onClose={() => setIsConfirmingDelete(false)}
+          />
+        )}
+      </form>
+    </>
   );
 }
