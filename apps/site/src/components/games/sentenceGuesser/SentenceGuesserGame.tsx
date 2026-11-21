@@ -5,6 +5,7 @@ import { SentenceGuesserLevelPayload } from '@/lib/db/payload.types';
 import { SentenceGuesserLevel } from './SentenceGuesserLevel';
 import { buildPuzzle } from './lib/puzzle';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { gameStorage, SavedGameData } from './lib/storage';
 
 export const SentenceGuesserGame = ({
@@ -14,7 +15,8 @@ export const SentenceGuesserGame = ({
   level: SentenceGuesserLevelPayload;
   maxLevelNumber: number;
 }) => {
-  const [savedDatas, setSavedDatas] = useState<SavedGameData[] | undefined>(
+  const router = useRouter();
+  const [savedDatas,setSavedDatas] = useState<SavedGameData[] | undefined>(
     undefined,
   );
   useEffect(() => {
@@ -46,7 +48,22 @@ export const SentenceGuesserGame = ({
           >
             ← Föregående
           </MkLink>
-          <span className='tabular-nums text-muted'>Nivå {level.number}</span>
+          <select
+            aria-label='Välj nivå'
+            className='cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums text-muted'
+            onChange={(e) => {
+              router.push(`/spel/gissa-meningen/${e.target.value}`);
+            }}
+            value={level.number}
+          >
+            {Array.from({ length: maxLevelNumber }, (_, i) => i + 1).map(
+              (number) => (
+                <option key={number} value={number}>
+                  Nivå {number}
+                </option>
+              ),
+            )}
+          </select>
           <MkLink
             className={{
               all: 'rounded px-2 py-1 text-accent-800',
