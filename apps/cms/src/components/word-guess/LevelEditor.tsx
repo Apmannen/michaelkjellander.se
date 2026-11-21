@@ -65,7 +65,11 @@ const createPreviewData = (
     });
   }
 
-  return { letterDatas, sentenceArr };
+  const unusedLetters: string[] = questionLetters.filter(
+    (ql) => !sentenceArr.includes(ql),
+  );
+
+  return { letterDatas, sentenceArr, unusedLetters };
 };
 
 // questions are all of the site's questions, which the level's are picked
@@ -115,7 +119,10 @@ export function LevelEditor({
     });
   };
 
-  const { sentenceArr, letterDatas } = createPreviewData(draft, questions);
+  const { sentenceArr, letterDatas, unusedLetters } = createPreviewData(
+    draft,
+    questions,
+  );
 
   return (
     <>
@@ -144,6 +151,12 @@ export function LevelEditor({
               }
             </span>
           ))}
+        </div>
+        <div>
+          Oanvända:{' '}
+          <span className='text-red-600 font-bold'>
+            {unusedLetters.join(', ')}
+          </span>
         </div>
       </div>
       <form
