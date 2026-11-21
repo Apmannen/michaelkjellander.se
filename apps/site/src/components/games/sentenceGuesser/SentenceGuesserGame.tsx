@@ -3,7 +3,7 @@
 import { MkLink } from '@/components/standard/MkLink';
 import { SentenceGuesserLevelPayload } from '@/lib/db/payload.types';
 import { SentenceGuesserLevel } from './SentenceGuesserLevel';
-import { puzzles } from './lib/puzzles';
+import { buildPuzzle } from './lib/puzzle';
 
 export const SentenceGuesserGame = ({
   level,
@@ -13,8 +13,8 @@ export const SentenceGuesserGame = ({
   maxLevelNumber: number;
 }) => {
   return (
-    <div className='flex flex-col gap-6'>
-      <header className='flex flex-col items-center gap-2 pt-8'>
+    <div className='flex flex-col gap-6 py-8'>
+      <header className='flex flex-col items-center gap-2'>
         <h1 className='font-serif text-4xl font-bold sm:text-5xl'>
           Gissa meningen
         </h1>
@@ -51,7 +51,18 @@ export const SentenceGuesserGame = ({
       <SentenceGuesserLevel
         hasNext={false}
         onNext={() => {}}
-        puzzle={puzzles[level.number]}
+        puzzle={buildPuzzle({
+          id: level.number + '',
+          quote: level.sentence,
+          revealed: [],
+          clues: level.questions.map((q) => {
+            return {
+              answer: q.answer,
+              clue: q.clue,
+              emoji: q.emoji,
+            };
+          }),
+        })}
       />
     </div>
   );
