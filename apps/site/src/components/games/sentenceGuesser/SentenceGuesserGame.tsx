@@ -76,7 +76,7 @@ export const SentenceGuesserGame = ({
                     value={number}
                     className={isDone ? 'text-green-700' : 'text-muted'}
                   >
-                    Nivå {number} {isDone ? '✔' : null}
+                    Nivå {number} {isDone ? '✓' : null}
                   </option>
                 );
               },
