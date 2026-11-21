@@ -61,12 +61,12 @@ export type DynamicFieldPayload = {
 //
 // Games
 //
-export type SentenceGuesserQuestion = Pick<
+export type SentenceGuesserQuestionPayload = Pick<
   Database['public']['Tables']['game_word_guess_questions']['Row'],
   'answer' | 'clue' | 'emoji'
 >;
 
-export type SentenceGuesserLevel = Pick<
+export type SentenceGuesserLevelPayload = Pick<
   Database['public']['Tables']['game_word_guess_levels']['Row'],
   'number' | 'sentence'
-> & { questions: SentenceGuesserQuestion[] };
+> & { questions: SentenceGuesserQuestionPayload[] };

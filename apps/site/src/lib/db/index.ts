@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { cacheLife, cacheTag } from 'next/cache';
-import { ArticlePayload, SentenceGuesserLevel } from './payload.types';
+import { ArticlePayload, SentenceGuesserLevelPayload } from './payload.types';
 import { supabase } from './supabase';
 
 const articles = async ({
@@ -87,7 +87,7 @@ const sentenceGuesserLevels = async ({ level }: { level: number }) => {
     .order('position', { referencedTable: 'game_word_guess_level_questions' });
   const res = await query;
 
-  return res.data?.at(0) as SentenceGuesserLevel | undefined;
+  return res.data?.at(0) as SentenceGuesserLevelPayload | undefined;
 };
 
 export const db = {

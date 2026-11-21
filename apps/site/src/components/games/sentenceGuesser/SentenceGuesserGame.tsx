@@ -1,11 +1,15 @@
+'use client';
+
 import { MkLink } from '@/components/standard/MkLink';
-import { SentenceGuesserLevel } from '@/lib/db/payload.types';
+import { SentenceGuesserLevelPayload } from '@/lib/db/payload.types';
+import { SentenceGuesserLevel } from './SentenceGuesserLevel';
+import { puzzles } from './lib/puzzles';
 
 export const SentenceGuesserGame = ({
   level,
   maxLevelNumber,
 }: {
-  level: SentenceGuesserLevel;
+  level: SentenceGuesserLevelPayload;
   maxLevelNumber: number;
 }) => {
   return (
@@ -44,6 +48,13 @@ export const SentenceGuesserGame = ({
           </MkLink>
         </nav>
       </header>
+      <div>
+        <SentenceGuesserLevel
+          hasNext={false}
+          onNext={() => {}}
+          puzzle={puzzles[level.number]}
+        />
+      </div>
     </div>
   );
 };
