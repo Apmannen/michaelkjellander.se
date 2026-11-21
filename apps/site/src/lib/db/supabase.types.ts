@@ -214,6 +214,112 @@ export type Database = {
           },
         ]
       }
+      game_word_guess_level_questions: {
+        Row: {
+          level_id: string
+          position: number
+          question_id: string
+        }
+        Insert: {
+          level_id: string
+          position?: number
+          question_id: string
+        }
+        Update: {
+          level_id?: string
+          position?: number
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_word_guess_level_questions_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "game_word_guess_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_word_guess_level_questions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "game_word_guess_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_word_guess_levels: {
+        Row: {
+          created_at: string
+          id: string
+          number: number
+          sentence: string
+          site_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          number: number
+          sentence: string
+          site_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          number?: number
+          sentence?: string
+          site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_word_guess_levels_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_word_guess_questions: {
+        Row: {
+          answer: string
+          clue: string
+          created_at: string
+          emoji: string
+          id: string
+          site_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          clue: string
+          created_at?: string
+          emoji: string
+          id?: string
+          site_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          clue?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_word_guess_questions_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       issue_columns: {
         Row: {
           created_at: string
@@ -251,6 +357,7 @@ export type Database = {
       }
       issues: {
         Row: {
+          checklist: Json
           column_id: string
           created_at: string
           id: string
@@ -262,6 +369,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          checklist?: Json
           column_id: string
           created_at?: string
           id?: string
@@ -273,6 +381,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          checklist?: Json
           column_id?: string
           created_at?: string
           id?: string
@@ -464,16 +573,19 @@ export type Database = {
           a_valuie: string
           created_at: string
           id: number
+          my_arr: Json | null
         }
         Insert: {
           a_valuie?: string
           created_at?: string
           id?: number
+          my_arr?: Json | null
         }
         Update: {
           a_valuie?: string
           created_at?: string
           id?: number
+          my_arr?: Json | null
         }
         Relationships: []
       }
@@ -512,12 +624,14 @@ export type Database = {
       cms_before_user_created: { Args: { event: Json }; Returns: Json }
       create_issue: {
         Args: {
+          checklist: Json
           column_id: string
           site_id: string
           text: string
           title: string
         }
         Returns: {
+          checklist: Json
           column_id: string
           created_at: string
           id: string
@@ -570,6 +684,10 @@ export type Database = {
         Args: { article_id: string; tag_ids: string[] }
         Returns: string[]
       }
+      set_game_word_guess_level_questions: {
+        Args: { level_id: string; question_ids: string[] }
+        Returns: string[]
+      }
       set_tag_field_values: {
         Args: { field_values: Json; tag_id: string }
         Returns: Json
@@ -580,6 +698,14 @@ export type Database = {
       }
       trash_article: { Args: { article_id: string }; Returns: boolean }
       trash_field_definition: { Args: { field_id: string }; Returns: boolean }
+      trash_game_word_guess_level: {
+        Args: { level_id: string }
+        Returns: boolean
+      }
+      trash_game_word_guess_question: {
+        Args: { question_id: string }
+        Returns: boolean
+      }
       trash_issue: { Args: { issue_id: string }; Returns: boolean }
       trash_tag: { Args: { tag_id: string }; Returns: boolean }
     }
