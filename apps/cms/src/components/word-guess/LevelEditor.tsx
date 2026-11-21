@@ -150,7 +150,7 @@ export function LevelEditor({
   );
 
   return (
-    <>
+    <div className='h-full flex flex-col'>
       <div className='mx-auto flex max-w-2xl flex-col px-6 py-8'>
         <div className='flex'>
           {sentenceArr.map((letter, i) => {
@@ -185,7 +185,7 @@ export function LevelEditor({
         </div>
       </div>
       <form
-        className='flex h-full flex-col'
+        className='flex flex-col flex-1'
         onSubmit={(event) => {
           event.preventDefault();
           if (isDirty) {
@@ -285,6 +285,6 @@ export function LevelEditor({
           />
         )}
       </form>
-    </>
+    </div>
   );
 }
