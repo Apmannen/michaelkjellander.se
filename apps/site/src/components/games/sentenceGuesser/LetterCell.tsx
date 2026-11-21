@@ -43,10 +43,12 @@ export function LetterCell({
           ? `Ruta ${cell.number}: ${cell.letter}`
           : `Ruta ${cell.number}, tom`
       }
-      className='flex w-7 shrink-0 flex-col items-center disabled:cursor-default sm:w-9'
+      // The cell keeps its preferred width but may shrink when a long word
+      // does not fit; the letter size follows the cell width via cqw.
+      className='@container flex w-7 min-w-0 flex-col items-center disabled:cursor-default sm:w-9'
     >
       <span
-        className={`flex h-8 w-full items-end justify-center rounded-t border-b-2 pb-0.5 text-xl leading-none font-extrabold transition-colors sm:h-10 sm:text-2xl ${boxClass}`}
+        className={`flex h-8 w-full items-end justify-center rounded-t border-b-2 pb-0.5 text-[min(1.25rem,72cqw)] leading-none font-extrabold transition-colors sm:h-10 sm:text-[min(1.5rem,72cqw)] ${boxClass}`}
       >
         <span className={letterClass}>{content}</span>
       </span>

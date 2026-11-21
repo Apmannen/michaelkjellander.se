@@ -173,7 +173,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
         className='flex flex-wrap justify-center gap-x-6 gap-y-5'
       >
         {puzzle.quoteWords.map((word, index) => (
-          <div key={index} className='flex gap-1'>
+          <div key={index} className='flex max-w-full gap-1'>
             {word.map(renderCell)}
           </div>
         ))}
