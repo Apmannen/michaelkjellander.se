@@ -71,18 +71,44 @@ export function LevelEditor({
   };
 
   let num = 1;
-  const letters: { letter: string; number: number }[] = [];
+  const letterDatas: { letter: string; number: number }[] = [];
+  const sentenceArr: string[] = [];
   for (let i = 0; i < draft.sentence.length; i++) {
+    sentenceArr.push(draft.sentence[i]);
     const aLetter = draft.sentence[i].toUpperCase();
-    if (letters.some((obj) => obj.letter === aLetter)) {
+    if (
+      !aLetter ||
+      aLetter === ' ' ||
+      letterDatas.some((obj) => obj.letter === aLetter)
+    ) {
       continue;
     }
-    letters.push({ letter: aLetter, number: num++ });
+    letterDatas.push({ letter: aLetter, number: num++ });
   }
+
+  //console.log('***HEJJ', letterDatas);
 
   return (
     <>
-      <div>LETTER: {JSON.stringify(letters)}</div>
+      <div className='mx-auto flex max-w-2xl flex-col px-6 py-8'>
+        <div className='flex'>
+          {sentenceArr.map((letter, i) => (
+            <span key={i} className='w-6 text-center'>
+              {letter}
+            </span>
+          ))}
+        </div>
+        <div className='flex'>
+          {sentenceArr.map((letter, i) => (
+            <span key={i} className='w-6 text-center'>
+              {
+                letterDatas.find((l) => l.letter === letter.toUpperCase())
+                  ?.number
+              }
+            </span>
+          ))}
+        </div>
+      </div>
       <form
         className='flex h-full flex-col'
         onSubmit={(event) => {
