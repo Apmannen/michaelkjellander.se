@@ -1,3 +1,4 @@
+import { MkLink } from '@/components/standard/MkLink';
 import { SentenceGuesserLevel } from '@/lib/db/payload.types';
 
 export const SentenceGuesserGame = ({
@@ -18,21 +19,29 @@ export const SentenceGuesserGame = ({
           bokstav fylls i överallt.
         </p>
         <nav className='flex items-center gap-4 text-sm'>
-          <button
-            type='button'
-            className='rounded px-2 py-1 cursor-pointer text-accent-800 disabled:opacity-30'
-            disabled={level.number <= 1}
+          <MkLink
+            className={{
+              all: 'rounded px-2 py-1 text-accent-800',
+              link: 'cursor-pointer',
+              span: 'opacity-30',
+            }}
+            enabled={level.number > 1}
+            href={level.number - 1 + ''}
           >
             ← Föregående
-          </button>
+          </MkLink>
           <span className='tabular-nums text-muted'>Nivå {level.number}</span>
-          <button
-            type='button'
-            className='rounded px-2 py-1 cursor-pointer text-accent-800 disabled:opacity-30'
-            disabled={level.number >= maxLevelNumber}
+          <MkLink
+            className={{
+              all: 'rounded px-2 py-1 text-accent-800',
+              link: 'cursor-pointer',
+              span: 'opacity-30',
+            }}
+            enabled={level.number < maxLevelNumber}
+            href={level.number + 1 + ''}
           >
             Nästa →
-          </button>
+          </MkLink>
         </nav>
       </header>
     </div>
