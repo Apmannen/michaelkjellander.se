@@ -23,6 +23,26 @@ const isSame = (a: WordGuessLevelInput, b: WordGuessLevelInput) =>
   a.sentence === b.sentence &&
   JSON.stringify(a.question_ids) === JSON.stringify(b.question_ids);
 
+const createPreviewData = (sentence: string) => {
+  let num = 1;
+  const letterDatas: { letter: string; number: number }[] = [];
+  const sentenceArr: string[] = [];
+  for (let i = 0; i < sentence.length; i++) {
+    sentenceArr.push(sentence[i]);
+    const aLetter = sentence[i].toUpperCase();
+    if (
+      !aLetter ||
+      aLetter === ' ' ||
+      letterDatas.some((obj) => obj.letter === aLetter)
+    ) {
+      continue;
+    }
+    letterDatas.push({ letter: aLetter, number: num++ });
+  }
+
+  return {letterDatas, sentenceArr};
+};
+
 // questions are all of the site's questions, which the level's are picked
 // from.
 export function LevelEditor({
@@ -70,23 +90,7 @@ export function LevelEditor({
     });
   };
 
-  let num = 1;
-  const letterDatas: { letter: string; number: number }[] = [];
-  const sentenceArr: string[] = [];
-  for (let i = 0; i < draft.sentence.length; i++) {
-    sentenceArr.push(draft.sentence[i]);
-    const aLetter = draft.sentence[i].toUpperCase();
-    if (
-      !aLetter ||
-      aLetter === ' ' ||
-      letterDatas.some((obj) => obj.letter === aLetter)
-    ) {
-      continue;
-    }
-    letterDatas.push({ letter: aLetter, number: num++ });
-  }
-
-  //console.log('***HEJJ', letterDatas);
+  const { sentenceArr, letterDatas } = createPreviewData(draft.sentence);
 
   return (
     <>
