@@ -16,7 +16,7 @@ export const SentenceGuesserGame = ({
   maxLevelNumber: number;
 }) => {
   const router = useRouter();
-  const [savedDatas,setSavedDatas] = useState<SavedGameData[] | undefined>(
+  const [savedDatas, setSavedDatas] = useState<SavedGameData[] | undefined>(
     undefined,
   );
   useEffect(() => {
@@ -50,7 +50,7 @@ export const SentenceGuesserGame = ({
           </MkLink>
           <select
             aria-label='Välj nivå'
-            className='cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums text-muted'
+            className={`cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums ${savedLevelData?.isDone ? 'text-green-700' : 'text-muted'}`}
             onChange={(e) => {
               router.push(`/spel/gissa-meningen/${e.target.value}`);
             }}
@@ -58,7 +58,15 @@ export const SentenceGuesserGame = ({
           >
             {Array.from({ length: maxLevelNumber }, (_, i) => i + 1).map(
               (number) => (
-                <option key={number} value={number}>
+                <option
+                  key={number}
+                  value={number}
+                  className={
+                    savedDatas?.find((d) => d.level === number)?.isDone
+                      ? 'text-green-700'
+                      : 'text-muted'
+                  }
+                >
                   Nivå {number}
                 </option>
               ),
