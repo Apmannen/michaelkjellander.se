@@ -28,7 +28,7 @@ const SuspensePage = async ({ params }: Props) => {
     return notFound();
   }
 
-  const maxLevel = 10; //TODO: get from DB
+  const maxLevel = 35; //TODO: get from DB
 
   const level = await db.sentenceGuesserLevels({ level: levelNumber });
   if (!level) {
