@@ -15,7 +15,7 @@ async function Levels({ params }: { params: Params }) {
       emptyText='Inga nivåer än.'
       items={levels.map((level) => ({
         href: `/${site}/word-guess-levels/${level.id}`,
-        title: level.sentence,
+        title: `${level.number}. ${level.sentence}`,
         subtitle:
           level.question_ids.length === 1
             ? '1 fråga'

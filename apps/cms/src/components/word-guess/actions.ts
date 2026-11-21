@@ -12,6 +12,7 @@ import {
   type WordGuessQuestion,
   type WordGuessQuestionInput,
   findTakenQuestionIds,
+  parseLevelNumber,
   toLine,
   validateWordGuessLevel,
   validateWordGuessQuestion,
@@ -26,6 +27,8 @@ export type SaveWordGuessLevelResult =
   | { ok: false; error: string };
 
 const TAKEN_ERROR = 'En eller flera av frågorna används redan i en annan nivå.';
+const NUMBER_TAKEN_ERROR = 'Numret används redan av en annan nivå.';
+const NUMBER_CONSTRAINT = 'game_word_guess_levels_site_id_number_key';
 
 // The level editors list the questions, so both are refreshed.
 const revalidate = (siteId: string) => {
@@ -94,6 +97,7 @@ export async function saveWordGuessLevel(
   await requireUser();
 
   const input: WordGuessLevelInput = {
+    number: parseLevelNumber(raw.number),
     sentence: toLine(raw.sentence),
     question_ids: parseIds(raw.question_ids),
   };
@@ -103,9 +107,15 @@ export async function saveWordGuessLevel(
     return { ok: false, error: validationError };
   }
 
-  // Checked again here, since another level may have taken a question since
-  // the editor was opened.
-  const taken = findTakenQuestionIds(await db.listWordGuessLevels(siteId), id);
+  // Checked again here, since another level may have taken a question or the
+  // number since the editor was opened.
+  const levels = await db.listWordGuessLevels(siteId);
+  if (
+    levels.some((level) => level.id !== id && level.number === input.number)
+  ) {
+    return { ok: false, error: NUMBER_TAKEN_ERROR };
+  }
+  const taken = findTakenQuestionIds(levels, id);
   if (input.question_ids.some((questionId) => taken.has(questionId))) {
     return { ok: false, error: TAKEN_ERROR };
   }
@@ -115,9 +125,15 @@ export async function saveWordGuessLevel(
     : await db.createWordGuessLevel(siteId, input);
 
   if (error) {
-    // 23505 = unique_violation, if two levels take the same question at once.
+    // 23505 = unique_violation, if two levels take the same number or question
+    // at once.
     if (error.code === '23505') {
-      return { ok: false, error: TAKEN_ERROR };
+      return {
+        ok: false,
+        error: error.message.includes(NUMBER_CONSTRAINT)
+          ? NUMBER_TAKEN_ERROR
+          : TAKEN_ERROR,
+      };
     }
     console.error('saveWordGuessLevel failed', error);
     return { ok: false, error: 'Kunde inte spara nivån.' };

@@ -18,6 +18,8 @@ export type WordGuessQuestionInput = Pick<
 
 export type WordGuessLevel = {
   id: string;
+  // E.g. 3 for the site's third level. Unique within a site.
+  number: number;
   sentence: string;
   // In the order they were picked.
   question_ids: string[];
@@ -27,7 +29,7 @@ export type WordGuessLevel = {
 
 export type WordGuessLevelInput = Pick<
   WordGuessLevel,
-  'sentence' | 'question_ids'
+  'number' | 'sentence' | 'question_ids'
 >;
 
 // Everything is shown on one line, so line breaks become spaces.
@@ -64,9 +66,26 @@ export const findTakenQuestionIds = (
       .flatMap((level) => level.question_ids),
   );
 
+// Anything that isn't a whole number is kept as NaN so validateWordGuessLevel
+// can point it out.
+export const parseLevelNumber = (value: unknown): number => {
+  if (value === undefined || value === null || value === '') {
+    return Number.NaN;
+  }
+  const number = Number(value);
+  return Number.isInteger(number) ? number : Number.NaN;
+};
+
+// The number after the highest one in use, for a new level.
+export const findNextLevelNumber = (levels: WordGuessLevel[]): number =>
+  Math.max(0, ...levels.map((level) => level.number)) + 1;
+
 export const validateWordGuessLevel = (
   input: WordGuessLevelInput,
 ): string | undefined => {
+  if (!Number.isInteger(input.number) || input.number < 1) {
+    return 'Nummer måste vara ett heltal från 1 och uppåt.';
+  }
   if (!input.sentence) {
     return 'Mening måste anges.';
   }

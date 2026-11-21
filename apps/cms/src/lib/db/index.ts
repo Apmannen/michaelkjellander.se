@@ -642,7 +642,7 @@ const deleteWordGuessQuestion = async (id: string) => {
 };
 
 const WORD_GUESS_LEVEL_COLUMNS =
-  'id, sentence, created_at, updated_at, game_word_guess_level_questions!game_word_guess_level_questions_level_id_fkey(question_id, position)';
+  'id, number, sentence, created_at, updated_at, game_word_guess_level_questions!game_word_guess_level_questions_level_id_fkey(question_id, position)';
 
 type WordGuessLevelRow = Omit<WordGuessLevel, 'question_ids'> & {
   game_word_guess_level_questions: LinkRow<'question_id'>[];
@@ -688,7 +688,7 @@ const listWordGuessLevels = async (
     .from('game_word_guess_levels')
     .select(WORD_GUESS_LEVEL_COLUMNS)
     .eq('site_id', siteId)
-    .order('created_at')
+    .order('number')
     .overrideTypes<WordGuessLevelRow[], {merge: false}>();
 
   if (error) {
@@ -724,7 +724,11 @@ const createWordGuessLevel = async (
   return setWordGuessLevelQuestions(
     await supabase
       .from('game_word_guess_levels')
-      .insert({sentence: input.sentence, site_id: siteId})
+      .insert({
+        number: input.number,
+        sentence: input.sentence,
+        site_id: siteId,
+      })
       .select(WORD_GUESS_LEVEL_COLUMNS)
       .single<WordGuessLevelRow>(),
     input,
@@ -740,6 +744,7 @@ const updateWordGuessLevel = async (
     await supabase
       .from('game_word_guess_levels')
       .update({
+        number: input.number,
         sentence: input.sentence,
         updated_at: new Date().toISOString(),
       })

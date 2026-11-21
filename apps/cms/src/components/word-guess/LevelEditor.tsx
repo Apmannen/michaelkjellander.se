@@ -16,12 +16,17 @@ import { QuestionPicker } from './QuestionPicker';
 
 const REPLACE_CHARS = /[ _]/g;
 
-const toInput = (level?: WordGuessLevel): WordGuessLevelInput => ({
+const toInput = (
+  level: WordGuessLevel | undefined,
+  nextNumber: number,
+): WordGuessLevelInput => ({
+  number: level?.number ?? nextNumber,
   sentence: level?.sentence ?? '',
   question_ids: level?.question_ids ?? [],
 });
 
 const isSame = (a: WordGuessLevelInput, b: WordGuessLevelInput) =>
+  Object.is(a.number, b.number) &&
   a.sentence === b.sentence &&
   JSON.stringify(a.question_ids) === JSON.stringify(b.question_ids);
 
@@ -72,19 +77,23 @@ const createPreviewData = (
 
 // questions are all of the site's questions, which the level's are picked
 // from. takenQuestionIds are the ones used by other levels, which can't be
-// picked.
+// picked. nextNumber is the number a new level gets to begin with.
 export function LevelEditor({
   siteId,
   level,
   questions,
   takenQuestionIds,
+  nextNumber,
 }: {
   siteId: string;
   level?: WordGuessLevel;
   questions: WordGuessQuestion[];
   takenQuestionIds: Set<string>;
+  nextNumber: number;
 }) {
-  const [saved, setSaved] = useState<WordGuessLevelInput>(() => toInput(level));
+  const [saved, setSaved] = useState<WordGuessLevelInput>(() =>
+    toInput(level, nextNumber),
+  );
   const [draft, setDraft] = useState<WordGuessLevelInput>(saved);
   const [error, setError] = useState<string | undefined>(undefined);
   const [isSaving, startSaving] = useTransition();
@@ -121,7 +130,7 @@ export function LevelEditor({
         setError(result.error);
         return;
       }
-      const next = toInput(result.level);
+      const next = toInput(result.level, nextNumber);
       setSaved(next);
       setDraft(next);
     });
@@ -186,6 +195,7 @@ export function LevelEditor({
       >
         <header className='flex items-center justify-between gap-4 border-b border-zinc-200 px-6 py-3 dark:border-zinc-800'>
           <h1 className='truncate text-sm font-medium'>
+            {Number.isInteger(draft.number) && `${draft.number}. `}
             {draft.sentence.trim() || 'Ny nivå'}
           </h1>
           {!level && (
@@ -197,6 +207,30 @@ export function LevelEditor({
 
         <div className='flex-1 overflow-y-auto'>
           <div className='mx-auto flex max-w-2xl flex-col gap-8 px-6 py-8'>
+            <Field
+              label='Nummer'
+              htmlFor='number'
+              description='Nivåns plats i spelet. Får inte användas av en annan nivå.'
+            >
+              <input
+                id='number'
+                type='number'
+                min={1}
+                step={1}
+                value={Number.isNaN(draft.number) ? '' : draft.number}
+                onChange={(event) =>
+                  update({
+                    number:
+                      event.target.value === ''
+                        ? Number.NaN
+                        : Number(event.target.value),
+                  })
+                }
+                className={`${inputClass} w-32`}
+                autoComplete='off'
+              />
+            </Field>
+
             <Field
               label='Mening'
               htmlFor='sentence'

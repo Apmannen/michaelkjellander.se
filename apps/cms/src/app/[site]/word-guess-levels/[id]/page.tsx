@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { db } from '@/lib/db';
-import { findTakenQuestionIds } from '@/lib/word-guess';
+import { findNextLevelNumber, findTakenQuestionIds } from '@/lib/word-guess';
 
 import { LevelEditor } from '@/components/word-guess/LevelEditor';
 
@@ -28,6 +28,7 @@ async function Editor({
       siteId={site}
       level={level}
       questions={questions}
+      nextNumber={findNextLevelNumber(levels)}
       takenQuestionIds={findTakenQuestionIds(levels, level.id)}
     />
   );
