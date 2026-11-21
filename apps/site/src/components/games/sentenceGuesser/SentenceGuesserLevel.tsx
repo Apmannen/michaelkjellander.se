@@ -160,10 +160,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
         {puzzle.clueRows.map((row, index) => {
           const rowSolved = row.cells.every((cell) => solved.has(cell.number));
           return (
-            <div
-              key={index}
-              className='flex flex-wrap items-center justify-between gap-x-4 gap-y-2'
-            >
+            <div key={index} className='border-b pb-8 border-line'>
               <button
                 type='button'
                 onClick={() => selectRow(row.cells)}
