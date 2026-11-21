@@ -5,7 +5,7 @@ export type ClueDefinition = {
 };
 
 export type PuzzleDefinition = {
-  id: string;
+  id: number;
   /** Meningen som ska gissas. Varje unik bokstav får ett nummer i den ordning den först förekommer. */
   quote: string;
   clues: ClueDefinition[];
@@ -26,7 +26,7 @@ export type ClueRow = {
 };
 
 export type Puzzle = {
-  id: string;
+  id: number;
   quote: string;
   quoteWords: Cell[][];
   clueRows: ClueRow[];

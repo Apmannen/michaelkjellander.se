@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Cell, isLetter, Puzzle } from './lib/puzzle';
 import { LetterCell } from './LetterCell';
 import { Keyboard } from './Keyboard';
+import { gameStorage } from './lib/storage';
 
 type Props = {
   puzzle: Puzzle;
@@ -128,6 +129,22 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  useEffect(() => {
+    const letters = new Set<string>();
+    solved.forEach((number) => {
+      puzzle.cells.forEach((cell) => {
+        if (cell.number === number) {
+          letters.add(cell.letter);
+        }
+      });
+    });
+    gameStorage.save({
+      isDone: isComplete,
+      letters: Array.from(letters),
+      level: puzzle.id,
+    });
+  }, [solved, puzzle.cells, isComplete]);
 
   const renderCell = (cell: Cell) => (
     <LetterCell

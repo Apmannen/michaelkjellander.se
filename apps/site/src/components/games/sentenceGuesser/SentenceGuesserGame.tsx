@@ -52,7 +52,7 @@ export const SentenceGuesserGame = ({
         hasNext={false}
         onNext={() => {}}
         puzzle={buildPuzzle({
-          id: level.number + '',
+          id: level.number,
           quote: level.sentence,
           revealed: [],
           clues: level.questions.map((q) => {
