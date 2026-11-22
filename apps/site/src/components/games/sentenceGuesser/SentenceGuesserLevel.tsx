@@ -47,7 +47,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
       findUnsolved(puzzle.cells, new Set(puzzle.revealedNumbers), -1, 1)?.key,
   );
   const [wrong, setWrong] = useState<WrongGuess | undefined>(undefined);
-  const [mistakes, setMistakes] = useState(0);
+  const [mistakes, setMistakes] = useState(puzzle.mistakes);
   const wrongTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
