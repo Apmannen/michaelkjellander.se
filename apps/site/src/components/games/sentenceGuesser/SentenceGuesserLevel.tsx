@@ -229,7 +229,12 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
           )}
         </div>
       ) : (
-        <div className='sticky bottom-0 -mx-4 bg-page/95 px-2 pt-2 pb-4 backdrop-blur sm:mx-0 sm:px-0'>
+        <div
+          className='sticky bottom-0 -mx-4 px-2 pt-4 pb-4 sm:mx-0 sm:px-0 border-line'
+          style={{
+            background: `linear-gradient(to bottom, rgba(243,238,232,0), rgba(243,238,232,0.5) 5%, rgba(243,238,232,0.9) 20%, rgba(243,238,232,1) 80%)`,
+          }}
+        >
           <Keyboard disabled={!selectedCell} onLetter={enterLetter} />
         </div>
       )}
