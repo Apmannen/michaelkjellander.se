@@ -10,12 +10,13 @@ import { buildPuzzle } from './lib/puzzle';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gameStorage, SavedGameData } from './lib/storage';
+import { ArticleSkeleton } from '@/components/skeletons/ArticleSkeleton';
 
 export const SentenceGuesserGame = ({
   level,
   maxLevelNumber,
 }: {
-  level: SentenceGuesserLevelPayload;
+  level?: SentenceGuesserLevelPayload;
   maxLevelNumber: number;
 }) => {
   const router = useRouter();
@@ -33,7 +34,7 @@ export const SentenceGuesserGame = ({
     });
   }, []);
   const savedLevelData = savedDatas?.find(
-    (data) => data.level === level.number,
+    (data) => data.level === level?.number,
   );
 
   return (
@@ -53,18 +54,18 @@ export const SentenceGuesserGame = ({
               link: 'cursor-pointer',
               span: 'opacity-30',
             }}
-            enabled={level.number > 1}
-            href={level.number - 1 + ''}
+            enabled={level && level.number > 1}
+            href={level ? level.number - 1 + '' : '#'}
           >
             ← Föregående
           </MkLink>
           <select
             aria-label='Välj nivå'
-            className={`cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums ${savedLevelData?.isDone ? 'text-green-700' : 'text-muted'}`}
+            className={`cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums ${savedLevelData?.isDone ? 'text-green-700' : 'text-muted'} ${level ? '' : 'invisible'}`}
             onChange={(e) => {
               router.push(`/spel/gissa-meningen/${e.target.value}`);
             }}
-            value={level.number}
+            value={level?.number}
           >
             {Array.from({ length: maxLevelNumber }, (_, i) => i + 1).map(
               (number) => {
@@ -88,14 +89,14 @@ export const SentenceGuesserGame = ({
               link: 'cursor-pointer',
               span: 'opacity-30',
             }}
-            enabled={level.number < maxLevelNumber}
-            href={level.number + 1 + ''}
+            enabled={level && level.number < maxLevelNumber}
+            href={level ? level.number + 1 + '' : '#'}
           >
             Nästa →
           </MkLink>
         </nav>
       </header>
-      {savedDatas !== undefined ? (
+      {savedDatas !== undefined && level ? (
         <SentenceGuesserLevel
           hasNext={false}
           onNext={() => {}}
@@ -112,7 +113,9 @@ export const SentenceGuesserGame = ({
             }),
           })}
         />
-      ) : null}
+      ) : (
+        <ArticleSkeleton />
+      )}
     </div>
   );
 };
