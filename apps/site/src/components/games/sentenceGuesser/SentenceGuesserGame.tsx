@@ -10,7 +10,7 @@ import { buildPuzzle } from './lib/puzzle';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gameStorage, SavedGameData } from './lib/storage';
-import { ArticleSkeleton } from '@/components/skeletons/ArticleSkeleton';
+import { SentenceGuesserLevelSkeleton } from '@/components/skeletons/SentenceGuesserLevelSkeleton';
 import { paths } from '@/lib/paths';
 
 export const SentenceGuesserGame = ({
@@ -149,7 +149,7 @@ export const SentenceGuesserGame = ({
           })}
         />
       ) : (
-        <ArticleSkeleton />
+        <SentenceGuesserLevelSkeleton />
       )}
       {savedDatas !== undefined ? (
         <footer className='flex justify-center gap-3 text-xs text-muted pt-8'>
