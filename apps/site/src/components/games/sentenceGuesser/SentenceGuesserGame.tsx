@@ -155,7 +155,7 @@ export const SentenceGuesserGame = ({
         <footer className='flex justify-center gap-3 text-xs text-muted pt-8'>
           {confirmingReset ? (
             <>
-              <span>Rensa alla sparade framsteg?</span>
+              <span>Rensa alla sparade framsteg, på alla nivåer?</span>
               <button
                 className='cursor-pointer text-red-700 underline'
                 onClick={clearSavedData}
