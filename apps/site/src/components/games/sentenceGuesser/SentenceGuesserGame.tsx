@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gameStorage, SavedGameData } from './lib/storage';
 import { ArticleSkeleton } from '@/components/skeletons/ArticleSkeleton';
+import { Divider } from '@/components/standard/Divider';
 
 export const SentenceGuesserGame = ({
   level,
@@ -99,6 +100,7 @@ export const SentenceGuesserGame = ({
           </MkLink>
         </nav>
       </header>
+      {/* <Divider /> */}
       {savedDatas !== undefined && level ? (
         <SentenceGuesserLevel
           hasNext={false}
