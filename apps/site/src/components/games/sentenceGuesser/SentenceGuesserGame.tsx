@@ -117,9 +117,7 @@ export const SentenceGuesserGame = ({
           })}
         />
       ) : (
-        <div className='overflow-hidden w-full'>
-          <ArticleSkeleton />
-        </div>
+        <ArticleSkeleton />
       )}
     </div>
   );
