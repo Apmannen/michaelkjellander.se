@@ -40,7 +40,12 @@ const get = (): SavedGameData[] => {
   }
 };
 
+const clear = () => {
+  localStorage.removeItem(KEY);
+};
+
 export const gameStorage = {
   get,
   save,
+  clear,
 };

@@ -36,6 +36,20 @@ export const SentenceGuesserGame = ({
       updateSavedDatas();
     });
   }, []);
+  // Incremented on reset so the level component remounts with fresh state.
+  const [resetCount, setResetCount] = useState(0);
+  const [confirmingReset, setConfirmingReset] = useState(false);
+
+  const clearSavedData = () => {
+    gameStorage.clear();
+    setSavedDatas([]);
+    setResetCount((count) => count + 1);
+    setConfirmingReset(false);
+    if (level && level.number !== 1) {
+      router.replace(paths.gameSentenceGuesser(1));
+    }
+  };
+
   const savedLevelData = savedDatas?.find(
     (data) => data.level === level?.number,
   );
@@ -117,6 +131,7 @@ export const SentenceGuesserGame = ({
       </header>
       {savedDatas !== undefined && level ? (
         <SentenceGuesserLevel
+          key={resetCount}
           hasNext={false}
           onNext={() => {}}
           puzzle={buildPuzzle({
@@ -136,6 +151,37 @@ export const SentenceGuesserGame = ({
       ) : (
         <ArticleSkeleton />
       )}
+      {savedDatas !== undefined ? (
+        <footer className='flex justify-center gap-3 text-xs text-muted pt-8'>
+          {confirmingReset ? (
+            <>
+              <span>Rensa alla sparade framsteg?</span>
+              <button
+                className='cursor-pointer text-red-700 underline'
+                onClick={clearSavedData}
+                type='button'
+              >
+                Ja, rensa
+              </button>
+              <button
+                className='cursor-pointer underline'
+                onClick={() => setConfirmingReset(false)}
+                type='button'
+              >
+                Avbryt
+              </button>
+            </>
+          ) : (
+            <button
+              className='cursor-pointer underline'
+              onClick={() => setConfirmingReset(true)}
+              type='button'
+            >
+              Rensa sparad data
+            </button>
+          )}
+        </footer>
+      ) : undefined}
     </div>
   );
 };
