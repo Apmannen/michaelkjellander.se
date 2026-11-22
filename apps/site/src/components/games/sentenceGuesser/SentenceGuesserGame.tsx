@@ -11,14 +11,16 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gameStorage, SavedGameData } from './lib/storage';
 import { ArticleSkeleton } from '@/components/skeletons/ArticleSkeleton';
-import { Divider } from '@/components/standard/Divider';
+import { paths } from '@/lib/paths';
 
 export const SentenceGuesserGame = ({
   level,
   maxLevelNumber,
+  autoRedirect,
 }: {
   level?: SentenceGuesserLevelPayload;
   maxLevelNumber: number;
+  autoRedirect?: boolean;
 }) => {
   const router = useRouter();
   const [savedDatas, setSavedDatas] = useState<SavedGameData[] | undefined>(
@@ -37,6 +39,20 @@ export const SentenceGuesserGame = ({
   const savedLevelData = savedDatas?.find(
     (data) => data.level === level?.number,
   );
+
+  useEffect(() => {
+    if (!autoRedirect || savedDatas === undefined) {
+      return;
+    }
+    let highestLevelNum = 1;
+    savedDatas.forEach((aLevelData) => {
+      if (aLevelData.letters.length && aLevelData.level > highestLevelNum) {
+        highestLevelNum = aLevelData.level;
+      }
+    });
+    router.replace(paths.gameSentenceGuesser(highestLevelNum));
+    console.log('***REDIR', paths.gameSentenceGuesser(highestLevelNum));
+  }, [autoRedirect, savedDatas]);
 
   return (
     <div className='flex flex-col gap-6 py-8'>
