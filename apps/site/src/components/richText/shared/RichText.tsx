@@ -83,8 +83,6 @@ export const RichText = ({
     }
   }
 
-  //TODO: only external links in blank
-
   return (
     <p className=''>
       {textParts.map((textPart, i1) => {
@@ -98,7 +96,6 @@ export const RichText = ({
             }}
             key={i1}
             href={linkMark?.href}
-            target='_blank'
           >
             {[textPart, ...textPart.inners].map((innerPart, i2) => (
               <TextPartContent key={i2} textPart={innerPart} />

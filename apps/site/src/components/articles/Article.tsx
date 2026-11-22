@@ -13,6 +13,7 @@ import { LuArrowLeft, LuCalendar, LuTag } from 'react-icons/lu';
 import { paths } from '@/lib/paths';
 import { dateUtils } from '@/lib/dateUtils';
 import { collectionUtils } from '@/lib/collectionUtils';
+import { urlUtils } from '@/lib/urlUtils';
 
 export const Article = ({
   article,
@@ -124,7 +125,13 @@ export const Article = ({
               </div>
               <div className='flex-1 flex items-center sm:justify-end'>
                 {cta ? (
-                  <Button href={cta.href} target='_blank' iconName={cta.icon}>
+                  <Button
+                    href={cta.href}
+                    target={
+                      urlUtils.isExternalLink(cta.href) ? '_blank' : undefined
+                    }
+                    iconName={cta.icon}
+                  >
                     {cta.text}
                   </Button>
                 ) : null}

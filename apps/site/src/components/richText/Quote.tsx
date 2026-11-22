@@ -23,7 +23,6 @@ export const Quote = ({
           className={{
             link: 'hover:text-accent-950 text-center text-accent-800 font-bold font-nunito text-[17px]',
           }}
-          target='_blank'
         >
           {author}
         </MkLink>
