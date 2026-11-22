@@ -62,7 +62,7 @@ export const SentenceGuesserGame = ({
           <div className={`flex-1 ${level ? '' : 'invisible'}`}>
             <select
               aria-label='Välj nivå'
-              className={` cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums ${savedLevelData?.isDone ? 'text-green-700' : 'text-muted'} `}
+              className={` cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums ${savedLevelData?.isDone ? 'text-green-700' : 'text-muted'} w-full text-center`}
               onChange={(e) => {
                 router.push(`/spel/gissa-meningen/${e.target.value}`);
               }}
