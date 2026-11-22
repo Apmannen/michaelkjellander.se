@@ -23,8 +23,13 @@ const tag = (tag: Pick<TagPayload, 'slug'>) => {
   return `/kategori/${tag.slug}`;
 };
 
+const gameSentenceGuesser = (levelNumber: number) => {
+  return `/spel/gissa-meningen/${levelNumber}`;
+};
+
 export const paths = {
   article,
   field,
+  gameSentenceGuesser,
   tag,
 };

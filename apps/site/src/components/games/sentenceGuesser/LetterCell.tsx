@@ -17,11 +17,11 @@ export function LetterCell({
   wrongLetter,
   onSelect,
 }: Props) {
-  let boxClass = 'border-ink/70';
+  let ngClass = 'border-ink/70';
   if (selected) {
-    boxClass = 'border-accent-700 bg-accent-200';
+    ngClass = 'border-accent-700 bg-accent-200';
   } else if (related) {
-    boxClass = 'border-ink/70 bg-accent-100';
+    ngClass = 'border-ink/70 bg-accent-125';
   }
 
   let content: string | undefined = undefined;
@@ -48,7 +48,7 @@ export function LetterCell({
       className='@container flex w-7 min-w-0 flex-col items-center disabled:cursor-default sm:w-9'
     >
       <span
-        className={`flex h-8 w-full items-end justify-center rounded-t border-b-2 pb-0.5 text-[min(1.25rem,72cqw)] leading-none font-extrabold transition-colors sm:h-10 sm:text-[min(1.5rem,72cqw)] ${boxClass}`}
+        className={`flex h-8 w-full items-end justify-center rounded-t border-b-2 pb-0.5 text-[min(1.25rem,72cqw)] leading-none font-extrabold transition-colors sm:h-10 sm:text-[min(1.5rem,72cqw)] ${ngClass}`}
       >
         <span className={letterClass}>{content}</span>
       </span>

@@ -47,7 +47,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
       findUnsolved(puzzle.cells, new Set(puzzle.revealedNumbers), -1, 1)?.key,
   );
   const [wrong, setWrong] = useState<WrongGuess | undefined>(undefined);
-  const [mistakes, setMistakes] = useState(0);
+  const [mistakes, setMistakes] = useState(puzzle.mistakes);
   const wrongTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -145,8 +145,9 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
       isDone: isComplete,
       letters: Array.from(letters),
       level: puzzle.id,
+      mistakes,
     });
-  }, [solved, puzzle.cells, isComplete]);
+  }, [solved, puzzle.cells, isComplete, mistakes]);
   useEffect(() => {
     const event = new Event(GAME_COMPLETED_EVENT);
     window.dispatchEvent(event);
@@ -170,7 +171,7 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
     <div className='flex flex-col gap-8'>
       <section
         aria-label='Meningen'
-        className='flex flex-wrap justify-center gap-x-6 gap-y-5'
+        className='flex flex-wrap justify-center gap-x-6 gap-y-5 bg-default-box py-8 border border-accent-200 px-1'
       >
         {puzzle.quoteWords.map((word, index) => (
           <div key={index} className='flex max-w-full gap-1'>
@@ -229,7 +230,12 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
           )}
         </div>
       ) : (
-        <div className='sticky bottom-0 -mx-4 bg-page/95 px-2 pt-2 pb-4 backdrop-blur sm:mx-0 sm:px-0'>
+        <div
+          className='sticky bottom-0 -mx-4 px-2 pt-4 pb-4 sm:mx-0 sm:px-0 border-line'
+          style={{
+            background: `linear-gradient(to bottom, rgba(243,238,232,0), rgba(243,238,232,0.5) 5%, rgba(243,238,232,0.9) 20%, rgba(243,238,232,1) 80%)`,
+          }}
+        >
           <Keyboard disabled={!selectedCell} onLetter={enterLetter} />
         </div>
       )}

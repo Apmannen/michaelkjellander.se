@@ -11,6 +11,7 @@ export type PuzzleDefinition = {
   clues: ClueDefinition[];
   /** Bokstäver som är ifyllda från start. */
   revealed: string[];
+  mistakes: number;
 };
 
 export type Cell = {
@@ -34,6 +35,7 @@ export type Puzzle = {
   cells: Cell[];
   revealedNumbers: number[];
   numberCount: number;
+  mistakes: number;
 };
 
 const LETTER_PATTERN = /^[A-ZÅÄÖ]$/;
@@ -52,7 +54,7 @@ export function buildPuzzle(definition: PuzzleDefinition): Puzzle {
     .map((word, wordIndex) =>
       [...word].filter(isLetter).map((letter, letterIndex): Cell => {
         let number = numberByLetter.get(letter);
-        if(number === undefined) {
+        if (number === undefined) {
           number = numberByLetter.size + 1;
           numberByLetter.set(letter, number);
         }
@@ -62,21 +64,25 @@ export function buildPuzzle(definition: PuzzleDefinition): Puzzle {
 
   const numberFor = (letter: string): number => {
     const number = numberByLetter.get(letter);
-    if(number === undefined) {
-      throw new Error(`Pussel "${definition.id}": bokstaven "${letter}" finns inte i meningen.`);
+    if (number === undefined) {
+      throw new Error(
+        `Pussel "${definition.id}": bokstaven "${letter}" finns inte i meningen.`,
+      );
     }
     return number;
   };
 
-  const clueRows = definition.clues.map((clue, rowIndex): ClueRow => ({
-    emoji: clue.emoji,
-    clue: clue.clue,
-    cells: [...clue.answer.toUpperCase()].map((letter, letterIndex) => ({
-      key: `c-${rowIndex}-${letterIndex}`,
-      letter,
-      number: numberFor(letter),
-    })),
-  }));
+  const clueRows = definition.clues.map(
+    (clue, rowIndex): ClueRow => ({
+      emoji: clue.emoji,
+      clue: clue.clue,
+      cells: [...clue.answer.toUpperCase()].map((letter, letterIndex) => ({
+        key: `c-${rowIndex}-${letterIndex}`,
+        letter,
+        number: numberFor(letter),
+      })),
+    }),
+  );
 
   return {
     id: definition.id,
@@ -84,7 +90,10 @@ export function buildPuzzle(definition: PuzzleDefinition): Puzzle {
     quoteWords,
     clueRows,
     cells: [...quoteWords.flat(), ...clueRows.flatMap((row) => row.cells)],
-    revealedNumbers: definition.revealed.map((letter) => numberFor(letter.toUpperCase())),
+    revealedNumbers: definition.revealed.map((letter) =>
+      numberFor(letter.toUpperCase()),
+    ),
     numberCount: numberByLetter.size,
+    mistakes: definition.mistakes,
   };
 }
