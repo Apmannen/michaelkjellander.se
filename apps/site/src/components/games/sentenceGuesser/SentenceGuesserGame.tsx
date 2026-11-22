@@ -51,7 +51,6 @@ export const SentenceGuesserGame = ({
       }
     });
     router.replace(paths.gameSentenceGuesser(highestLevelNum));
-    console.log('***REDIR', paths.gameSentenceGuesser(highestLevelNum));
   }, [autoRedirect, savedDatas]);
 
   return (
@@ -116,7 +115,6 @@ export const SentenceGuesserGame = ({
           </MkLink>
         </nav>
       </header>
-      {/* <Divider /> */}
       {savedDatas !== undefined && level ? (
         <SentenceGuesserLevel
           hasNext={false}
@@ -132,6 +130,7 @@ export const SentenceGuesserGame = ({
                 emoji: q.emoji,
               };
             }),
+            mistakes: savedLevelData?.mistakes || 0,
           })}
         />
       ) : (

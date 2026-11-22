@@ -145,8 +145,9 @@ export function SentenceGuesserLevel({ puzzle, hasNext, onNext }: Props) {
       isDone: isComplete,
       letters: Array.from(letters),
       level: puzzle.id,
+      mistakes,
     });
-  }, [solved, puzzle.cells, isComplete]);
+  }, [solved, puzzle.cells, isComplete, mistakes]);
   useEffect(() => {
     const event = new Event(GAME_COMPLETED_EVENT);
     window.dispatchEvent(event);
