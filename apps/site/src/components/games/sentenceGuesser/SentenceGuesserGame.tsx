@@ -47,45 +47,48 @@ export const SentenceGuesserGame = ({
           Lös ledtrådarna. Samma nummer betyder samma bokstav, så varje rätt
           bokstav fylls i överallt.
         </p>
-        <nav className='flex items-center gap-4 text-sm'>
+        <nav className='flex items-center gap-4 text-sm w-full'>
           <MkLink
             className={{
-              all: 'rounded px-2 py-1 text-accent-800',
+              all: 'rounded px-2 py-1 text-accent-800 w-35/100',
               link: 'cursor-pointer',
               span: 'opacity-30',
             }}
             enabled={level && level.number > 1}
             href={level ? level.number - 1 + '' : '#'}
           >
-            ← Föregående
+            ← Förra
           </MkLink>
-          <select
-            aria-label='Välj nivå'
-            className={`cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums ${savedLevelData?.isDone ? 'text-green-700' : 'text-muted'} ${level ? '' : 'invisible'}`}
-            onChange={(e) => {
-              router.push(`/spel/gissa-meningen/${e.target.value}`);
-            }}
-            value={level?.number}
-          >
-            {Array.from({ length: maxLevelNumber }, (_, i) => i + 1).map(
-              (number) => {
-                const isDone =
-                  savedDatas?.find((d) => d.level === number)?.isDone === true;
-                return (
-                  <option
-                    key={number}
-                    value={number}
-                    className={isDone ? 'text-green-700' : 'text-muted'}
-                  >
-                    Nivå {number} {isDone ? '✓' : null}
-                  </option>
-                );
-              },
-            )}
-          </select>
+          <div className={`flex-1 ${level ? '' : 'invisible'}`}>
+            <select
+              aria-label='Välj nivå'
+              className={` cursor-pointer rounded bg-transparent px-2 py-1 tabular-nums ${savedLevelData?.isDone ? 'text-green-700' : 'text-muted'} `}
+              onChange={(e) => {
+                router.push(`/spel/gissa-meningen/${e.target.value}`);
+              }}
+              value={level?.number}
+            >
+              {Array.from({ length: maxLevelNumber }, (_, i) => i + 1).map(
+                (number) => {
+                  const isDone =
+                    savedDatas?.find((d) => d.level === number)?.isDone ===
+                    true;
+                  return (
+                    <option
+                      key={number}
+                      value={number}
+                      className={isDone ? 'text-green-700' : 'text-muted'}
+                    >
+                      Nivå {number} {isDone ? '✓' : null}
+                    </option>
+                  );
+                },
+              )}
+            </select>
+          </div>
           <MkLink
             className={{
-              all: 'rounded px-2 py-1 text-accent-800',
+              all: 'rounded px-2 py-1 text-accent-800 w-35/100 text-right',
               link: 'cursor-pointer',
               span: 'opacity-30',
             }}
