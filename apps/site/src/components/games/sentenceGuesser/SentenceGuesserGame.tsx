@@ -47,10 +47,10 @@ export const SentenceGuesserGame = ({
           Lös ledtrådarna. Samma nummer betyder samma bokstav, så varje rätt
           bokstav fylls i överallt.
         </p>
-        <nav className='flex items-center gap-4 text-sm w-full'>
+        <nav className='flex items-center text-sm w-full'>
           <MkLink
             className={{
-              all: 'rounded px-2 py-1 text-accent-800 w-35/100',
+              all: 'rounded py-1 text-accent-800 w-35/100',
               link: 'cursor-pointer',
               span: 'opacity-30',
             }}
@@ -88,7 +88,7 @@ export const SentenceGuesserGame = ({
           </div>
           <MkLink
             className={{
-              all: 'rounded px-2 py-1 text-accent-800 w-35/100 text-right',
+              all: 'rounded py-1 text-accent-800 w-35/100 text-right',
               link: 'cursor-pointer',
               span: 'opacity-30',
             }}
@@ -117,7 +117,9 @@ export const SentenceGuesserGame = ({
           })}
         />
       ) : (
-        <ArticleSkeleton />
+        <div className='overflow-hidden w-full'>
+          <ArticleSkeleton />
+        </div>
       )}
     </div>
   );
