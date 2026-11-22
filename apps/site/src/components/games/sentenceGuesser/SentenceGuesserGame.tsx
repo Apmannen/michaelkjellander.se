@@ -152,34 +152,40 @@ export const SentenceGuesserGame = ({
         <SentenceGuesserLevelSkeleton />
       )}
       {savedDatas !== undefined ? (
-        <footer className='flex justify-center gap-3 text-xs text-muted pt-8'>
-          {confirmingReset ? (
-            <>
-              <span>Rensa alla sparade framsteg, på alla nivåer?</span>
-              <button
-                className='cursor-pointer text-red-700 underline'
-                onClick={clearSavedData}
-                type='button'
-              >
-                Ja, rensa
-              </button>
+        <footer className='pt-8 text-xs text-muted flex flex-col items-center gap-4'>
+          <div className='flex justify-center gap-3'>
+            {confirmingReset ? (
+              <>
+                <span>Rensa alla sparade framsteg, på alla nivåer?</span>
+                <button
+                  className='cursor-pointer text-red-700 underline'
+                  onClick={clearSavedData}
+                  type='button'
+                >
+                  Ja, rensa
+                </button>
+                <button
+                  className='cursor-pointer underline'
+                  onClick={() => setConfirmingReset(false)}
+                  type='button'
+                >
+                  Avbryt
+                </button>
+              </>
+            ) : (
               <button
                 className='cursor-pointer underline'
-                onClick={() => setConfirmingReset(false)}
+                onClick={() => setConfirmingReset(true)}
                 type='button'
               >
-                Avbryt
+                Rensa sparad data
               </button>
-            </>
-          ) : (
-            <button
-              className='cursor-pointer underline'
-              onClick={() => setConfirmingReset(true)}
-              type='button'
-            >
-              Rensa sparad data
-            </button>
-          )}
+            )}
+          </div>
+          {/* TODO: once we have category pages, link to the games page */}
+          <MkLink href='/' className={{ link: 'underline hover:no-underline' }}>
+            Tillbaka till michaelkjellander.se
+          </MkLink>
         </footer>
       ) : undefined}
     </div>

@@ -27,9 +27,12 @@ const gameSentenceGuesser = (levelNumber: number) => {
   return `/spel/gissa-meningen/${levelNumber}`;
 };
 
+const myGamesCategory = '/kategori/mina-spel';
+
 export const paths = {
   article,
   field,
   gameSentenceGuesser,
+  myGamesCategory,
   tag,
 };
