@@ -41,9 +41,9 @@ const ProConList = ({
   Icon: IconType;
 }) => {
   return (
-    <div>
+    <div className=''>
       <div className='pb-2 font-semibold'>{title}</div>
-      <ul className='space-y-2'>
+      <ul className='space-y-2 text-[16px]'>
         {items.map((item, i) => (
           <li key={i} className='flex items-start'>
             <span className='mr-2 mt-1'>
