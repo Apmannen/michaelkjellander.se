@@ -7,6 +7,7 @@ import {
   type Article,
   type ArticleInput,
   parseCallToAction,
+  parseNote,
   parseRating,
   validateArticle,
 } from '@/lib/articles';
@@ -45,6 +46,7 @@ export async function saveArticle(
       .trim(),
     cta: parseCallToAction(raw.cta),
     rating: parseRating(raw.rating),
+    note: parseNote(raw.note),
     published: raw.published === true,
     published_at: String(raw.published_at ?? ''),
     cover_image: parseImage(raw.cover_image),

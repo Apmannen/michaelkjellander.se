@@ -29,10 +29,20 @@ export const Article = ({
     | 'tags'
     | 'rating'
     | 'published_at'
+    | 'note'
   >;
 }) => {
-  const { fields, cta, tags, rating, body, cover_image, title, published_at } =
-    article;
+  const {
+    fields,
+    cta,
+    tags,
+    rating,
+    body,
+    cover_image,
+    title,
+    published_at,
+    note,
+  } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
   const playAlso = fields?.find((f) => f.field.key === 'play_also');
@@ -98,16 +108,19 @@ export const Article = ({
           {title}
         </h1>
         <h2 className='text-[24px] italic'>{article.intro}</h2>
+
         <Divider className={{ container: 'py-4' }} />
         {devYears || devTool || cta || platforms.length || rating != null ? (
           <>
             <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-              <div className='text-[16px]'>
+              <div className='text-[14px]'>
+                {rating != null ? (
+                  <div className='font-source-serif font-bold uppercase tracking-[0.1em]'>
+                    Recension
+                  </div>
+                ) : null}
                 {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
                 {devTool ? <div>Utvecklat i: {devTool}</div> : null}
-                {rating != null ? (
-                  <div className='font-bold'>Recension</div>
-                ) : null}
                 {platforms.length ? (
                   <div>
                     Testat på:{' '}
@@ -140,8 +153,12 @@ export const Article = ({
             <Divider className={{ container: 'py-4' }} />
           </>
         ) : null}
-
         <div className='space-y-4'>
+          {note?.length ? (
+            <div className='bg-accent-100 text-accent-900 border-accent-800 rounded-sm border p-4 text-[16px] font-semibold'>
+              {note}
+            </div>
+          ) : null}
           {body.map((part, i) => (
             <div key={i} className=''>
               {part.type === 'heading' ? (

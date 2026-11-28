@@ -107,6 +107,7 @@ export type Database = {
           cta: Json | null
           id: string
           intro: string
+          note: string | null
           published: boolean
           published_at: string
           rating: number | null
@@ -122,6 +123,7 @@ export type Database = {
           cta?: Json | null
           id?: string
           intro?: string
+          note?: string | null
           published?: boolean
           published_at?: string
           rating?: number | null
@@ -137,6 +139,7 @@ export type Database = {
           cta?: Json | null
           id?: string
           intro?: string
+          note?: string | null
           published?: boolean
           published_at?: string
           rating?: number | null

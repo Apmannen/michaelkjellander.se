@@ -24,6 +24,9 @@ export type Article = {
   cta?: CallToAction;
   // A whole number from RATING_MIN to RATING_MAX, e.g. for a review.
   rating?: number;
+  // A special note shown at the top of the article, e.g. that a review was
+  // written on two occasions. Plain text that may contain line breaks.
+  note?: string;
   published: boolean;
   published_at: string;
   cover_image?: Image;
@@ -47,6 +50,7 @@ export type ArticleInput = Pick<
   | 'intro'
   | 'cta'
   | 'rating'
+  | 'note'
   | 'published'
   | 'published_at'
   | 'cover_image'
@@ -66,6 +70,21 @@ export const parseRating = (value: unknown): number | undefined => {
   }
   const rating = Number(value);
   return Number.isInteger(rating) ? rating : Number.NaN;
+};
+
+// Undefined if the note is empty. Line breaks are kept, but normalized to \n
+// and with surrounding whitespace removed from each line.
+export const parseNote = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const note = value
+    .split(/\r\n?|\n/)
+    .map((line) => line.trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return note || undefined;
 };
 
 // Undefined if every field is empty, so a cleared button is removed. A button

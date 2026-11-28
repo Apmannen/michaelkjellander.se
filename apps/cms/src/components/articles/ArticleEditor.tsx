@@ -41,6 +41,7 @@ const toInput = (article: Article | null): ArticleInput => ({
   intro: article?.intro ?? '',
   cta: article?.cta,
   rating: article?.rating,
+  note: article?.note,
   published: article?.published ?? false,
   published_at: article ? new Date(article.published_at).toISOString() : now(),
   cover_image: article?.cover_image,
@@ -87,6 +88,7 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.cta?.text === b.cta?.text &&
   a.cta?.href === b.cta?.href &&
   a.rating === b.rating &&
+  (a.note ?? '') === (b.note ?? '') &&
   a.published === b.published &&
   a.published_at === b.published_at &&
   JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
@@ -295,6 +297,22 @@ export function ArticleEditor({
                 </option>
               ))}
             </select>
+          </Field>
+
+          <Field
+            label='Specialnotering'
+            htmlFor='note'
+            description='Valfri. Visas i toppen av artikeln, t.ex. ”Obs! Recensionen är uppdelad i två delar från två olika tillfällen.”'
+          >
+            <textarea
+              id='note'
+              rows={3}
+              value={draft.note ?? ''}
+              onChange={(event) =>
+                update({ note: event.target.value || undefined })
+              }
+              className={`${inputClass} resize-y`}
+            />
           </Field>
 
           <Field
