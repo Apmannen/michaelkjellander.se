@@ -48,7 +48,7 @@ type SaveResult<T> =
   | {data: undefined; error: PostgrestError};
 
 const ARTICLE_COLUMNS =
-  'id, title, slug, intro, cta, rating, pros, cons, note, published, published_at, cover_image, body, created_at, updated_at, article_tags!article_tags_article_id_fkey(tag_id, position), article_field_values!article_field_values_article_id_fkey(field_id, position, text, href, target_article_id)';
+  'id, title, slug, intro, cta, rating, pros, cons, note, published, published_at, revised_at, cover_image, body, created_at, updated_at, article_tags!article_tags_article_id_fkey(tag_id, position), article_field_values!article_field_values_article_id_fkey(field_id, position, text, href, target_article_id)';
 
 // The database uses null where the app uses undefined.
 type FieldValueRow = {
@@ -78,6 +78,7 @@ type ArticleRow = Omit<
   | 'pros'
   | 'cons'
   | 'note'
+  | 'revised_at'
   | 'tag_ids'
   | 'field_values'
 > & {
@@ -87,6 +88,7 @@ type ArticleRow = Omit<
   pros: string[] | null;
   cons: string[] | null;
   note: string | null;
+  revised_at: string | null;
   article_tags: LinkRow<'tag_id'>[];
   article_field_values: (FieldValueRow & {position: number})[];
 };
@@ -98,6 +100,7 @@ const toArticle = ({
   pros,
   cons,
   note,
+  revised_at,
   article_tags,
   article_field_values,
   ...row
@@ -109,6 +112,7 @@ const toArticle = ({
   ...(pros?.length ? {pros} : {}),
   ...(cons?.length ? {cons} : {}),
   ...(note ? {note} : {}),
+  ...(revised_at ? {revised_at} : {}),
   tag_ids: toIds(article_tags, 'tag_id'),
   field_values: [...article_field_values]
     .sort((a, b) => a.position - b.position)
@@ -127,6 +131,7 @@ const toRow = (input: ArticleInput) => ({
   note: input.note ?? null,
   published: input.published,
   published_at: input.published_at,
+  revised_at: input.revised_at ?? null,
   cover_image: input.cover_image ?? null,
   body: input.body,
 });

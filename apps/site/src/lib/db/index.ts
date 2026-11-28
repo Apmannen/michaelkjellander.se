@@ -48,7 +48,8 @@ const articles = async ({
       )
     `,
     )
-    .order('published_at', { ascending: false })
+    // The latest of revised_at and published_at, see db/018_article_revised_at.sql.
+    .order('sort_date', { ascending: false })
     .order('position', { referencedTable: 'tags' });
 
   if (slug) {

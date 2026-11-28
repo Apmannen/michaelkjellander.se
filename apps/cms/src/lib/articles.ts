@@ -34,6 +34,10 @@ export type Article = {
   note?: string;
   published: boolean;
   published_at: string;
+  // Set by hand when the content has been updated after it was published.
+  // Articles are sorted by this, or by published_at if it isn't set. Not the
+  // same as updated_at, which changes on every save.
+  revised_at?: string;
   cover_image?: Image;
   body: Body;
   // In the order they were picked.
@@ -60,6 +64,7 @@ export type ArticleInput = Pick<
   | 'note'
   | 'published'
   | 'published_at'
+  | 'revised_at'
   | 'cover_image'
   | 'body'
   | 'tag_ids'
@@ -109,6 +114,15 @@ export const validateArticle = (input: ArticleInput): string | undefined => {
   }
   if (Number.isNaN(Date.parse(input.published_at))) {
     return 'Publiceringstid måste anges.';
+  }
+  if (input.revised_at !== undefined) {
+    const revisedAt = Date.parse(input.revised_at);
+    if (Number.isNaN(revisedAt)) {
+      return 'Senast reviderad är ogiltig.';
+    }
+    if (revisedAt < Date.parse(input.published_at)) {
+      return 'Senast reviderad kan inte vara före publiceringstiden.';
+    }
   }
   if (input.rating !== undefined && !isValidRating(input.rating)) {
     return `Betyget måste vara ett heltal från ${RATING_MIN} till ${RATING_MAX}.`;
