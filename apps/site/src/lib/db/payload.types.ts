@@ -45,6 +45,7 @@ export type ArticlePayload = Pick<
   | 'intro'
   | 'slug'
   | 'published_at'
+  | 'revised_at'
   | 'rating'
   | 'note'
   | 'pros'

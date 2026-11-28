@@ -51,6 +51,7 @@ export async function saveArticle(
     note: parseNote(raw.note),
     published: raw.published === true,
     published_at: String(raw.published_at ?? ''),
+    revised_at: raw.revised_at ? String(raw.revised_at) : undefined,
     cover_image: parseImage(raw.cover_image),
     body: parseBody(raw.body),
     tag_ids: parseIds(raw.tag_ids),
@@ -65,6 +66,9 @@ export async function saveArticle(
   }
 
   input.published_at = new Date(input.published_at).toISOString();
+  if (input.revised_at) {
+    input.revised_at = new Date(input.revised_at).toISOString();
+  }
 
   const { data, error } = id
     ? await db.updateArticle(siteId, id, input)

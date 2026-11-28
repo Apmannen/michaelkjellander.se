@@ -113,8 +113,10 @@ export type Database = {
           published: boolean
           published_at: string
           rating: number | null
+          revised_at: string | null
           site_id: string
           slug: string
+          sort_date: string
           title: string
           updated_at: string
         }
@@ -131,8 +133,10 @@ export type Database = {
           published?: boolean
           published_at?: string
           rating?: number | null
+          revised_at?: string | null
           site_id: string
           slug: string
+          sort_date?: never
           title: string
           updated_at?: string
         }
@@ -149,8 +153,10 @@ export type Database = {
           published?: boolean
           published_at?: string
           rating?: number | null
+          revised_at?: string | null
           site_id?: string
           slug?: string
+          sort_date?: never
           title?: string
           updated_at?: string
         }

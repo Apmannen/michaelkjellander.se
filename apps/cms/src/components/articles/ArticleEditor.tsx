@@ -46,6 +46,9 @@ const toInput = (article: Article | null): ArticleInput => ({
   note: article?.note,
   published: article?.published ?? false,
   published_at: article ? new Date(article.published_at).toISOString() : now(),
+  revised_at: article?.revised_at
+    ? new Date(article.revised_at).toISOString()
+    : undefined,
   cover_image: article?.cover_image,
   body: withParagraphSlots(article?.body ?? []),
   tag_ids: article?.tag_ids ?? [],
@@ -72,8 +75,8 @@ const fromLocalDateTime = (value: string) => {
   return date.toISOString();
 };
 
-// The publication time is shown in the browser's time zone, which the server
-// doesn't know, so that field is only rendered on the client.
+// The publication and revision times are shown in the browser's time zone, which the server
+// doesn't know, so those fields are only rendered on the client.
 const useIsClient = () =>
   useSyncExternalStore(
     () => () => {},
@@ -96,6 +99,7 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   (a.note ?? '') === (b.note ?? '') &&
   a.published === b.published &&
   a.published_at === b.published_at &&
+  a.revised_at === b.revised_at &&
   JSON.stringify(a.cover_image) === JSON.stringify(b.cover_image) &&
   JSON.stringify(a.body) === JSON.stringify(b.body) &&
   JSON.stringify(a.tag_ids) === JSON.stringify(b.tag_ids) &&
@@ -344,6 +348,29 @@ export function ArticleEditor({
               value={isClient ? toLocalDateTime(draft.published_at) : ''}
               onChange={(event) =>
                 update({ published_at: fromLocalDateTime(event.target.value) })
+              }
+              className={inputClass}
+            />
+          </Field>
+
+          <Field
+            label='Senast reviderad'
+            htmlFor='revised_at'
+            description='Valfri. Anges när innehållet har uppdaterats efter publiceringen. Artiklar sorteras på denna tid, annars på publiceringstiden.'
+          >
+            <input
+              id='revised_at'
+              type='datetime-local'
+              value={
+                isClient && draft.revised_at
+                  ? toLocalDateTime(draft.revised_at)
+                  : ''
+              }
+              onChange={(event) =>
+                update({
+                  revised_at:
+                    fromLocalDateTime(event.target.value) || undefined,
+                })
               }
               className={inputClass}
             />
