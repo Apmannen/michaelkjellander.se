@@ -102,14 +102,14 @@ export const Article = ({
         {devYears || devTool || cta || platforms.length || rating != null ? (
           <>
             <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-              <div className='text-[16px]'>
-                {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
-                {devTool ? <div>Utvecklat i: {devTool}</div> : null}
+              <div className='text-[14px]'>
                 {rating != null ? (
-                  <div className='text-[13px] font-bold uppercase tracking-[0.1em]'>
+                  <div className='font-source-serif font-bold uppercase tracking-[0.1em]'>
                     Recension
                   </div>
                 ) : null}
+                {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
+                {devTool ? <div>Utvecklat i: {devTool}</div> : null}
                 {platforms.length ? (
                   <div>
                     Testat på:{' '}
