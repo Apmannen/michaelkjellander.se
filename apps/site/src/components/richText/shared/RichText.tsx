@@ -92,7 +92,7 @@ export const RichText = ({
           <MkLink
             enabled={linkMark !== undefined}
             className={{
-              link: 'underline hover:text-accent-800',
+              link: 'underline text-accent-900 hover:no-underline',
             }}
             key={i1}
             href={linkMark?.href}
