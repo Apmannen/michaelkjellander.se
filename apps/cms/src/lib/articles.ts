@@ -6,6 +6,7 @@ import {
 } from '@/lib/body';
 import type { FieldValue } from '@/lib/fields';
 import type { Image } from '@/lib/images';
+import { isValidRating, RATING_MAX, RATING_MIN } from '@/lib/rating';
 import { validateSlug } from '@/lib/slug';
 
 // A button shown under the intro, e.g. "Spela nu" linking to a game.
@@ -24,6 +25,10 @@ export type Article = {
   cta?: CallToAction;
   // A whole number from RATING_MIN to RATING_MAX, e.g. for a review.
   rating?: number;
+  // Shown in the same box as the rating, also when there is no rating. Lines
+  // of plain text, see lib/rating.ts.
+  pros?: string[];
+  cons?: string[];
   // A special note shown at the top of the article, e.g. that a review was
   // written on two occasions. Plain text that may contain line breaks.
   note?: string;
@@ -50,6 +55,8 @@ export type ArticleInput = Pick<
   | 'intro'
   | 'cta'
   | 'rating'
+  | 'pros'
+  | 'cons'
   | 'note'
   | 'published'
   | 'published_at'
@@ -58,19 +65,6 @@ export type ArticleInput = Pick<
   | 'tag_ids'
   | 'field_values'
 >;
-
-export const RATING_MIN = 1;
-export const RATING_MAX = 10;
-
-// Undefined if no rating is set. Anything else that isn't a whole number is
-// kept as NaN so validateArticle can point it out.
-export const parseRating = (value: unknown): number | undefined => {
-  if (value === undefined || value === null || value === '') {
-    return undefined;
-  }
-  const rating = Number(value);
-  return Number.isInteger(rating) ? rating : Number.NaN;
-};
 
 // Undefined if the note is empty. Line breaks are kept, but normalized to \n
 // and with surrounding whitespace removed from each line.
@@ -116,14 +110,7 @@ export const validateArticle = (input: ArticleInput): string | undefined => {
   if (Number.isNaN(Date.parse(input.published_at))) {
     return 'Publiceringstid måste anges.';
   }
-  if (
-    input.rating !== undefined &&
-    !(
-      Number.isInteger(input.rating) &&
-      input.rating >= RATING_MIN &&
-      input.rating <= RATING_MAX
-    )
-  ) {
+  if (input.rating !== undefined && !isValidRating(input.rating)) {
     return `Betyget måste vara ett heltal från ${RATING_MIN} till ${RATING_MAX}.`;
   }
   if (input.cta) {

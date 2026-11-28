@@ -1,7 +1,9 @@
 import { mathUtils } from '@/lib/mathUtils';
-import { FaRegStar, FaStar, FaStarHalfStroke } from 'react-icons/fa6';
+import { FaMinus, FaRegStar, FaStar, FaStarHalfStroke } from 'react-icons/fa6';
 import { MkLink } from '../standard/MkLink';
 import { LuArrowRight, LuGamepad2 } from 'react-icons/lu';
+import { FaPlus } from 'react-icons/fa';
+import { IconType } from 'react-icons';
 
 export const Stars = ({
   rating5,
@@ -13,7 +15,7 @@ export const Stars = ({
   rating5 = mathUtils.clamp(rating5, 0, 5);
   return (
     <span
-      className={`inline-flex gap-1 text-accent-800 ${className}`}
+      className={`text-accent-800 inline-flex gap-1 ${className}`}
       aria-label={`${rating5} av 5`}
     >
       {[1, 2, 3, 4, 5].map((n) => {
@@ -29,9 +31,37 @@ export const Stars = ({
   );
 };
 
+const ProConList = ({
+  items,
+  title,
+  Icon,
+}: {
+  items: string[];
+  title: string;
+  Icon: IconType;
+}) => {
+  return (
+    <div className=''>
+      <div className='pb-2 font-semibold'>{title}</div>
+      <ul className='space-y-2 text-[16px]'>
+        {items.map((item, i) => (
+          <li key={i} className='flex items-start'>
+            <span className='mr-2 mt-1'>
+              <Icon className='text-accent-800' />
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 export const Rating = ({
   rating10,
   playAlsoRather,
+  pros,
+  cons,
 }: {
   rating10: number;
   playAlsoRather?: {
@@ -39,6 +69,8 @@ export const Rating = ({
     game: string;
     type: 'play_also' | 'play_rather';
   };
+  pros: string[];
+  cons: string[];
 }) => {
   rating10 = mathUtils.clamp(rating10, 1, 10);
 
@@ -69,14 +101,20 @@ export const Rating = ({
   })();
 
   return (
-    <div className='rounded-md bg-accent-100  px-4 sm:px-6 py-3 sm:py-4 border border-accent-300'>
+    <div className='bg-accent-100 border-accent-300 rounded-md border px-4 py-3 sm:px-6 sm:py-4'>
+      {pros.length || cons.length ? (
+        <div className='border-accent-300 mb-5 grid grid-cols-2 gap-4 border-b pb-3 text-[16px] sm:text-[18px]'>
+          <ProConList items={pros} title='Plus' Icon={FaPlus} />
+          <ProConList items={cons} title='Minus' Icon={FaMinus} />
+        </div>
+      ) : null}
       <div className='flex items-center gap-6'>
         <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
-        <span className='h-8 w-px bg-accent-300' />
-        <span className='text-[20px] sm:text-[24px] italic'>{verdict}</span>
+        <span className='bg-accent-300 h-8 w-px' />
+        <span className='text-[20px] italic sm:text-[24px]'>{verdict}</span>
       </div>
       {playAlsoRather ? (
-        <div className='border-t border-accent-300 mt-5 pt-3 text-[16px] sm:text-[18px]'>
+        <div className='border-accent-300 mt-5 border-t pt-3 text-[16px] sm:text-[18px]'>
           <MkLink
             href={playAlsoRather.href}
             className={{ all: 'group flex items-center gap-2' }}
@@ -84,10 +122,10 @@ export const Rating = ({
             <>
               <LuGamepad2
                 aria-hidden
-                className='shrink-0 text-accent-800 text-[22px] sm:text-[24px]'
+                className='text-accent-800 shrink-0 text-[22px] sm:text-[24px]'
               />
               <span className='flex-1'>
-                <span className='font-semibold text-accent-800 pr-[2px]'>
+                <span className='text-accent-800 pr-[2px] font-semibold'>
                   Spela även:{' '}
                 </span>
                 <span

@@ -6,12 +6,11 @@ import {
   type Article,
   type ArticleInput,
   type ArticleSummary,
-  RATING_MAX,
-  RATING_MIN,
 } from '@/lib/articles';
 import { withParagraphSlots } from '@/lib/body';
 import type { FieldDefinition } from '@/lib/fields';
 import type { UploadedImage } from '@/lib/images';
+import { parseLines, RATING_MAX, RATING_MIN } from '@/lib/rating';
 import type { Tag } from '@/lib/tags';
 
 import { BodyEditor } from '../body/BodyEditor';
@@ -24,6 +23,7 @@ import { Field, inputClass } from '../editor/Field';
 import { SlugField } from '../editor/SlugField';
 import { FieldValuesField } from '../fields/FieldValuesField';
 import { ImagePicker } from '../images/image-picker';
+import { RatingFields } from '../rating/RatingFields';
 import { TagPicker } from '../tags/tag-picker';
 import { deleteArticle, saveArticle } from './actions';
 import { CallToActionField } from './CallToActionField';
@@ -41,6 +41,8 @@ const toInput = (article: Article | null): ArticleInput => ({
   intro: article?.intro ?? '',
   cta: article?.cta,
   rating: article?.rating,
+  pros: article?.pros,
+  cons: article?.cons,
   note: article?.note,
   published: article?.published ?? false,
   published_at: article ? new Date(article.published_at).toISOString() : now(),
@@ -88,6 +90,9 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   a.cta?.text === b.cta?.text &&
   a.cta?.href === b.cta?.href &&
   a.rating === b.rating &&
+  // Empty lines are dropped when saving, so they don't count as changes.
+  JSON.stringify(parseLines(a.pros)) === JSON.stringify(parseLines(b.pros)) &&
+  JSON.stringify(parseLines(a.cons)) === JSON.stringify(parseLines(b.cons)) &&
   (a.note ?? '') === (b.note ?? '') &&
   a.published === b.published &&
   a.published_at === b.published_at &&
@@ -95,11 +100,6 @@ const isSame = (a: ArticleInput, b: ArticleInput) =>
   JSON.stringify(a.body) === JSON.stringify(b.body) &&
   JSON.stringify(a.tag_ids) === JSON.stringify(b.tag_ids) &&
   JSON.stringify(a.field_values) === JSON.stringify(b.field_values);
-
-const RATINGS = Array.from(
-  { length: RATING_MAX - RATING_MIN + 1 },
-  (_, index) => RATING_MIN + index,
-);
 
 // tags are all of the site's tags, which the article's tags are picked from.
 // fieldDefinitions are the site's dynamic fields, and articles the articles
@@ -276,27 +276,13 @@ export function ArticleEditor({
           <Field
             label='Betyg'
             htmlFor='rating'
-            description={`Valfritt, från ${RATING_MIN} till ${RATING_MAX}. T.ex. för en recension.`}
+            description={`Valfritt, från ${RATING_MIN} till ${RATING_MAX}, t.ex. för en recension. Plus och minus visas i samma ruta och kan anges även utan betyg.`}
           >
-            <select
+            <RatingFields
               id='rating'
-              value={draft.rating ?? ''}
-              onChange={(event) =>
-                update({
-                  rating: event.target.value
-                    ? Number(event.target.value)
-                    : undefined,
-                })
-              }
-              className={inputClass}
-            >
-              <option value=''>Inget betyg</option>
-              {RATINGS.map((rating) => (
-                <option key={rating} value={rating}>
-                  {rating}
-                </option>
-              ))}
-            </select>
+              value={draft}
+              onChange={update}
+            />
           </Field>
 
           <Field
