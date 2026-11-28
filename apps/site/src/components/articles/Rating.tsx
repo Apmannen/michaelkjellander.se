@@ -102,17 +102,17 @@ export const Rating = ({
 
   return (
     <div className='bg-accent-100 border-accent-300 rounded-md border px-4 py-3 sm:px-6 sm:py-4'>
+      {pros.length || cons.length ? (
+        <div className='border-accent-300 mb-5 grid grid-cols-2 gap-4 border-b pb-3 text-[16px] sm:text-[18px]'>
+          <ProConList items={pros} title='Plus' Icon={FaPlus} />
+          <ProConList items={cons} title='Minus' Icon={FaMinus} />
+        </div>
+      ) : null}
       <div className='flex items-center gap-6'>
         <Stars rating5={rating10 / 2} className='text-[20px] sm:text-[24px]' />
         <span className='bg-accent-300 h-8 w-px' />
         <span className='text-[20px] italic sm:text-[24px]'>{verdict}</span>
       </div>
-      {pros.length || cons.length ? (
-        <div className='border-accent-300 mt-5 grid grid-cols-2 gap-4 border-t pt-3 text-[16px] sm:text-[18px]'>
-          <ProConList items={pros} title='Plus' Icon={FaPlus} />
-          <ProConList items={cons} title='Minus' Icon={FaMinus} />
-        </div>
-      ) : null}
       {playAlsoRather ? (
         <div className='border-accent-300 mt-5 border-t pt-3 text-[16px] sm:text-[18px]'>
           <MkLink

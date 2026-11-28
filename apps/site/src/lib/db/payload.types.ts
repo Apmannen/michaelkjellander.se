@@ -22,12 +22,15 @@ export type BodyMarkPayload = {
   LinkPayload | { type: 'icon'; name: IconName } | { type: 'bold' | 'italic' }
 );
 export type ArticleBodyPartPayload = {
-  type: 'paragraph' | 'heading' | 'quote' | 'divider' | 'list';
+  type: 'paragraph' | 'heading' | 'quote' | 'divider' | 'list' | 'rating';
   text?: string;
   author?: string;
   marks?: BodyMarkPayload[];
   href?: string;
   level?: number;
+  rating?: number;
+  pros?: string[];
+  cons?: string[];
   items?: {
     icon?: IconName;
     text: string;

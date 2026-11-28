@@ -175,6 +175,12 @@ export const Article = ({
                 <Divider className={{ container: 'py-4' }} />
               ) : part.type === 'list' ? (
                 <List part={part} />
+              ) : part.type === 'rating' ? (
+                <Rating
+                  rating10={part.rating ?? 5}
+                  pros={part.pros ?? []}
+                  cons={part.cons ?? []}
+                />
               ) : null}
             </div>
           ))}
