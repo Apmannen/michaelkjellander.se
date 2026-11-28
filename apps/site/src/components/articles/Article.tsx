@@ -51,11 +51,11 @@ export const Article = ({
     <article className='bg-default-box sm:mb-12 sm:shadow-sm'>
       <nav
         aria-label='Brödsmulor'
-        className='flex items-center gap-3 text-[16px] px-default-box pt-6 pb-4'
+        className='px-default-box flex items-center gap-3 pb-4 pt-6 text-[16px]'
       >
         <MkLink
           href='/'
-          className={{ all: 'flex items-center gap-2 hover:text-accent-800' }}
+          className={{ all: 'hover:text-accent-800 flex items-center gap-2' }}
         >
           <LuArrowLeft aria-hidden /> Inlägg
         </MkLink>
@@ -85,14 +85,14 @@ export const Article = ({
             alt=''
             width={729}
             height={400}
-            className='w-full sm:rounded-lg object-cover h-full'
+            className='h-full w-full object-cover sm:rounded-lg'
             loading='eager'
           />
         ) : null}
       </div>
       <div className='px-default-box text-[18px] sm:text-[20px]'>
         <h1
-          className='font-bold tracking-[-3.5px] leading-[1.00] pt-3 pb-1'
+          className='pb-1 pt-3 font-bold leading-[1.00] tracking-[-3.5px]'
           style={{ fontSize: 'clamp(52px,7.5vw,70px)' }}
         >
           {title}
@@ -101,7 +101,7 @@ export const Article = ({
         <Divider className={{ container: 'py-4' }} />
         {devYears || devTool || cta || platforms.length || rating != null ? (
           <>
-            <div className='flex sm:items-center flex-col sm:flex-row gap-2'>
+            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
               <div className='text-[16px]'>
                 {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
                 {devTool ? <div>Utvecklat i: {devTool}</div> : null}
@@ -123,7 +123,7 @@ export const Article = ({
                   </div>
                 ) : null}
               </div>
-              <div className='flex-1 flex items-center sm:justify-end'>
+              <div className='flex flex-1 items-center sm:justify-end'>
                 {cta ? (
                   <Button
                     href={cta.href}
@@ -174,8 +174,8 @@ export const Article = ({
             </div>
           ) : null}
         </div>
-        <footer className='mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-[16px] pb-12'>
-          <p className='flex items-center gap-2 text-muted'>
+        <footer className='border-line mt-10 flex flex-wrap items-center justify-between gap-4 border-t pb-12 pt-6 text-[16px]'>
+          <p className='text-muted flex items-center gap-2'>
             <LuCalendar aria-hidden />
             <span>{dateUtils.formatDate(published_at)}</span>
           </p>
@@ -186,7 +186,7 @@ export const Article = ({
                 <MkLink
                   key={i}
                   className={{
-                    all: 'rounded-lg border border-accent-300 bg-accent-100 px-2 py-0.5 text-[14px] text-accent-800 hover:bg-accent-800 hover:border-accent-800 hover:text-white',
+                    all: 'border-accent-300 bg-accent-100 text-accent-800 hover:bg-accent-800 hover:border-accent-800 rounded-lg border px-2 py-0.5 text-[14px] hover:text-white',
                   }}
                   href={paths.tag(tag)}
                 >
