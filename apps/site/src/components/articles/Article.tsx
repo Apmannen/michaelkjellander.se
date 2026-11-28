@@ -106,7 +106,9 @@ export const Article = ({
                 {devYears ? <div>Utvecklingsår: {devYears}</div> : null}
                 {devTool ? <div>Utvecklat i: {devTool}</div> : null}
                 {rating != null ? (
-                  <div className='font-bold'>Recension</div>
+                  <div className='text-[13px] font-bold uppercase tracking-[0.1em]'>
+                    Recension
+                  </div>
                 ) : null}
                 {platforms.length ? (
                   <div>
