@@ -30,6 +30,8 @@ export const Article = ({
     | 'rating'
     | 'published_at'
     | 'note'
+    | 'pros'
+    | 'cons'
   >;
 }) => {
   const {
@@ -42,6 +44,8 @@ export const Article = ({
     title,
     published_at,
     note,
+    pros,
+    cons,
   } = article;
   const devYears = fields?.find((f) => f.field.key === 'dev_years')?.text;
   const devTool = fields?.find((f) => f.field.key === 'dev_tool')?.text;
@@ -177,6 +181,8 @@ export const Article = ({
           {rating != null ? (
             <div className='pt-2'>
               <Rating
+                pros={pros || []}
+                cons={cons || []}
                 rating10={rating}
                 playAlsoRather={
                   playAlso
