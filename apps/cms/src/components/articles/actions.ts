@@ -8,7 +8,6 @@ import {
   type ArticleInput,
   parseCallToAction,
   parseNote,
-  parseRating,
   validateArticle,
 } from '@/lib/articles';
 import { parseBody } from '@/lib/body';
@@ -16,6 +15,7 @@ import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { parseFieldValues, validateFieldValues } from '@/lib/fields';
 import { parseImage } from '@/lib/images';
+import { parseLines, parseRating } from '@/lib/rating';
 import { parseIds } from '@/lib/tags';
 
 // The tag editors list the articles, which link fields can link to, so
@@ -46,6 +46,8 @@ export async function saveArticle(
       .trim(),
     cta: parseCallToAction(raw.cta),
     rating: parseRating(raw.rating),
+    pros: parseLines(raw.pros),
+    cons: parseLines(raw.cons),
     note: parseNote(raw.note),
     published: raw.published === true,
     published_at: String(raw.published_at ?? ''),

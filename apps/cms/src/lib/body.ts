@@ -1,4 +1,11 @@
 import { type Image, parseImage } from '@/lib/images';
+import {
+  hasRatingContent,
+  isValidRating,
+  parseLines,
+  parseRating,
+  type Rating,
+} from '@/lib/rating';
 
 export type MarkStyle =
   | { type: 'bold' }
@@ -89,7 +96,21 @@ export type ListBlock = {
   items: ListItem[];
 };
 
-export type WidgetBlock = QuoteBlock | ImageBlock | DividerBlock | ListBlock;
+// A rating within the body, e.g. an original rating kept after the article's
+// own rating has changed. Has at least one of rating, pros and cons.
+export type RatingBlock = Rating & {
+  id: string;
+  type: 'rating';
+  // E.g. "Originalbetyg (2019)". Left out when there is no title.
+  title?: string;
+};
+
+export type WidgetBlock =
+  | QuoteBlock
+  | ImageBlock
+  | DividerBlock
+  | ListBlock
+  | RatingBlock;
 
 export type BodyBlock = TextBlock | WidgetBlock;
 
@@ -110,6 +131,7 @@ export const ALL_BODY_FEATURES: readonly BodyFeature[] = [
   'list',
   'icon',
   'divider',
+  'rating',
 ];
 
 // Stands in for an icon in a paragraph's text, so the icon takes up a
@@ -431,9 +453,33 @@ const parseListItems = (
   });
 };
 
+// Gives a rating block with only the valid parts of the input, or undefined
+// if it has neither a valid rating nor any pros or cons.
+export const ratingBlock = (
+  item: Record<string, unknown>,
+  id = newBlockId(),
+): RatingBlock | undefined => {
+  const rating = parseRating(item.rating);
+  const pros = parseLines(item.pros);
+  const cons = parseLines(item.cons);
+  const fields: Rating = {
+    ...(rating !== undefined && isValidRating(rating) ? { rating } : {}),
+    ...(pros ? { pros } : {}),
+    ...(cons ? { cons } : {}),
+  };
+  if (!hasRatingContent(fields)) {
+    return undefined;
+  }
+  const title =
+    typeof item.title === 'string'
+      ? item.title.replace(/\s+/g, ' ').trim()
+      : '';
+  return { id, type: 'rating', ...(title ? { title } : {}), ...fields };
+};
+
 // Sanitizes untrusted input: drops unknown block types, empty paragraphs and
-// headings, lists without items, quotes without text, images that aren't
-// uploads, invalid marks and icon placeholders without an icon. Blocks and
+// headings, lists without items, quotes without text, ratings without
+// content, images that aren't uploads, invalid marks and icon placeholders without an icon. Blocks and
 // marks that aren't among the features are dropped too, except headings,
 // which become paragraphs.
 export const parseBody = (
@@ -476,6 +522,11 @@ export const parseBody = (
 
     if (item.type === 'divider') {
       return [{ id, type: 'divider' }];
+    }
+
+    if (item.type === 'rating') {
+      const block = ratingBlock(item, id);
+      return block ? [block] : [];
     }
 
     if (

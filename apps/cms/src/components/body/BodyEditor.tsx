@@ -26,6 +26,7 @@ import {
   type HeadingLevel,
   type ParagraphBlock,
   type QuoteBlock,
+  type RatingBlock,
   type TextBlock,
   DEFAULT_HEADING_LEVEL,
   HEADING_LEVELS,
@@ -40,15 +41,18 @@ import {
   newBlockId,
   normalizeHref,
   paragraph,
+  ratingBlock,
   removeMarks,
   shiftMarks,
   sliceMarks,
   withParagraphSlots,
 } from '@/lib/body';
 import type { UploadedImage } from '@/lib/images';
+import { hasRatingContent, RATING_MAX, type Rating } from '@/lib/rating';
 
 import { Icon, IconPicker } from '../icons/icon-picker';
 import { ImagePicker, ImagePreview } from '../images/image-picker';
+import { RatingFields } from '../rating/RatingFields';
 
 // end selects from offset up to there.
 type Caret = { id: string; offset: number; end?: number };
@@ -72,6 +76,11 @@ type ImageEdit = Partial<ImageFields> & { id?: string };
 
 // id is undefined while inserting a new list.
 type ListEdit = { id?: string; items: ListItem[] };
+
+type RatingFieldValues = Omit<RatingBlock, 'id' | 'type'>;
+
+// id is undefined while inserting a new rating.
+type RatingEdit = RatingFieldValues & { id?: string };
 
 const autosize = (input: HTMLTextAreaElement) => {
   input.style.height = 'auto';
@@ -168,7 +177,8 @@ export function BodyEditor({
     has('image') ||
     has('list') ||
     has('icon') ||
-    has('divider');
+    has('divider') ||
+    has('rating');
   const inputs = useRef(new Map<string, HTMLTextAreaElement>());
   const pendingCaret = useRef<Caret | undefined>(undefined);
   // Kept after blur, so the toolbar knows where to insert or link.
@@ -185,6 +195,9 @@ export function BodyEditor({
     undefined,
   );
   const [editingList, setEditingList] = useState<ListEdit | undefined>(
+    undefined,
+  );
+  const [editingRating, setEditingRating] = useState<RatingEdit | undefined>(
     undefined,
   );
   const [isPickingIcon, setIsPickingIcon] = useState(false);
@@ -749,6 +762,20 @@ export function BodyEditor({
     insertWidget({ id: newBlockId(), type: 'list', items });
   };
 
+  // The dialog only saves a rating with content, so there's always a block.
+  const saveRating = ({ id: ratingId, ...fields }: RatingEdit) => {
+    setEditingRating(undefined);
+    const block = ratingBlock(fields, ratingId);
+    if (!block) {
+      return;
+    }
+    if (ratingId) {
+      onChange(value.map((other) => (other.id === ratingId ? block : other)));
+      return;
+    }
+    insertWidget(block);
+  };
+
   const removeBlock = (index: number) => {
     commit(splice(index, 1));
   };
@@ -915,6 +942,16 @@ export function BodyEditor({
             ★ {selectedIcon ? 'Byt ikon' : 'Ikon'}
           </button>
         )}
+        {has('rating') && (
+          <button
+            type='button'
+            onClick={() => setEditingRating({})}
+            title='Infoga ett betyg med plus och minus där markören står, t.ex. ett originalbetyg'
+            className={toolbarButtonClass}
+          >
+            ☆ Betyg
+          </button>
+        )}
         {has('divider') && (
           <button
             type='button'
@@ -993,6 +1030,17 @@ export function BodyEditor({
             );
           }
 
+          if (block.type === 'rating') {
+            return (
+              <RatingWidget
+                key={block.id}
+                block={block}
+                onEdit={() => setEditingRating(block)}
+                onRemove={() => removeBlock(index)}
+              />
+            );
+          }
+
           if (block.type === 'divider') {
             return (
               <DividerWidget
@@ -1036,6 +1084,14 @@ export function BodyEditor({
           allowLinks={has('link')}
           onSave={(items) => saveList({ id: editingList.id, items })}
           onClose={() => setEditingList(undefined)}
+        />
+      )}
+
+      {editingRating && (
+        <RatingDialog
+          initial={editingRating}
+          onSave={(fields) => saveRating({ id: editingRating.id, ...fields })}
+          onClose={() => setEditingRating(undefined)}
         />
       )}
 
@@ -1772,6 +1828,163 @@ function QuoteDialog({
             className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
           >
             {initial.text ? 'Uppdatera' : 'Infoga'}
+          </button>
+        </div>
+      </form>
+    </dialog>,
+    document.body,
+  );
+}
+
+function RatingWidget({
+  block,
+  onEdit,
+  onRemove,
+}: {
+  block: RatingBlock;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div
+      onDoubleClick={onEdit}
+      className='group relative flex flex-col gap-2 rounded-md border border-amber-300 bg-amber-50 py-3 pr-32 pl-4 dark:border-amber-800 dark:bg-amber-950/40'
+    >
+      <p className='text-sm font-semibold'>
+        {block.title ?? 'Betyg'}
+        {block.rating !== undefined && (
+          <span className='ml-2 font-normal text-zinc-600 dark:text-zinc-400'>
+            {block.rating}/{RATING_MAX}
+          </span>
+        )}
+      </p>
+      {(block.pros || block.cons) && (
+        <div className='grid gap-3 text-sm sm:grid-cols-2'>
+          <RatingLines sign='+' lines={block.pros} />
+          <RatingLines sign='−' lines={block.cons} />
+        </div>
+      )}
+      <div className='absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100'>
+        <button type='button' onClick={onEdit} className={toolbarButtonClass}>
+          Redigera
+        </button>
+        <button
+          type='button'
+          onClick={onRemove}
+          className={`${toolbarButtonClass} text-red-600 dark:text-red-400`}
+        >
+          Ta bort
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RatingLines({ sign, lines = [] }: { sign: string; lines?: string[] }) {
+  return (
+    <ul className='flex flex-col gap-1'>
+      {lines.map((line, i) => (
+        <li key={i} className='flex gap-2'>
+          <span className='w-3 shrink-0 font-semibold text-zinc-500'>
+            {sign}
+          </span>
+          <span>{line}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function RatingDialog({
+  initial,
+  onSave,
+  onClose,
+}: {
+  initial: RatingFieldValues;
+  onSave: (fields: RatingFieldValues) => void;
+  onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [title, setTitle] = useState(initial.title ?? '');
+  const [rating, setRating] = useState<Rating>({
+    rating: initial.rating,
+    pros: initial.pros,
+    cons: initial.cons,
+  });
+  // Cleaned up the same way as when saving, so empty lines don't count.
+  const result = ratingBlock({ title, ...rating });
+  const isNew = !hasRatingContent(initial);
+
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+
+  // Portaled out of the article <form>, since forms can't be nested.
+  return createPortal(
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      className='m-auto w-full max-w-2xl rounded-lg bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/40 dark:bg-zinc-900 dark:text-zinc-100'
+    >
+      <form
+        className='flex flex-col gap-5 p-6'
+        onSubmit={(event) => {
+          // React events bubble through portals, so keep this submit from
+          // reaching the article form.
+          event.preventDefault();
+          event.stopPropagation();
+          if (!result) {
+            return;
+          }
+          onSave({
+            title: result.title,
+            rating: result.rating,
+            pros: result.pros,
+            cons: result.cons,
+          });
+        }}
+      >
+        <h2 className='text-base font-semibold'>Betyg</h2>
+
+        <label className='flex flex-col gap-2'>
+          <span className='text-sm font-semibold'>Rubrik (valfri)</span>
+          <input
+            type='text'
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder='T.ex. Originalbetyg (2019)'
+            autoComplete='off'
+            autoFocus
+            className={dialogInputClass}
+          />
+        </label>
+
+        <div className='flex flex-col gap-2'>
+          <label htmlFor='rating-block' className='text-sm font-semibold'>
+            Betyg, plus och minus
+          </label>
+          <RatingFields
+            id='rating-block'
+            value={rating}
+            onChange={(patch) => setRating({ ...rating, ...patch })}
+          />
+        </div>
+
+        <div className='flex justify-end gap-3'>
+          <button
+            type='button'
+            onClick={() => dialog.current?.close()}
+            className='rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800'
+          >
+            Avbryt
+          </button>
+          <button
+            type='submit'
+            disabled={!result}
+            title={result ? undefined : 'Ange ett betyg, plus eller minus'}
+            className='rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
+          >
+            {isNew ? 'Infoga' : 'Uppdatera'}
           </button>
         </div>
       </form>
