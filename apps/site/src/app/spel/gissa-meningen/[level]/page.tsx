@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 type Props = {
   params: Promise<{ level: string }>;
 };
-const maxLevel = 40; //TODO: get from DB
+const maxLevel = 50; //TODO: get from DB
 
 export default async function Page({ params }: Props) {
   return (
