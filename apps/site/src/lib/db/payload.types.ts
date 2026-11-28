@@ -19,9 +19,7 @@ export type BodyMarkPayload = {
   start: number;
   end: number;
 } & (
-  | LinkPayload
-  | { type: 'icon'; name: IconName }
-  | { type: 'bold' | 'italic' }
+  LinkPayload | { type: 'icon'; name: IconName } | { type: 'bold' | 'italic' }
 );
 export type ArticleBodyPartPayload = {
   type: 'paragraph' | 'heading' | 'quote' | 'divider' | 'list';
@@ -39,7 +37,7 @@ export type ArticleBodyPartPayload = {
 
 export type ArticlePayload = Pick<
   Database['public']['Tables']['articles']['Row'],
-  'id' | 'title' | 'intro' | 'slug' | 'published_at' | 'rating'
+  'id' | 'title' | 'intro' | 'slug' | 'published_at' | 'rating' | 'note'
 > & {
   body: ArticleBodyPartPayload[];
   cover_image: { path: string } | null;

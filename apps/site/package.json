@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "gen-db-types": "npx supabase gen types typescript --project-id yquucdjolwndpqhjaqox > ./src/lib/db/supabase.types.ts"
+    "gen-db-types": "npx supabase gen types typescript --project-id yquucdjolwndpqhjaqox > ./src/lib/db/supabase.types.ts",
+    "gen-db-types-console": "npx supabase gen types typescript --project-id yquucdjolwndpqhjaqox"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
