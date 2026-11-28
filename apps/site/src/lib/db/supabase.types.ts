@@ -102,12 +102,14 @@ export type Database = {
       articles: {
         Row: {
           body: Json
+          cons: string[] | null
           cover_image: Json | null
           created_at: string
           cta: Json | null
           id: string
           intro: string
           note: string | null
+          pros: string[] | null
           published: boolean
           published_at: string
           rating: number | null
@@ -118,12 +120,14 @@ export type Database = {
         }
         Insert: {
           body?: Json
+          cons?: string[] | null
           cover_image?: Json | null
           created_at?: string
           cta?: Json | null
           id?: string
           intro?: string
           note?: string | null
+          pros?: string[] | null
           published?: boolean
           published_at?: string
           rating?: number | null
@@ -134,12 +138,14 @@ export type Database = {
         }
         Update: {
           body?: Json
+          cons?: string[] | null
           cover_image?: Json | null
           created_at?: string
           cta?: Json | null
           id?: string
           intro?: string
           note?: string | null
+          pros?: string[] | null
           published?: boolean
           published_at?: string
           rating?: number | null
