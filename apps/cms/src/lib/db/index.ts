@@ -48,7 +48,7 @@ type SaveResult<T> =
   | {data: undefined; error: PostgrestError};
 
 const ARTICLE_COLUMNS =
-  'id, title, slug, intro, cta, rating, published, published_at, cover_image, body, created_at, updated_at, article_tags!article_tags_article_id_fkey(tag_id, position), article_field_values!article_field_values_article_id_fkey(field_id, position, text, href, target_article_id)';
+  'id, title, slug, intro, cta, rating, note, published, published_at, cover_image, body, created_at, updated_at, article_tags!article_tags_article_id_fkey(tag_id, position), article_field_values!article_field_values_article_id_fkey(field_id, position, text, href, target_article_id)';
 
 // The database uses null where the app uses undefined.
 type FieldValueRow = {
@@ -72,11 +72,12 @@ const toFieldValue = ({
 
 type ArticleRow = Omit<
   Article,
-  'cover_image' | 'cta' | 'rating' | 'tag_ids' | 'field_values'
+  'cover_image' | 'cta' | 'rating' | 'note' | 'tag_ids' | 'field_values'
 > & {
   cover_image: Image | null;
   cta: CallToAction | null;
   rating: number | null;
+  note: string | null;
   article_tags: LinkRow<'tag_id'>[];
   article_field_values: (FieldValueRow & {position: number})[];
 };
@@ -85,6 +86,7 @@ const toArticle = ({
   cover_image,
   cta,
   rating,
+  note,
   article_tags,
   article_field_values,
   ...row
@@ -93,6 +95,7 @@ const toArticle = ({
   ...(cover_image ? {cover_image} : {}),
   ...(cta ? {cta} : {}),
   ...(rating !== null ? {rating} : {}),
+  ...(note ? {note} : {}),
   tag_ids: toIds(article_tags, 'tag_id'),
   field_values: [...article_field_values]
     .sort((a, b) => a.position - b.position)
@@ -106,6 +109,7 @@ const toRow = (input: ArticleInput) => ({
   intro: input.intro,
   cta: input.cta ?? null,
   rating: input.rating ?? null,
+  note: input.note ?? null,
   published: input.published,
   published_at: input.published_at,
   cover_image: input.cover_image ?? null,
