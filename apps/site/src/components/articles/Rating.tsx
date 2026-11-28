@@ -1,8 +1,9 @@
 import { mathUtils } from '@/lib/mathUtils';
-import { FaRegStar, FaStar, FaStarHalfStroke } from 'react-icons/fa6';
+import { FaMinus, FaRegStar, FaStar, FaStarHalfStroke } from 'react-icons/fa6';
 import { MkLink } from '../standard/MkLink';
 import { LuArrowRight, LuGamepad2 } from 'react-icons/lu';
 import { FaPlus } from 'react-icons/fa';
+import { IconType } from 'react-icons';
 
 export const Stars = ({
   rating5,
@@ -30,15 +31,23 @@ export const Stars = ({
   );
 };
 
-const ProConList = ({ items, title }: { items: string[]; title: string }) => {
+const ProConList = ({
+  items,
+  title,
+  Icon,
+}: {
+  items: string[];
+  title: string;
+  Icon: IconType;
+}) => {
   return (
     <div>
-      <div className='font-semibold pb-2'>{title}</div>
+      <div className='pb-2 font-semibold'>{title}</div>
       <ul className='space-y-2'>
         {items.map((item, i) => (
           <li key={i} className='flex items-start'>
             <span className='mr-2 mt-1'>
-              <FaPlus className='text-accent-800' />
+              <Icon className='text-accent-800' />
             </span>
             <span>{item}</span>
           </li>
@@ -99,9 +108,9 @@ export const Rating = ({
         <span className='text-[20px] italic sm:text-[24px]'>{verdict}</span>
       </div>
       {pros.length || cons.length ? (
-        <div className='border-accent-300 mt-5 grid grid-cols-2 border-t pt-3 text-[16px] sm:text-[18px] gap-4'>
-          <ProConList items={pros} title='Plus' />
-          <ProConList items={cons} title='Minus' />
+        <div className='border-accent-300 mt-5 grid grid-cols-2 gap-4 border-t pt-3 text-[16px] sm:text-[18px]'>
+          <ProConList items={pros} title='Plus' Icon={FaPlus} />
+          <ProConList items={cons} title='Minus' Icon={FaMinus} />
         </div>
       ) : null}
       {playAlsoRather ? (
