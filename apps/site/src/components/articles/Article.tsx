@@ -29,6 +29,7 @@ export const Article = ({
     | 'tags'
     | 'rating'
     | 'published_at'
+    | 'revised_at'
     | 'note'
     | 'pros'
     | 'cons'
@@ -43,6 +44,7 @@ export const Article = ({
     cover_image,
     title,
     published_at,
+    revised_at,
     note,
     pros,
     cons,
@@ -159,7 +161,7 @@ export const Article = ({
         ) : null}
         <div className='space-y-4'>
           {note?.length ? (
-            <div className='bg-accent-100 text-accent-900 border-accent-800 rounded-sm border p-4 text-[16px] font-semibold'>
+            <div className='bg-accent-100 text-accent-900 border-accent-800 rounded-sm border p-4 text-[16px] font-medium'>
               {note}
             </div>
           ) : null}
@@ -204,10 +206,17 @@ export const Article = ({
           ) : null}
         </div>
         <footer className='border-line mt-10 flex flex-wrap items-center justify-between gap-4 border-t pb-12 pt-6 text-[16px]'>
-          <p className='text-muted flex items-center gap-2'>
-            <LuCalendar aria-hidden />
-            <span>{dateUtils.formatDate(published_at)}</span>
-          </p>
+          <div className='text-muted'>
+            <p className='flex items-center gap-2'>
+              <LuCalendar aria-hidden />
+              <span>{dateUtils.formatDate(published_at)}</span>
+            </p>
+            {revised_at ? (
+              <p className='font-medium'>
+                Uppdaterad {dateUtils.formatDate(revised_at)}
+              </p>
+            ) : null}
+          </div>
           <div className='flex items-center gap-3'>
             <span className='sr-only'>Taggar:</span>
             <div className='flex flex-wrap gap-1'>
